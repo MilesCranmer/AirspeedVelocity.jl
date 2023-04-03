@@ -4,10 +4,10 @@ using Documenter
 
 # First, we copy README.md to index.md,
 # replacing <README> in _index.md with the contents of README.md:
-open("src/index.md", "w") do io
-    for line in eachline("src/_index.md")
+open("docs/src/index.md", "w") do io
+    for line in eachline("docs/src/_index.md")
         if occursin(r"<README>", line)
-            for rline in eachline("../README.md")
+            for rline in eachline("README.md")
                 println(io, rline)
             end
         else
