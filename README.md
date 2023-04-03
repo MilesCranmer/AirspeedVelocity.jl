@@ -5,23 +5,43 @@
 [![Build Status](https://github.com/MilesCranmer/AirspeedVelocity.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/MilesCranmer/AirspeedVelocity.jl/actions/workflows/CI.yml?query=branch%3Amaster)
 [![Coverage](https://coveralls.io/repos/github/MilesCranmer/AirspeedVelocity.jl/badge.svg?branch=master)](https://coveralls.io/github/MilesCranmer/AirspeedVelocity.jl?branch=master)
 
-AirspeedVelocity.jl makes it easy to benchmark Julia packages over their lifetime.
+AirspeedVelocity.jl strives to make it easy to benchmark Julia packages over their lifetime.
 It is inspired by [asv](https://asv.readthedocs.io/en/stable/).
+
+
+### Motivation
+
+*Why not [PkgBenchmark.jl](https://github.com/JuliaCI/PkgBenchmark.jl)?*
+
+PkgBenchmark.jl is a thin wrapper of BenchmarkTools and Git, which might be enough for most users.
+However, for me it was a bit too thin – this package tries to do more, and do it automatically (including plot generation, similar to `asv`),
+especially for common workflows.
+
+This package allows you to:
+
+- Generate benchmarks directly from the terminal with an easy-to-use CLI
+- Query many commits/tags/branches at a time, rather than requiring separate calls for each revision
+- Plot those benchmarks, automatically flattening your benchmark suite into a list of plots with generated titles,
+  with the x-axis showing revisions.
+  
+This package also freezes the benchmark script,
+so there is no worry about the old history overwriting the benchmark.
 
 # Installation
 
 You can install the CLI with:
 
 ```bash
-julia -e '\
-    using Pkg; \
-    Pkg.add(url="https://github.com/MilesCranmer/AirspeedVelocity.jl.git"); \
-    Pkg.build("AirspeedVelocity")'
+julia -e 'using Pkg; \
+          Pkg.add(url="https://github.com/MilesCranmer/AirspeedVelocity.jl.git"); \
+          Pkg.build("AirspeedVelocity")'
 ```
+
+This will install two executables at `~/.julia/bin` - make sure to have it on your `PATH`.
 
 # Examples
 
-You may then use the CLI with, e.g.,
+You may then use the CLI to generate benchmarks for any package with, e.g.,
 
 ```bash
 benchpkg Transducers \
