@@ -176,6 +176,11 @@ function benchmark(
     exeflags::Cmd=``,
 )
     if benchmark_script === nothing
+        package_name = first(package_specs).name
+        if !all(p -> p.name == package_name, package_specs)
+            @error "All package specifications must have the same package name if you do not specify a `benchmark_script`."
+        end
+
         benchmark_script = _get_benchmark_script(package_name)
     end
     for spec in package_specs
