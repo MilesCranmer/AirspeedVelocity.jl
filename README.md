@@ -31,7 +31,8 @@ which will download `benchmark/benchmarks.jl` of `Transducers.jl`,
 run the benchmarks for all revisions given (`v0.4.65`, `v0.4.70`, and `master`),
 and then save the JSON results in the current directory.
 Here, we also specify `BangBang.jl`, `ArgCheck.jl`, `Referenceables.jl`, and
-`SplitApplyCombine.jl` as additional dependencies of the benchmarks.
+`SplitApplyCombine.jl` as additional packages used explicitly
+inside the benchmarks.
 
 You can also provide a custom benchmark.
 For example, let's say you have a file `script.jl`, defining
