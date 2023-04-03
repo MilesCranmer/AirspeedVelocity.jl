@@ -41,7 +41,7 @@ This will install two executables at `~/.julia/bin` - make sure to have it on yo
 
 # Examples
 
-You may then use the CLI with, e.g.,
+You may then use the CLI to generate benchmarks for any package with, e.g.,
 
 ```bash
 benchpkg Transducers --rev='v0.4.65,v0.4.70,master' --add='BangBang,ArgCheck,Referenceables,SplitApplyCombine'
@@ -50,8 +50,7 @@ benchpkg Transducers --rev='v0.4.65,v0.4.70,master' --add='BangBang,ArgCheck,Ref
 which will download `benchmark/benchmarks.jl` of `Transducers.jl`,
 run the benchmarks for all revisions given (`v0.4.65`, `v0.4.70`, and `master`),
 and then save the JSON results in the current directory.
-Here, we also specify `BangBang.jl`, `ArgCheck.jl`, `Referenceables.jl`, and
-`SplitApplyCombine.jl` as additional packages used explicitly
+Here, we also specify additional packages needed
 inside the benchmarks.
 
 You can generate plots of the revisions with:
