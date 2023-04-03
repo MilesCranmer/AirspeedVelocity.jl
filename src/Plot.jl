@@ -188,7 +188,7 @@ Plot the benchmarks of a package as created with `benchpkg`.
     if length(plots) == 1
         savefig(first(plots), joinpath(output_dir, "plot_$(package_name).$(format)"))
     else
-        for (i, (rev, p)) in enumerate(zip(revs, plots))
+        for (i, p) in enumerate(plots)
             savefig(p, joinpath(output_dir, "plot_$(package_name)_$i.$(format)"))
         end
     end
