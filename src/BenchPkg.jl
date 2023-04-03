@@ -4,7 +4,7 @@ using ..Utils: benchmark
 using Comonicon
 
 """
-    benchpkg package_name [-r --rev <arg>] [-o, --output_dir <arg>]
+    benchpkg package_name [-r --rev <arg>] [-o, --output-dir <arg>]
                           [-s, --script <arg>] [-e, --exeflags <arg>]
                           [-a, --add <arg>] [-t, --tune]
                           [-u, --url <arg>]
@@ -18,11 +18,12 @@ Benchmark a package over a set of revisions.
 # Options
 
 - `-r, --rev <arg>`: Revisions to test (delimit by comma).
-- `-o, --output_dir <arg>`: Where to save the JSON results.
-- `-s, --script <arg>`: The benchmark script. Default: `{PACKAGE_SRC_DIR}/benchmark/benchmarks.jl`.
+- `-o, --output-dir <arg>`: Where to save the JSON results.
+- `-s, --script <arg>`: The benchmark script. Default: `benchmark/benchmarks.jl` downloaded from `stable`.
 - `-e, --exeflags <arg>`: CLI flags for Julia (default: none).
 - `-a, --add <arg>`: Extra packages needed (delimit by comma).
 - `-u, --url <arg>`: URL of the package.
+- `--bench-on <arg>`: If the script is not set, this specifies the revision of `benchmarks.jl`.
 
 # Flags
 
@@ -38,6 +39,7 @@ Benchmark a package over a set of revisions.
     add::String = "",
     tune::Bool = false,
     url::String="",
+    bench_on::String="",
 )
     revs = convert(Vector{String}, split(rev, ","))
     # Filter empty strings:
@@ -51,7 +53,8 @@ Benchmark a package over a set of revisions.
         tune = tune,
         exeflags = (length(exeflags) > 0 ? `$exeflags` : ``),
         extra_pkgs = convert(Vector{String}, split(add, ",")),
-        url=(length(url) > 0 ? url : nothing),
+        url = (length(url) > 0 ? url : nothing),
+        benchmark_on = (length(bench_on) > 0 ? bench_on : nothing),
     )
 
     return nothing

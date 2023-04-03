@@ -11,13 +11,18 @@ function get_spec_str(spec::PackageSpec)
     return string(package_name) * "@" * string(package_rev)
 end
 
-function _get_script(package_name::String)::String
+function _get_script(;
+    package_name::String, benchmark_on::Union{Nothing,String}, url::Union{Nothing,String}
+)::String
     # Create temp env, add package, and get path to benchmark script.
     @info "Downloading package's latest benchmark script, assuming it is in benchmark/benchmarks.jl"
+    if benchmark_on !== nothing
+        @info "Downloading from $benchmark_on."
+    end
     tmp_env = mktempdir()
     to_exec = quote
         using Pkg
-        Pkg.add(PackageSpec(; name=$package_name); io=devnull)
+        Pkg.add(PackageSpec(; name=$package_name, rev=$benchmark_on, url=$url); io=devnull)
         using $(Symbol(package_name)): $(Symbol(package_name))
         root_dir = dirname(dirname(pathof($(Symbol(package_name)))))
         open(joinpath($tmp_env, "package_path.txt"), "w") do io
@@ -136,6 +141,8 @@ The results of the benchmarks are saved to a JSON file named `results_packagenam
 - `tune::Bool=false`: Whether to run benchmarks with tuning (default: false).
 - `exeflags::Cmd=```: Additional execution flags for running the benchmark script (default: empty).
 - `extra_pkgs::Vector{String}=String[]`: Additional packages to add to the benchmark environment.
+- `url::Union{String,Nothing}=nothing`: URL of the package.
+- `benchmark_on::Union{String,Nothing}=nothing`: If the benchmark script file is to be downloaded, this specifies the revision to use.
 """
 function benchmark(
     package_name::String,
@@ -146,6 +153,7 @@ function benchmark(
     exeflags::Cmd=``,
     extra_pkgs::Vector{String}=String[],
     url::Union{String,Nothing}=nothing,
+    benchmark_on::Union{String,Nothing}=nothing,
 )
     return benchmark(
         [PackageSpec(; name=package_name, rev=rev, url=url) for rev in revs];
@@ -154,6 +162,7 @@ function benchmark(
         tune=tune,
         exeflags=exeflags,
         extra_pkgs=extra_pkgs,
+        benchmark_on=benchmark_on,
     )
 end
 function benchmark(
@@ -165,6 +174,7 @@ function benchmark(
     exeflags::Cmd=``,
     extra_pkgs::Vector{String}=String[],
     url::Union{String,Nothing}=nothing,
+    benchmark_on::Union{String,Nothing}=nothing,
 )
     return benchmark(
         package_name,
@@ -175,6 +185,7 @@ function benchmark(
         exeflags=exeflags,
         extra_pkgs=extra_pkgs,
         url=url,
+        benchmark_on=benchmark_on,
     )
 end
 
@@ -196,6 +207,7 @@ The results of the benchmarks are saved to a JSON file named `results_packagenam
 - `tune::Bool=false`: Whether to run benchmarks with tuning (default: false).
 - `exeflags::Cmd=```: Additional execution flags for running the benchmark script (default: empty).
 - `extra_pkgs::Vector{String}=String[]`: Additional packages to add to the benchmark environment.
+- `benchmark_on::Union{String,Nothing}=nothing`: If the benchmark script file is to be downloaded, this specifies the revision to use.
 """
 function benchmark(
     package_specs::Vector{PackageSpec};
@@ -204,6 +216,7 @@ function benchmark(
     tune::Bool=false,
     exeflags::Cmd=``,
     extra_pkgs=String[],
+    benchmark_on::Union{String,Nothing}=nothing,
 )
     if script === nothing
         package_name = first(package_specs).name
@@ -211,7 +224,7 @@ function benchmark(
             @error "All package specifications must have the same package name if you do not specify a `script`."
         end
 
-        script = _get_script(package_name)
+        script = _get_script(; package_name, benchmark_on, first(package_specs).url)
     end
     results = Dict{String,Any}()
     for spec in package_specs
@@ -228,9 +241,12 @@ function benchmark(
     tune::Bool=false,
     exeflags::Cmd=``,
     extra_pkgs=String[],
+    benchmark_on::Union{String,Nothing}=nothing,
 )
     if script === nothing
-        script = _get_script(package_spec.name)
+        script = _get_script(;
+            package_name=package_spec.name, benchmark_on, package_spec.url
+        )
     end
     @info "Running benchmarks for " * package_spec.name * "@" * package_spec.rev * ":"
     return _benchmark(package_spec; output_dir, script, tune, exeflags, extra_pkgs)

@@ -86,7 +86,7 @@ benchpkgplot SymbolicRegression -r v0.15.3,v0.16.2 -i results/ -o plots/ --forma
 The CLI is documented as:
 
 ```
-    benchpkg package_name [-r --rev <arg>] [-o, --output_dir <arg>]
+    benchpkg package_name [-r --rev <arg>] [-o, --output-dir <arg>]
                           [-s, --script <arg>] [-e, --exeflags <arg>]
                           [-a, --add <arg>] [-t, --tune]
                           [-u, --url <arg>]
@@ -100,7 +100,7 @@ Benchmark a package over a set of revisions.
 # Options
 
 - `-r, --rev <arg>`: Revisions to test (delimit by comma).
-- `-o, --output_dir <arg>`: Where to save the JSON results.
+- `-o, --output-dir <arg>`: Where to save the JSON results.
 - `-s, --script <arg>`: The benchmark script. Default: `{PACKAGE_SRC_DIR}/benchmark/benchmarks.jl`.
 - `-e, --exeflags <arg>`: CLI flags for Julia (default: none).
 - `-a, --add <arg>`: Extra packages needed (delimit by comma).
@@ -115,8 +115,8 @@ Benchmark a package over a set of revisions.
 For plotting, you can use the `benchpkgplot` function:
 
 ```
-    benchpkgplot package_name [-r --rev <arg>] [-i --input_dir <arg>]
-                              [-o --output_dir <arg>] [-n --npart <arg>]
+    benchpkgplot package_name [-r --rev <arg>] [-i --input-dir <arg>]
+                              [-o --output-dir <arg>] [-n --npart <arg>]
                               [-f --format <arg>]
 
 Plot the benchmarks of a package as created with `benchpkg`.
@@ -128,18 +128,14 @@ Plot the benchmarks of a package as created with `benchpkg`.
 # Options
 
 - `-r, --rev <arg>`: Revisions to test (delimit by comma).
-- `-i, --input_dir <arg>`: Where the JSON results were saved (default: ".").
-- `-o, --output_dir <arg>`: Where to save the plots results (default: ".").
+- `-i, --input-dir <arg>`: Where the JSON results were saved (default: ".").
+- `-o, --output-dir <arg>`: Where to save the plots results (default: ".").
 - `-n, --npart <arg>`: Max number of plots per page (default: 10).
 - `-f, --format <arg>`: File type to save the plots as (default: "png").
 ```
 
-If you prefer to use the Julia API, you can use the `benchmark` function for generating data:
-
-```julia
-benchmark(package::Union{PackageSpec,Vector{PackageSpec}}; output_dir::String=".", script::Union{String,Nothing}=nothing, tune::Bool=false, exeflags::Cmd=``)
-benchmark(package_name::String, rev::Union{String,Vector{String}}; output_dir::String=".", script::Union{String,Nothing}=nothing, tune::Bool=false, exeflags::Cmd=``)
-```
+If you prefer to use the Julia API, you can use the `benchmark` function for generating data.
+In the REPL, type `using AirspeedVelocity` and then `?benchmark` for up-to-date documentation.
 
 These output a `Dict` containing the combined results of the benchmarks,
 and also output a JSON file in the `output_dir` for each revision.

@@ -152,8 +152,8 @@ end
 
 """
     benchpkgplot package_name [-r --rev <arg>] [-i --input_dir <arg>]
-                            [-o --output_dir <arg>] [-n --npart <arg>]
-                            [-f --format <arg>]
+                              [-o --output-dir <arg>] [-n --npart <arg>]
+                              [-f --format <arg>]
 
 Plot the benchmarks of a package as created with `benchpkg`.
 
@@ -164,8 +164,8 @@ Plot the benchmarks of a package as created with `benchpkg`.
 # Options
 
 - `-r, --rev <arg>`: Revisions to test (delimit by comma).
-- `-i, --input_dir <arg>`: Where the JSON results were saved (default: ".").
-- `-o, --output_dir <arg>`: Where to save the plots results (default: ".").
+- `-i, --input-dir <arg>`: Where the JSON results were saved (default: ".").
+- `-o, --output-dir <arg>`: Where to save the plots results (default: ".").
 - `-n, --npart <arg>`: Max number of plots per page (default: 10).
 - `-f, --format <arg>`: File type to save the plots as (default: "png").
 """
