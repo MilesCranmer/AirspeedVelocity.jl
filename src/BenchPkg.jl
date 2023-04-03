@@ -37,7 +37,7 @@ Benchmark a package over a set of revisions.
     revs = convert(Vector{String}, split(rev, ","))
     # Filter empty strings:
     revs = filter(x -> length(x) > 0, revs)
-    @assert length(revs) > 0  "No revisions specified."
+    @assert length(revs) > 0 "No revisions specified."
     benchmark(
         package_name,
         revs;

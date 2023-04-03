@@ -5,7 +5,7 @@ using Pkg: Pkg
 using JSON3: JSON3
 using FilePathsBase: isabspath, absolute, PosixPath
 
-function _get_script(package_name)
+function _get_script(package_name::String)::String
     # Create temp env, add package, and get path to benchmark script.
     @info "Downloading package's latest benchmark script, assuming it is in benchmark/benchmarks.jl"
     tmp_env = mktempdir()
@@ -200,7 +200,7 @@ function benchmark(
     extra_pkgs = String[],
 )
     if script === nothing
-        script = _get_script(package_name)
+        script = _get_script(package_spec.name)
     end
     @info "Running benchmarks for " * package_spec.name * "@" * package_spec.rev * ":"
     return _benchmark(package_spec; output_dir, script, tune, exeflags, extra_pkgs)
