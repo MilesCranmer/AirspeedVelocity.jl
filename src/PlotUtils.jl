@@ -2,9 +2,9 @@ module PlotUtils
 
 import ..Utils: get_spec_str
 using Statistics: mean, median, std, quantile
-using JSON3
-using Plots
-using Plots.Measures
+using JSON3: JSON3
+using Plots: plot, scatter!, xticks!, title!, xlabel!, ylabel!
+using Plots.Measures: mm
 using Pkg: PackageSpec
 using OrderedCollections: OrderedDict
 

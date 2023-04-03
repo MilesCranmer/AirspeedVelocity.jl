@@ -1,8 +1,8 @@
 module BenchPkgPlot
 
 using ..PlotUtils: load_results, combined_plots
+using Plots: savefig
 using Comonicon
-using Plots
 
 """
     benchpkgplot package_name [-r --rev <arg>] [-i --input_dir <arg>]
