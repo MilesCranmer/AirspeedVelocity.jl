@@ -1,4 +1,5 @@
 using AirspeedVelocity
+using Pkg
 using Documenter
 
 DocMeta.setdocmeta!(
