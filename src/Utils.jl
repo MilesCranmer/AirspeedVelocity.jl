@@ -116,7 +116,7 @@ function _benchmark(
 end
 
 """
-    benchmark(package_name::String, rev::Union{String,Vector{String}}; output_dir::String=".", script::Union{String,Nothing}=nothing, tune::Bool=false, exeflags::Cmd=``)
+    benchmark(package_name::String, rev::Union{String,Vector{String}}; output_dir::String=".", script::Union{String,Nothing}=nothing, tune::Bool=false, exeflags::Cmd=``, extra_pkgs::Vector{String}=String[])
 
 Run benchmarks for a given Julia package.
 
@@ -133,6 +133,7 @@ The results of the benchmarks are saved to a JSON file named `results_packagenam
 - `script::Union{String,Nothing}=nothing`: The path to the benchmark script file. If not provided, the default script at `{PACKAGE}/benchmark/benchmarks.jl` will be used.
 - `tune::Bool=false`: Whether to run benchmarks with tuning (default: false).
 - `exeflags::Cmd=```: Additional execution flags for running the benchmark script (default: empty).
+- `extra_pkgs::Vector{String}=String[]`: Additional packages to add to the benchmark environment.
 """
 function benchmark(
     package_name::String,
@@ -173,7 +174,7 @@ function benchmark(
 end
 
 """
-    benchmark(package::Union{PackageSpec,Vector{PackageSpec}}; output_dir::String=".", script::Union{String,Nothing}=nothing, tune::Bool=false, exeflags::Cmd=``)
+    benchmark(package_specs::Union{PackageSpec,Vector{PackageSpec}}; output_dir::String=".", script::Union{String,Nothing}=nothing, tune::Bool=false, exeflags::Cmd=``, extra_pkgs::Vector{String}=String[])
 
 Run benchmarks for a given Julia package.
 
@@ -191,20 +192,6 @@ The results of the benchmarks are saved to a JSON file named `results_packagenam
 - `exeflags::Cmd=```: Additional execution flags for running the benchmark script (default: empty).
 - `extra_pkgs::Vector{String}=String[]`: Additional packages to add to the benchmark environment.
 """
-function benchmark(
-    package_spec::PackageSpec;
-    output_dir::String = ".",
-    script::Union{String,Nothing} = nothing,
-    tune::Bool = false,
-    exeflags::Cmd = ``,
-    extra_pkgs = String[],
-)
-    if script === nothing
-        script = _get_script(package_spec.name)
-    end
-    @info "Running benchmarks for " * package_spec.name * "@" * package_spec.rev * ":"
-    return _benchmark(package_spec; output_dir, script, tune, exeflags, extra_pkgs)
-end
 function benchmark(
     package_specs::Vector{PackageSpec};
     output_dir::String = ".",
@@ -227,6 +214,20 @@ function benchmark(
             benchmark(spec; output_dir, script, tune, exeflags, extra_pkgs)
     end
     return results
+end
+function benchmark(
+    package_spec::PackageSpec;
+    output_dir::String = ".",
+    script::Union{String,Nothing} = nothing,
+    tune::Bool = false,
+    exeflags::Cmd = ``,
+    extra_pkgs = String[],
+)
+    if script === nothing
+        script = _get_script(package_spec.name)
+    end
+    @info "Running benchmarks for " * package_spec.name * "@" * package_spec.rev * ":"
+    return _benchmark(package_spec; output_dir, script, tune, exeflags, extra_pkgs)
 end
 
 end # module AirspeedVelocity.Utils
