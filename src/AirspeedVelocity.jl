@@ -12,7 +12,7 @@ include("BenchPkg.jl")
 import .BenchPkg: benchpkg
 export benchpkg
 
-include("Plot.jl")
+include("BenchPkgPlot.jl")
 import .BenchPkgPlot: benchpkgplot
 export benchpkgplot
 
