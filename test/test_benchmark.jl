@@ -17,8 +17,9 @@ SUITE["eval_tree_array"] = begin
     x, y = Node(; feature=1), Node(; feature=2)
     tree = x + cos(3.2f0 * y)
 
-    X = randn(Float32, 2, 1_000)
+    X = randn(Float32, 2, 10)
     f() = eval_tree_array(tree, X, options)
+    f() # warmup
     @benchmarkable f() evals=1 samples=100
 end
 
