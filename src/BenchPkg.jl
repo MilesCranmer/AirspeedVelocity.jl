@@ -4,7 +4,10 @@ using ..Utils: benchmark
 using Comonicon
 
 """
-    benchpkg package_name [-r --rev <arg>] [-o, --output_dir <arg>] [-s, --script <arg>] [-e, --exeflags <arg>] [-a, --add <arg>] [-t, --tune]
+    benchpkg package_name [-r --rev <arg>] [-o, --output_dir <arg>]
+                          [-s, --script <arg>] [-e, --exeflags <arg>]
+                          [-a, --add <arg>] [-t, --tune]
+                          [-u, --url <arg>]
 
 Benchmark a package over a set of revisions.
 
@@ -19,6 +22,7 @@ Benchmark a package over a set of revisions.
 - `-s, --script <arg>`: The benchmark script. Default: `{PACKAGE_SRC_DIR}/benchmark/benchmarks.jl`.
 - `-e, --exeflags <arg>`: CLI flags for Julia (default: none).
 - `-a, --add <arg>`: Extra packages needed (delimit by comma).
+- `-u, --url <arg>`: URL of the package.
 
 # Flags
 
@@ -33,6 +37,7 @@ Benchmark a package over a set of revisions.
     exeflags::String = "",
     add::String = "",
     tune::Bool = false,
+    url::String="",
 )
     revs = convert(Vector{String}, split(rev, ","))
     # Filter empty strings:
@@ -46,6 +51,7 @@ Benchmark a package over a set of revisions.
         tune = tune,
         exeflags = (length(exeflags) > 0 ? `$exeflags` : ``),
         extra_pkgs = convert(Vector{String}, split(add, ",")),
+        url=(length(url) > 0 ? url : nothing),
     )
 
     return nothing

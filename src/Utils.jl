@@ -17,7 +17,7 @@ function _get_script(package_name::String)::String
     tmp_env = mktempdir()
     to_exec = quote
         using Pkg
-        Pkg.add(PackageSpec(; name = $package_name); io = devnull)
+        Pkg.add(PackageSpec(; name=$package_name); io=devnull)
         using $(Symbol(package_name)): $(Symbol(package_name))
         root_dir = dirname(dirname(pathof($(Symbol(package_name)))))
         open(joinpath($tmp_env, "package_path.txt"), "w") do io
@@ -31,9 +31,7 @@ function _get_script(package_name::String)::String
     run(`julia --project="$tmp_env" "$path_getter"`)
 
     script = joinpath(
-        readchomp(joinpath(tmp_env, "package_path.txt")),
-        "benchmark",
-        "benchmarks.jl",
+        readchomp(joinpath(tmp_env, "package_path.txt")), "benchmark", "benchmarks.jl"
     )
     if !isfile(script)
         @error "Could not find benchmark script at $script. Please specify the `script` manually."
@@ -63,14 +61,14 @@ function _benchmark(
     spec_str = get_spec_str(spec)
     old_project = Pkg.project().path
     tmp_env = mktempdir()
-    @info "    Creating temporary environment."
-    Pkg.activate(tmp_env; io = devnull)
+    @info "    Creating temporary environment at $tmp_env."
+    Pkg.activate(tmp_env; io=devnull)
     @info "    Adding packages."
     # Filter out empty strings from extra_pkgs:
     extra_pkgs = filter(x -> x != "", extra_pkgs)
     pkgs = ["BenchmarkTools", "JSON3", "Pkg", extra_pkgs...]
-    Pkg.add([spec, [PackageSpec(; name = pkg) for pkg in pkgs]...]; io = devnull)
-    Pkg.activate(old_project; io = devnull)
+    Pkg.add([spec, [PackageSpec(; name=pkg) for pkg in pkgs]...]; io=devnull)
+    Pkg.activate(old_project; io=devnull)
     results_filename = joinpath(output_dir, "results_" * spec_str * ".json")
     to_exec = quote
         using BenchmarkTools: run, BenchmarkGroup
@@ -86,8 +84,8 @@ function _benchmark(
         end
         if !(typeof(SUITE) <: BenchmarkGroup)
             @error "    [runner] Benchmark script " *
-                   $script *
-                   " did not define SUITE as a BenchmarkGroup."
+                $script *
+                " did not define SUITE as a BenchmarkGroup."
         end
         if $tune
             @info "    [runner] Tuning benchmarks."
@@ -95,7 +93,7 @@ function _benchmark(
         end
         @info "    [runner] Running benchmarks for " * $spec_str * "."
         @info "-"^80
-        results = run(SUITE; verbose = true)
+        results = run(SUITE; verbose=true)
         @info "-"^80
         @info "    [runner] Finished benchmarks for " * $spec_str * "."
         open($results_filename, "w") do io
@@ -142,38 +140,41 @@ The results of the benchmarks are saved to a JSON file named `results_packagenam
 function benchmark(
     package_name::String,
     revs::Vector{String};
-    output_dir::String = ".",
-    script::Union{String,Nothing} = nothing,
-    tune::Bool = false,
-    exeflags::Cmd = ``,
-    extra_pkgs::Vector{String} = String[],
+    output_dir::String=".",
+    script::Union{String,Nothing}=nothing,
+    tune::Bool=false,
+    exeflags::Cmd=``,
+    extra_pkgs::Vector{String}=String[],
+    url::Union{String,Nothing}=nothing,
 )
     return benchmark(
-        [PackageSpec(; name = package_name, rev = rev) for rev in revs];
-        output_dir = output_dir,
-        script = script,
-        tune = tune,
-        exeflags = exeflags,
-        extra_pkgs = extra_pkgs,
+        [PackageSpec(; name=package_name, rev=rev, url=url) for rev in revs];
+        output_dir=output_dir,
+        script=script,
+        tune=tune,
+        exeflags=exeflags,
+        extra_pkgs=extra_pkgs,
     )
 end
 function benchmark(
     package_name::String,
     rev::String;
-    output_dir::String = ".",
-    script::Union{String,Nothing} = nothing,
-    tune::Bool = false,
-    exeflags::Cmd = ``,
-    extra_pkgs::Vector{String} = String[],
+    output_dir::String=".",
+    script::Union{String,Nothing}=nothing,
+    tune::Bool=false,
+    exeflags::Cmd=``,
+    extra_pkgs::Vector{String}=String[],
+    url::Union{String,Nothing}=nothing,
 )
     return benchmark(
         package_name,
         [rev];
-        output_dir = output_dir,
-        script = script,
-        tune = tune,
-        exeflags = exeflags,
-        extra_pkgs = extra_pkgs,
+        output_dir=output_dir,
+        script=script,
+        tune=tune,
+        exeflags=exeflags,
+        extra_pkgs=extra_pkgs,
+        url=url,
     )
 end
 
@@ -198,11 +199,11 @@ The results of the benchmarks are saved to a JSON file named `results_packagenam
 """
 function benchmark(
     package_specs::Vector{PackageSpec};
-    output_dir::String = ".",
-    script::Union{String,Nothing} = nothing,
-    tune::Bool = false,
-    exeflags::Cmd = ``,
-    extra_pkgs = String[],
+    output_dir::String=".",
+    script::Union{String,Nothing}=nothing,
+    tune::Bool=false,
+    exeflags::Cmd=``,
+    extra_pkgs=String[],
 )
     if script === nothing
         package_name = first(package_specs).name
@@ -214,18 +215,19 @@ function benchmark(
     end
     results = Dict{String,Any}()
     for spec in package_specs
-        results[spec.name*"@"*spec.rev] =
-            benchmark(spec; output_dir, script, tune, exeflags, extra_pkgs)
+        results[spec.name * "@" * spec.rev] = benchmark(
+            spec; output_dir, script, tune, exeflags, extra_pkgs
+        )
     end
     return results
 end
 function benchmark(
     package_spec::PackageSpec;
-    output_dir::String = ".",
-    script::Union{String,Nothing} = nothing,
-    tune::Bool = false,
-    exeflags::Cmd = ``,
-    extra_pkgs = String[],
+    output_dir::String=".",
+    script::Union{String,Nothing}=nothing,
+    tune::Bool=false,
+    exeflags::Cmd=``,
+    extra_pkgs=String[],
 )
     if script === nothing
         script = _get_script(package_spec.name)
