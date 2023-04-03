@@ -1,6 +1,8 @@
 # API
 
 ```@docs
-benchmark(package_name::String, rev::Union{String,Vector{String}}; output_dir::String=".", script::Union{String,Nothing}=nothing, tune::Bool=false, exeflags::Cmd=``)
-benchmark(package::Union{PackageSpec,Vector{PackageSpec}}; output_dir::String=".", script::Union{String,Nothing}=nothing, tune::Bool=false, exeflags::Cmd=``)
+benchmark(package_name::String, rev::Vector{String}; kws...)
+benchmark(package_name::String, rev::String; kws...)
+benchmark(package::PackageSpec; kws...)
+benchmark(package::Vector{PackageSpec}; kws...)
 ```
