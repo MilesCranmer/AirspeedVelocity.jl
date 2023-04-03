@@ -19,17 +19,18 @@ julia -e '\
 You may then use the CLI with, e.g.,
 
 ```bash
-benchpkg Convex v0.15.1 v0.15.2 v0.15.3 master
+benchpkg Transducers v0.4.65 v0.4.70 master -a BangBang,ArgCheck,Referenceables,SplitApplyCombine
 ```
 
-which will download `benchmark/benchmarks.jl` of `Convex.jl`,
-run the benchmarks for all revisions given,
+which will download `benchmark/benchmarks.jl` of `Transducers.jl`,
+run the benchmarks for all revisions given (`v0.4.65`, `v0.4.70`, and `master`),
 and then save the JSON results in the current directory.
+Here, we also specify `BangBang.jl`, `ArgCheck.jl`, `Referenceables.jl`, and
+`SplitApplyCombine.jl` as additional dependencies of the benchmarks.
 
-You can also provide have to provide `script.jl`,
-in which case the file `benchmark/benchmarks.jl`
-of the package will be used. For example, let's say you have a file
-`script.jl`:
+You can also provide a custom benchmark.
+For example, let's say you have a file `script.jl`, defining
+a benchmark for `SymbolicRegression.jl`:
 
 ```julia
 using BenchmarkTools, SymbolicRegression
@@ -46,7 +47,8 @@ end
 we can run this benchmark over the history of `SymbolicRegression.jl` with:
 
 ```bash
-benchpkg SymbolicRegression v0.15.3 v0.16.2 -s script.jl -o results/
+benchpkg SymbolicRegression v0.15.3 v0.16.2 -s script.jl -o results/ --exeflags="--threads=4 -O3"
 ```
 
-where we have also specified the output directory.
+where we have also specified the output directory and extra flags to pass to the
+`julia` executable.
