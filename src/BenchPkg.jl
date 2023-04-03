@@ -33,11 +33,11 @@ Benchmark a package over a set of revisions.
 @main function benchpkg(
     package_name::String;
     rev::String,
-    output_dir::String = ".",
-    script::String = "",
-    exeflags::String = "",
-    add::String = "",
-    tune::Bool = false,
+    output_dir::String=".",
+    script::String="",
+    exeflags::String="",
+    add::String="",
+    tune::Bool=false,
     url::String="",
     bench_on::String="",
 )
@@ -48,13 +48,13 @@ Benchmark a package over a set of revisions.
     benchmark(
         package_name,
         revs;
-        output_dir = output_dir,
-        script = (length(script) > 0 ? script : nothing),
-        tune = tune,
-        exeflags = (length(exeflags) > 0 ? `$exeflags` : ``),
-        extra_pkgs = convert(Vector{String}, split(add, ",")),
-        url = (length(url) > 0 ? url : nothing),
-        benchmark_on = (length(bench_on) > 0 ? bench_on : nothing),
+        output_dir=output_dir,
+        script=(length(script) > 0 ? script : nothing),
+        tune=tune,
+        exeflags=(length(exeflags) > 0 ? `$exeflags` : ``),
+        extra_pkgs=convert(Vector{String}, split(add, ",")),
+        url=(length(url) > 0 ? url : nothing),
+        benchmark_on=(length(bench_on) > 0 ? bench_on : nothing),
     )
 
     return nothing

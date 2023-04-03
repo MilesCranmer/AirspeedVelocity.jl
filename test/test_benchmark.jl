@@ -34,7 +34,7 @@ end
     )
 end
 
-results = benchmark("SymbolicRegression", ["v0.15.3", "v0.16.2"]; script = script)
+results = benchmark("SymbolicRegression", ["v0.15.3", "v0.16.2"]; script=script)
 @test length(results) == 2
 @test "SymbolicRegression@v0.15.3" in keys(results)
 @test "SymbolicRegression@v0.16.2" in keys(results)
@@ -47,7 +47,7 @@ results = benchmark("SymbolicRegression", ["v0.15.3", "v0.16.2"]; script = scrip
 
 # Create plots:
 combined_results = load_results("SymbolicRegression", ["v0.15.3", "v0.16.2"])
-plots = combined_plots(combined_results; npart = 1)
+plots = combined_plots(combined_results; npart=1)
 @test length(plots) == 2
-plots = combined_plots(combined_results; npart = 2)
+plots = combined_plots(combined_results; npart=2)
 @test length(plots) == 1
