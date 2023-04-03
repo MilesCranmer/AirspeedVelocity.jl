@@ -2,6 +2,20 @@ using AirspeedVelocity
 using Pkg
 using Documenter
 
+# First, we copy README.md to index.md,
+# replacing <README> in _index.md with the contents of README.md:
+open("index.md", "w") do io
+    for line in eachline("_index.md")
+        if occursin(r"<README>", line)
+            for rline in eachline("README.md")
+                println(io, rline)
+            end
+        else
+            println(io, line)
+        end
+    end
+end
+
 DocMeta.setdocmeta!(
     AirspeedVelocity,
     :DocTestSetup,
