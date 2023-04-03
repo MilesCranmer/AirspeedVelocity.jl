@@ -4,6 +4,7 @@ export benchmark
 
 using Pkg: PackageSpec
 using Pkg: Pkg
+using JSON3: JSON3
 
 function _get_script(package_name)
     # Create temp env, add package, and get path to benchmark script.
@@ -47,42 +48,56 @@ function _benchmark(
     spec_str = string(package_name) * "@" * string(package_rev)
     old_project = Pkg.project().path
     tmp_env = mktempdir()
+    @info "    Creating temporary environment."
     Pkg.activate(tmp_env; io=devnull)
+    @info "    Adding packages."
     Pkg.add(
         [spec, PackageSpec(; name="BenchmarkTools"), PackageSpec(; name="JSON3")];
         io=devnull,
     )
     Pkg.activate(old_project; io=devnull)
+    results_filename = joinpath(output_dir, "results_" * spec_str * ".json")
     to_exec = quote
         using BenchmarkTools: run, BenchmarkGroup
-        using JSON3: write
+        using JSON3: JSON3
 
         # Include benchmark, defining SUITE:
         include($script)
         # Assert that SUITE is defined:
         if !isdefined(Main, :SUITE)
-            @error "Benchmark script $bench_path did not define SUITE."
+            @error "    [runner] Benchmark script $bench_path did not define SUITE."
         end
         if !(typeof(SUITE) <: BenchmarkGroup)
-            @error "Benchmark script $bench_path did not define SUITE as a BenchmarkGroup."
+            @error "    [runner] Benchmark script $bench_path did not define SUITE as a BenchmarkGroup."
         end
         if $tune
-            @info "Tuning benchmarks for " * $spec_str * "."
+            @info "    [runner] Tuning benchmarks."
             tune!(SUITE)
         end
-        @info "Running benchmarks for " * $spec_str * "."
+        @info "    [runner] Running benchmarks for " * $spec_str * "."
+        @info "-"^80
         results = run(SUITE; verbose=true)
-        @info "Finished benchmarks for " * $spec_str * "."
-        open(joinpath($output_dir, "results_" * $spec_str * ".json"), "w") do io
-            write(io, write(results))
+        @info "-"^80
+        @info "    [runner] Finished benchmarks for " * $spec_str * "."
+        open($results_filename, "w") do io
+            JSON3.write(io, results)
         end
+        @info "    [runner] Benchmark results saved at " * $results_filename
     end
     runner_filename = joinpath(tmp_env, "runner.jl")
     open(runner_filename, "w") do io
         println(io, string(to_exec))
     end
+    @info "    Launching benchmark runner."
     run(`julia --project="$tmp_env" $exeflags "$runner_filename"`)
-    return nothing
+    # Return results from JSON file:
+    @info "    Benchmark runner exited."
+    @info "    Reading results."
+    results = open(results_filename, "r") do io
+        JSON3.read(io, Dict{String,Any})
+    end
+    @info "    Finished."
+    return results
 end
 
 """
@@ -166,6 +181,7 @@ function benchmark(
     if script === nothing
         script = _get_script(package_name)
     end
+    @info "Running benchmarks for " * package_spec.name * "@" * package_spec.rev * ":"
     return _benchmark(package_spec; output_dir, script, tune, exeflags)
 end
 function benchmark(
@@ -183,9 +199,13 @@ function benchmark(
 
         script = _get_script(package_name)
     end
+    results = Dict{String,Any}()
     for spec in package_specs
-        benchmark(spec; output_dir, script, tune, exeflags)
+        results[spec.name * "@" * spec.rev] = benchmark(
+            spec; output_dir, script, tune, exeflags
+        )
     end
+    return results
 end
 
 end
