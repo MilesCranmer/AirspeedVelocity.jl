@@ -45,12 +45,14 @@ function _benchmark(
     package_name = spec.name
     package_rev = spec.rev
     spec_str = string(package_name) * "@" * string(package_rev)
+    old_project = Pkg.project().path
     tmp_env = mktempdir()
     Pkg.activate(tmp_env; io=devnull)
     Pkg.add(
         [spec, PackageSpec(; name="BenchmarkTools"), PackageSpec(; name="JSON3")];
         io=devnull,
     )
+    Pkg.activate(old_project; io=devnull)
     to_exec = quote
         using BenchmarkTools: run, BenchmarkGroup
         using JSON3: write
