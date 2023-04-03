@@ -8,7 +8,7 @@
 AirspeedVelocity.jl makes it easy to benchmark Julia packages over their lifetime.
 It is inspired by [asv](https://asv.readthedocs.io/en/stable/).
 
-## Installation
+# Installation
 
 You can install the CLI with:
 
@@ -19,10 +19,12 @@ julia -e '\
     Pkg.build("AirspeedVelocity")'
 ```
 
+# Examples
+
 You may then use the CLI with, e.g.,
 
 ```bash
-benchpkg Transducers v0.4.65 v0.4.70 master -a BangBang,ArgCheck,Referenceables,SplitApplyCombine
+benchpkg Transducers --revisions='v0.4.65,v0.4.70,master' --add='BangBang,ArgCheck,Referenceables,SplitApplyCombine'
 ```
 
 which will download `benchmark/benchmarks.jl` of `Transducers.jl`,
@@ -50,8 +52,45 @@ end
 we can run this benchmark over the history of `SymbolicRegression.jl` with:
 
 ```bash
-benchpkg SymbolicRegression v0.15.3 v0.16.2 -s script.jl -o results/ --exeflags="--threads=4 -O3"
+benchpkg SymbolicRegression -r v0.15.3,v0.16.2 -s script.jl -o results/ --exeflags="--threads=4 -O3"
 ```
 
 where we have also specified the output directory and extra flags to pass to the
 `julia` executable.
+
+
+# Usage
+
+The CLI is documented as:
+
+```
+    benchpkg package_name [-r --rev <arg>] [-o, --output_dir <arg>] [-s, --script <arg>] [-e, --exeflags <arg>] [-a, --add <arg>] [-t, --tune]
+
+Benchmark a package over a set of revisions.
+
+# Arguments
+
+- `package_name`: Name of the package.
+
+# Options
+
+- `-r --rev <arg>`: Revisions to test (delimit by comma).
+- `-o, --output_dir <arg>`: Where to save the JSON results.
+- `-s, --script <arg>`: The benchmark script. Default: `{PACKAGE_SRC_DIR}/benchmark/benchmarks.jl`.
+- `-e, --exeflags <arg>`: CLI flags for Julia (default: none).
+- `-a, --add <arg>`: Extra packages needed (delimit by comma).
+
+# Flags
+
+- `-t, --tune`: Whether to run benchmarks with tuning (default: false).
+```
+
+If you prefer to use the Julia API, you can use the `benchmark` function:
+
+```julia
+benchmark(package::Union{PackageSpec,Vector{PackageSpec}}; output_dir::String=".", script::Union{String,Nothing}=nothing, tune::Bool=false, exeflags::Cmd=``)
+benchmark(package_name::String, rev::Union{String,Vector{String}}; output_dir::String=".", script::Union{String,Nothing}=nothing, tune::Bool=false, exeflags::Cmd=``)
+```
+
+These output a `Dict` containing the combined results of the benchmarks,
+and output a JSON file in the `output_dir` for each revision.
