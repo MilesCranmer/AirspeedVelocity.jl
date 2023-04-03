@@ -261,7 +261,7 @@ module BenchPkg
             output_dir=output_dir,
             script=(length(script) > 0 ? script : nothing),
             tune=tune,
-            exeflags=(length(exeflags) > 0 ? `$exeflags` : nothing),
+            exeflags=(length(exeflags) > 0 ? `$exeflags` : ``),
         )
 
         return nothing
