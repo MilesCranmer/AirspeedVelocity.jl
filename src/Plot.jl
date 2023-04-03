@@ -61,8 +61,8 @@ function create_line_plot(data, names, title)
     scatter!(plot_xticks, medians; yerror = errors)
     xticks!(plot_xticks, names)
     title!(title)
-    xlabel!("Revisions")
-    ylabel!("Value [$unit_name]")
+    xlabel!("Revision")
+    ylabel!("Duration [$unit_name]")
     return p
 end
 
@@ -186,7 +186,7 @@ Plot the benchmarks of a package as created with `benchpkg`.
     plots = combined_plots(combined_results; npart = npart)
     @info "Saving plots."
     if length(plots) == 1
-        savefig(p, joinpath(output_dir, "plot_$(first(revs).name).$(format))"))
+        savefig(first(plots), joinpath(output_dir, "plot_$(package_name).$(format)"))
     else
         for (i, (rev, p)) in enumerate(zip(revs, plots))
             savefig(p, joinpath(output_dir, "plot_$(package_name)_$i.$(format)"))

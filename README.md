@@ -53,11 +53,17 @@ a benchmark for `SymbolicRegression.jl`:
 using BenchmarkTools, SymbolicRegression
 const SUITE = BenchmarkGroup()
 SUITE["eval_tree_array"] = begin
-    tree = Node(; feature=1) + cos(3.2f0 * Node(; feature=2))
-    X = randn(Float32, 2, 1_000)
+    b = BenchmarkGroup()
     options = Options(; binary_operators=[+, -, *], unary_operators=[cos])
+    tree = Node(; feature=1) + cos(3.2f0 * Node(; feature=2))
+    X = randn(Float32, 2, 10)
     f() = eval_tree_array(tree, X, options)
-    @benchmarkable f() evals=1 samples=100
+    b["10"] = @benchmarkable f() evals=1 samples=100
+
+    X2 = randn(Float32, 2, 20)
+    f2() = eval_tree_array(tree, X2, options)
+    b["20"] = @benchmarkable f2() evals=1 samples=100
+    b
 end
 ```
 
@@ -68,7 +74,11 @@ benchpkg SymbolicRegression -r v0.15.3,v0.16.2 -s script.jl -o results/ --exefla
 ```
 
 where we have also specified the output directory and extra flags to pass to the
-`julia` executable.
+`julia` executable. We can also now visualize this:
+
+```bash
+benchpkgplot SymbolicRegression -r v0.15.3,v0.16.2 -i results/ -o plots/ --format=pdf
+```
 
 
 # Usage
@@ -79,6 +89,7 @@ The CLI is documented as:
     benchpkg package_name [-r --rev <arg>] [-o, --output_dir <arg>]
                           [-s, --script <arg>] [-e, --exeflags <arg>]
                           [-a, --add <arg>] [-t, --tune]
+                          [-u, --url <arg>]
 
 Benchmark a package over a set of revisions.
 
@@ -88,15 +99,17 @@ Benchmark a package over a set of revisions.
 
 # Options
 
-- `-r --rev <arg>`: Revisions to test (delimit by comma).
+- `-r, --rev <arg>`: Revisions to test (delimit by comma).
 - `-o, --output_dir <arg>`: Where to save the JSON results.
 - `-s, --script <arg>`: The benchmark script. Default: `{PACKAGE_SRC_DIR}/benchmark/benchmarks.jl`.
 - `-e, --exeflags <arg>`: CLI flags for Julia (default: none).
 - `-a, --add <arg>`: Extra packages needed (delimit by comma).
+- `-u, --url <arg>`: URL of the package.
 
 # Flags
 
 - `-t, --tune`: Whether to run benchmarks with tuning (default: false).
+
 ```
 
 For plotting, you can use the `benchpkgplot` function:
