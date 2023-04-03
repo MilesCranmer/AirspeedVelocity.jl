@@ -1,5 +1,7 @@
 module AirspeedVelocity
 
+export benchmark
+
 using Pkg: PackageSpec
 using Pkg: Pkg
 
