@@ -4,5 +4,6 @@
 /docs/build/
 **/*.json
 **/*.png
+**/*.pdf
 **/Manifest.toml
 /docs/src/index.md

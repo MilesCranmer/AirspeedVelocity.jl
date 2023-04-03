@@ -24,25 +24,30 @@ julia -e '\
 You may then use the CLI with, e.g.,
 
 ```bash
-benchpkg Transducers --rev='v0.4.65,v0.4.70,master' --add='BangBang,ArgCheck,Referenceables,SplitApplyCombine'
+benchpkg Transducers \
+    --rev=v0.4.20,v0.4.70,master \
+    --bench-on=v0.4.20 \
+    --add=BangBang,ArgCheck,Referenceables,SplitApplyCombine
 ```
 
-which will download `benchmark/benchmarks.jl` of `Transducers.jl`,
-run the benchmarks for all revisions given (`v0.4.65`, `v0.4.70`, and `master`),
+which will benchmark `Transducers.jl`,
+at the revisions `v0.4.20`, `v0.4.70`, and `master`,
+using the benchmark script `benchmark/benchmarks.jl` as it was defined at `v0.4.20`,
 and then save the JSON results in the current directory.
-Here, we also specify `BangBang.jl`, `ArgCheck.jl`, `Referenceables.jl`, and
-`SplitApplyCombine.jl` as additional packages used explicitly
-inside the benchmarks.
+With the `--add` option, we also specify some additional packages 
+which are needed inside the benchmarks.
 
-You can generate plots of the revisions with:
+One can then generate plots of the revisions with:
 
 ```bash
-benchpkgplot Transducers --rev='v0.4.65,v0.4.70,master' --npart=10
+benchpkgplot Transducers \
+    --rev=v0.4.20,v0.4.70,master \
+    --format=pdf \
+    --npart=5
 ```
 
-which will generate a png file of plots, showing the change with each revision.
-The `--npart` flag specifies the maximum number of plots per page; if there are more
-than `npart` plots, they will be split into multiple images.
+which will generate a pdf file for each set of 5 plots,
+showing the change with each revision:
 
 
 You can also provide a custom benchmark.
