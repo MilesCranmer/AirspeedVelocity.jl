@@ -5,6 +5,9 @@
 [![Build Status](https://github.com/MilesCranmer/AirspeedVelocity.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/MilesCranmer/AirspeedVelocity.jl/actions/workflows/CI.yml?query=branch%3Amaster)
 [![Coverage](https://coveralls.io/repos/github/MilesCranmer/AirspeedVelocity.jl/badge.svg?branch=master)](https://coveralls.io/github/MilesCranmer/AirspeedVelocity.jl?branch=master)
 
+AirspeedVelocity.jl makes it easy to benchmark Julia packages over their lifetime.
+It is inspired by [asv](https://asv.readthedocs.io/en/stable/).
+
 ## Installation
 
 You can install the CLI with:
