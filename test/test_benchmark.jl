@@ -26,11 +26,11 @@ end
     )
 end
 
-results = benchmark("SymbolicRegression", ["v0.15.3", "v0.16.2"]; script=script)
+results = benchmark("SymbolicRegression", ["v0.15.3", "v0.16.2"]; script = script)
 @test length(results) == 2
 @test "SymbolicRegression@v0.15.3" in keys(results)
 @test "SymbolicRegression@v0.16.2" in keys(results)
 @test length(results["SymbolicRegression@v0.15.3"]["data"]["eval_tree_array"]["times"]) ==
-    100
+      100
 @test length(results["SymbolicRegression@v0.16.2"]["data"]["eval_tree_array"]["times"]) ==
-    100
+      100
