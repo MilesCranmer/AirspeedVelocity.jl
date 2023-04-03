@@ -7,6 +7,7 @@ CurrentModule = AirspeedVelocity
 Documentation for [AirspeedVelocity](https://github.com/MilesCranmer/AirspeedVelocity.jl).
 
 ```@index
+Pages = ["api.md"]
 ```
 
 ```@autodocs
