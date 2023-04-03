@@ -151,9 +151,11 @@ function load_results(package_name::String, revs::Vector{String}; input_dir::Str
 end
 
 """
-    benchpkgplot package_name [-r --rev <arg>] [-i --input_dir <arg>] [-o --output_dir <arg>] [-n --npart <arg>]
+    benchpkgplot package_name [-r --rev <arg>] [-i --input_dir <arg>]
+                            [-o --output_dir <arg>] [-n --npart <arg>]
+                            [-f --format <arg>]
 
-Benchmark a package over a set of revisions.
+Plot the benchmarks of a package as created with `benchpkg`.
 
 # Arguments
 
@@ -162,10 +164,10 @@ Benchmark a package over a set of revisions.
 # Options
 
 - `-r, --rev <arg>`: Revisions to test (delimit by comma).
-- `-i, --input_dir <arg>`: Where the JSON results were saved.
-- `-o, --output_dir <arg>`: Where to save the plots results.
-- `-n, --npart <arg>`: Max number of plots per page.
-
+- `-i, --input_dir <arg>`: Where the JSON results were saved (default: ".").
+- `-o, --output_dir <arg>`: Where to save the plots results (default: ".").
+- `-n, --npart <arg>`: Max number of plots per page (default: 10).
+- `-f, --format <arg>`: File type to save the plots as (default: "png").
 """
 @main function benchpkgplot(
     package_name::String;
@@ -173,6 +175,7 @@ Benchmark a package over a set of revisions.
     input_dir::String = ".",
     output_dir::String = ".",
     npart::Int = 10,
+    format::String = "png",
 )
     revs = convert(Vector{String}, split(rev, ","))
     # Filter empty strings:
@@ -183,10 +186,10 @@ Benchmark a package over a set of revisions.
     plots = combined_plots(combined_results; npart = npart)
     @info "Saving plots."
     if length(plots) == 1
-        savefig(p, joinpath(output_dir, "plot_$(first(revs).name).png"))
+        savefig(p, joinpath(output_dir, "plot_$(first(revs).name).$(format))"))
     else
         for (i, (rev, p)) in enumerate(zip(revs, plots))
-            savefig(p, joinpath(output_dir, "plot_$(package_name)_$i.png"))
+            savefig(p, joinpath(output_dir, "plot_$(package_name)_$i.$(format)"))
         end
     end
 

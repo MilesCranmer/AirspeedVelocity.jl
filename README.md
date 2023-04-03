@@ -34,6 +34,17 @@ Here, we also specify `BangBang.jl`, `ArgCheck.jl`, `Referenceables.jl`, and
 `SplitApplyCombine.jl` as additional packages used explicitly
 inside the benchmarks.
 
+You can generate plots of the revisions with:
+
+```bash
+benchpkgplot Transducers --rev='v0.4.65,v0.4.70,master' --npart=10
+```
+
+which will generate a png file of plots, showing the change with each revision.
+The `--npart` flag specifies the maximum number of plots per page; if there are more
+than `npart` plots, they will be split into multiple images.
+
+
 You can also provide a custom benchmark.
 For example, let's say you have a file `script.jl`, defining
 a benchmark for `SymbolicRegression.jl`:
@@ -65,7 +76,9 @@ where we have also specified the output directory and extra flags to pass to the
 The CLI is documented as:
 
 ```
-    benchpkg package_name [-r --rev <arg>] [-o, --output_dir <arg>] [-s, --script <arg>] [-e, --exeflags <arg>] [-a, --add <arg>] [-t, --tune]
+    benchpkg package_name [-r --rev <arg>] [-o, --output_dir <arg>]
+                          [-s, --script <arg>] [-e, --exeflags <arg>]
+                          [-a, --add <arg>] [-t, --tune]
 
 Benchmark a package over a set of revisions.
 
@@ -86,7 +99,29 @@ Benchmark a package over a set of revisions.
 - `-t, --tune`: Whether to run benchmarks with tuning (default: false).
 ```
 
-If you prefer to use the Julia API, you can use the `benchmark` function:
+For plotting, you can use the `benchpkgplot` function:
+
+```
+    benchpkgplot package_name [-r --rev <arg>] [-i --input_dir <arg>]
+                              [-o --output_dir <arg>] [-n --npart <arg>]
+                              [-f --format <arg>]
+
+Plot the benchmarks of a package as created with `benchpkg`.
+
+# Arguments
+
+- `package_name`: Name of the package.
+
+# Options
+
+- `-r, --rev <arg>`: Revisions to test (delimit by comma).
+- `-i, --input_dir <arg>`: Where the JSON results were saved (default: ".").
+- `-o, --output_dir <arg>`: Where to save the plots results (default: ".").
+- `-n, --npart <arg>`: Max number of plots per page (default: 10).
+- `-f, --format <arg>`: File type to save the plots as (default: "png").
+```
+
+If you prefer to use the Julia API, you can use the `benchmark` function for generating data:
 
 ```julia
 benchmark(package::Union{PackageSpec,Vector{PackageSpec}}; output_dir::String=".", script::Union{String,Nothing}=nothing, tune::Bool=false, exeflags::Cmd=``)
@@ -94,4 +129,4 @@ benchmark(package_name::String, rev::Union{String,Vector{String}}; output_dir::S
 ```
 
 These output a `Dict` containing the combined results of the benchmarks,
-and output a JSON file in the `output_dir` for each revision.
+and also output a JSON file in the `output_dir` for each revision.
