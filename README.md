@@ -8,23 +8,14 @@
 AirspeedVelocity.jl strives to make it easy to benchmark Julia packages over their lifetime.
 It is inspired by [asv](https://asv.readthedocs.io/en/stable/).
 
-
-### Motivation
-
-*Why not [PkgBenchmark.jl](https://github.com/JuliaCI/PkgBenchmark.jl)?*
-
-PkgBenchmark.jl is a thin wrapper of BenchmarkTools to interface it with Git.
-However, for me this interface is a bit too thin – AirspeedVelocity.jl tries to do more, and do it automatically (including plot generation, similar to `asv`),
-especially for common workflows.
-
 This package allows you to:
 
-- Generate benchmarks directly from the terminal with an easy-to-use CLI
-- Query many commits/tags/branches at a time, rather than requiring separate calls for each revision
+- Generate benchmarks directly from the terminal with an easy-to-use CLI.
+- Query many commits/tags/branches at a time.
 - Plot those benchmarks, automatically flattening your benchmark suite into a list of plots with generated titles,
   with the x-axis showing revisions.
   
-This package also freezes the benchmark script,
+This package also freezes the benchmark script at a particular revision,
 so there is no worry about the old history overwriting the benchmark.
 
 # Installation
@@ -173,3 +164,13 @@ In the REPL, type `using AirspeedVelocity` and then `?benchmark` for up-to-date 
 
 These output a `Dict` containing the combined results of the benchmarks,
 and also output a JSON file in the `output_dir` for each revision.
+
+
+# Related packages
+
+*Why not [PkgBenchmark.jl](https://github.com/JuliaCI/PkgBenchmark.jl)?*
+
+PkgBenchmark.jl is a simple wrapper of BenchmarkTools to interface it with Git, and can be a nice library to build analysis workflows on top of.
+However, for me this wrapper is a bit too thin – AirspeedVelocity.jl tries to do more,
+and do it automatically (including plot generation, similar to `asv`),
+especially for common workflows.
