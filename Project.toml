@@ -3,6 +3,13 @@ uuid = "1c8270ee-6884-45cc-9545-60fa71ec23e4"
 authors = ["Miles Cranmer <miles.cranmer@gmail.com>"]
 version = "1.0.0-DEV"
 
+[deps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+Comonicon = "863f3e99-da2a-4334-8734-de3dacbe5542"
+JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+
 [compat]
 julia = "1.6"
 
