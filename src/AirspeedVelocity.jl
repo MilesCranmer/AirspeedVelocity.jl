@@ -5,7 +5,7 @@ export benchmark
 using Pkg: PackageSpec
 using Pkg: Pkg
 
-function _get_benchmark_script(package_name)
+function _get_script(package_name)
     # Create temp env, add package, and get path to benchmark script.
     @info "Downloading package's latest benchmark script, assuming it is in benchmark/benchmarks.jl"
     tmp_env = mktempdir()
@@ -24,21 +24,21 @@ function _get_benchmark_script(package_name)
     end
     run(`julia --project="$tmp_env" "$path_getter"`)
 
-    benchmark_script = joinpath(
+    script = joinpath(
         readchomp(joinpath(tmp_env, "package_path.txt")), "benchmark", "benchmarks.jl"
     )
-    if !isfile(benchmark_script)
-        @error "Could not find benchmark script at $benchmark_script. Please specify the `benchmark_script` manually."
+    if !isfile(script)
+        @error "Could not find benchmark script at $script. Please specify the `script` manually."
     end
-    @info "Found benchmark script at $benchmark_script."
+    @info "Found benchmark script at $script."
 
-    return benchmark_script
+    return script
 end
 
 function _benchmark(
     spec::PackageSpec;
     output_dir::String=".",
-    benchmark_script::String=nothing,
+    script::String=nothing,
     tune::Bool=false,
     exeflags::Cmd=``,
 )
@@ -58,7 +58,7 @@ function _benchmark(
         using JSON3: write
 
         # Include benchmark, defining SUITE:
-        include($benchmark_script)
+        include($script)
         # Assert that SUITE is defined:
         if !isdefined(Main, :SUITE)
             @error "Benchmark script $bench_path did not define SUITE."
@@ -86,11 +86,11 @@ function _benchmark(
 end
 
 """
-    benchmark(package_name::String, rev::Union{String,Vector{String}}; output_dir::String=".", benchmark_script::Union{String,Nothing}=nothing, tune::Bool=false, exeflags::Cmd=``)
+    benchmark(package_name::String, rev::Union{String,Vector{String}}; output_dir::String=".", script::Union{String,Nothing}=nothing, tune::Bool=false, exeflags::Cmd=``)
 
 Run benchmarks for a given Julia package.
 
-This function runs the benchmarks specified in the `benchmark_script` for the package defined by the `package_spec`. If `benchmark_script` is not provided, the function will use the default benchmark script located at `{PACKAGE_SRC_DIR}/benchmark/benchmarks.jl`.
+This function runs the benchmarks specified in the `script` for the package defined by the `package_spec`. If `script` is not provided, the function will use the default benchmark script located at `{PACKAGE_SRC_DIR}/benchmark/benchmarks.jl`.
 
 The benchmarks are run using the `SUITE` variable defined in the benchmark script, which should be of type BenchmarkTools.BenchmarkGroup. The benchmarks can be run with or without tuning depending on the value of the `tune` argument.
 
@@ -100,7 +100,7 @@ The results of the benchmarks are saved to a JSON file named `results_packagenam
 - `package_name::String`: The name of the package for which to run the benchmarks.
 - `rev::Union{String,Vector{String}}`: The revision of the package for which to run the benchmarks. You can also pass a vector of revisions to run benchmarks for multiple versions of a package.
 - `output_dir::String="."`: The directory where the benchmark results JSON file will be saved (default: current directory).
-- `benchmark_script::Union{String,Nothing}=nothing`: The path to the benchmark script file. If not provided, the default script at `{PACKAGE}/benchmark/benchmarks.jl` will be used.
+- `script::Union{String,Nothing}=nothing`: The path to the benchmark script file. If not provided, the default script at `{PACKAGE}/benchmark/benchmarks.jl` will be used.
 - `tune::Bool=false`: Whether to run benchmarks with tuning (default: false).
 - `exeflags::Cmd=```: Additional execution flags for running the benchmark script (default: empty).
 """
@@ -108,14 +108,14 @@ function benchmark(
     package_name::String,
     revs::Vector{String};
     output_dir::String=".",
-    benchmark_script::Union{String,Nothing}=nothing,
+    script::Union{String,Nothing}=nothing,
     tune::Bool=false,
     exeflags::Cmd=``,
 )
     return benchmark(
         [PackageSpec(; name=package_name, rev=rev) for rev in revs];
         output_dir=output_dir,
-        benchmark_script=benchmark_script,
+        script=script,
         tune=tune,
         exeflags=exeflags,
     )
@@ -124,7 +124,7 @@ function benchmark(
     package_name::String,
     rev::String;
     output_dir::String=".",
-    benchmark_script::Union{String,Nothing}=nothing,
+    script::Union{String,Nothing}=nothing,
     tune::Bool=false,
     exeflags::Cmd=``,
 )
@@ -132,18 +132,18 @@ function benchmark(
         package_name,
         [rev];
         output_dir=output_dir,
-        benchmark_script=benchmark_script,
+        script=script,
         tune=tune,
         exeflags=exeflags,
     )
 end
 
 """
-    benchmark(package::Union{PackageSpec,Vector{PackageSpec}}; output_dir::String=".", benchmark_script::Union{String,Nothing}=nothing, tune::Bool=false, exeflags::Cmd=``)
+    benchmark(package::Union{PackageSpec,Vector{PackageSpec}}; output_dir::String=".", script::Union{String,Nothing}=nothing, tune::Bool=false, exeflags::Cmd=``)
 
 Run benchmarks for a given Julia package.
 
-This function runs the benchmarks specified in the `benchmark_script` for the package defined by the `package_spec`. If `benchmark_script` is not provided, the function will use the default benchmark script located at `{PACKAGE_SRC_DIR}/benchmark/benchmarks.jl`.
+This function runs the benchmarks specified in the `script` for the package defined by the `package_spec`. If `script` is not provided, the function will use the default benchmark script located at `{PACKAGE_SRC_DIR}/benchmark/benchmarks.jl`.
 
 The benchmarks are run using the `SUITE` variable defined in the benchmark script, which should be of type BenchmarkTools.BenchmarkGroup. The benchmarks can be run with or without tuning depending on the value of the `tune` argument.
 
@@ -152,39 +152,39 @@ The results of the benchmarks are saved to a JSON file named `results_packagenam
 # Arguments
 - `package::Union{PackageSpec,Vector{PackageSpec}}`: The package specification containing information about the package for which to run the benchmarks. You can also pass a vector of package specifications to run benchmarks for multiple versions of a package.
 - `output_dir::String="."`: The directory where the benchmark results JSON file will be saved (default: current directory).
-- `benchmark_script::Union{String,Nothing}=nothing`: The path to the benchmark script file. If not provided, the default script at `{PACKAGE}/benchmark/benchmarks.jl` will be used.
+- `script::Union{String,Nothing}=nothing`: The path to the benchmark script file. If not provided, the default script at `{PACKAGE}/benchmark/benchmarks.jl` will be used.
 - `tune::Bool=false`: Whether to run benchmarks with tuning (default: false).
 - `exeflags::Cmd=```: Additional execution flags for running the benchmark script (default: empty).
 """
 function benchmark(
     package_spec::PackageSpec;
     output_dir::String=".",
-    benchmark_script::Union{String,Nothing}=nothing,
+    script::Union{String,Nothing}=nothing,
     tune::Bool=false,
     exeflags::Cmd=``,
 )
-    if benchmark_script === nothing
-        benchmark_script = _get_benchmark_script(package_name)
+    if script === nothing
+        script = _get_script(package_name)
     end
-    return _benchmark(package_spec; output_dir, benchmark_script, tune, exeflags)
+    return _benchmark(package_spec; output_dir, script, tune, exeflags)
 end
 function benchmark(
     package_specs::Vector{PackageSpec};
     output_dir::String=".",
-    benchmark_script::Union{String,Nothing}=nothing,
+    script::Union{String,Nothing}=nothing,
     tune::Bool=false,
     exeflags::Cmd=``,
 )
-    if benchmark_script === nothing
+    if script === nothing
         package_name = first(package_specs).name
         if !all(p -> p.name == package_name, package_specs)
-            @error "All package specifications must have the same package name if you do not specify a `benchmark_script`."
+            @error "All package specifications must have the same package name if you do not specify a `script`."
         end
 
-        benchmark_script = _get_benchmark_script(package_name)
+        script = _get_script(package_name)
     end
     for spec in package_specs
-        benchmark(spec; output_dir, benchmark_script, tune, exeflags)
+        benchmark(spec; output_dir, script, tune, exeflags)
     end
 end
 
