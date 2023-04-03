@@ -5,6 +5,12 @@ using Pkg: Pkg
 using JSON3: JSON3
 using FilePathsBase: isabspath, absolute, PosixPath
 
+function get_spec_str(spec::PackageSpec)
+    package_name = spec.name
+    package_rev = spec.rev
+    return string(package_name) * "@" * string(package_rev)
+end
+
 function _get_script(package_name::String)::String
     # Create temp env, add package, and get path to benchmark script.
     @info "Downloading package's latest benchmark script, assuming it is in benchmark/benchmarks.jl"
@@ -54,9 +60,7 @@ function _benchmark(
     if !isabspath(script)
         script = string(absolute(PosixPath(script)))
     end
-    package_name = spec.name
-    package_rev = spec.rev
-    spec_str = string(package_name) * "@" * string(package_rev)
+    spec_str = get_spec_str(spec)
     old_project = Pkg.project().path
     tmp_env = mktempdir()
     @info "    Creating temporary environment."
