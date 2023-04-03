@@ -1,4 +1,4 @@
-# AirspeedVelocity
+# AirspeedVelocity.jl
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://MilesCranmer.github.io/AirspeedVelocity.jl/stable/)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://MilesCranmer.github.io/AirspeedVelocity.jl/dev/)
@@ -13,8 +13,8 @@ It is inspired by [asv](https://asv.readthedocs.io/en/stable/).
 
 *Why not [PkgBenchmark.jl](https://github.com/JuliaCI/PkgBenchmark.jl)?*
 
-PkgBenchmark.jl is a thin wrapper of BenchmarkTools and Git, which might be enough for most users.
-However, for me it was a bit too thin – this package tries to do more, and do it automatically (including plot generation, similar to `asv`),
+PkgBenchmark.jl is a thin wrapper of BenchmarkTools to interface it with Git.
+However, for me this interface is a bit too thin – AirspeedVelocity.jl tries to do more, and do it automatically (including plot generation, similar to `asv`),
 especially for common workflows.
 
 This package allows you to:
@@ -68,6 +68,8 @@ benchpkgplot Transducers \
 
 which will generate a pdf file for each set of 5 plots,
 showing the change with each revision:
+
+<img width="877" alt="Screenshot 2023-04-03 at 10 36 16 AM" src="https://user-images.githubusercontent.com/7593028/229543368-14b1da88-8315-437b-b38f-fff143f26e3a.png">
 
 
 You can also provide a custom benchmark.
