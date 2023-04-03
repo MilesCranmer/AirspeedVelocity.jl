@@ -126,21 +126,21 @@ Benchmark a package over a set of revisions.
 
 - `-r, --rev <arg>`: Revisions to test (delimit by comma).
 - `-o, --output-dir <arg>`: Where to save the JSON results.
-- `-s, --script <arg>`: The benchmark script. Default: `{PACKAGE_SRC_DIR}/benchmark/benchmarks.jl`.
+- `-s, --script <arg>`: The benchmark script. Default: `benchmark/benchmarks.jl` downloaded from `stable`.
 - `-e, --exeflags <arg>`: CLI flags for Julia (default: none).
 - `-a, --add <arg>`: Extra packages needed (delimit by comma).
 - `-u, --url <arg>`: URL of the package.
+- `--bench-on <arg>`: If the script is not set, this specifies the revision of `benchmarks.jl`.
 
 # Flags
 
 - `-t, --tune`: Whether to run benchmarks with tuning (default: false).
-
 ```
 
 For plotting, you can use the `benchpkgplot` function:
 
 ```
-    benchpkgplot package_name [-r --rev <arg>] [-i --input-dir <arg>]
+    benchpkgplot package_name [-r --rev <arg>] [-i --input_dir <arg>]
                               [-o --output-dir <arg>] [-n --npart <arg>]
                               [-f --format <arg>]
 
