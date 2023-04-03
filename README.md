@@ -97,14 +97,21 @@ end
 we can run this benchmark over the history of `SymbolicRegression.jl` with:
 
 ```bash
-benchpkg SymbolicRegression -r v0.15.3,v0.16.2 -s script.jl -o results/ --exeflags="--threads=4 -O3"
+benchpkg SymbolicRegression \
+    -r v0.15.3,v0.16.2 \
+    -s script.jl \
+    -o results/ \
+    --exeflags="--threads=4 -O3"
 ```
 
 where we have also specified the output directory and extra flags to pass to the
 `julia` executable. We can also now visualize this:
 
 ```bash
-benchpkgplot SymbolicRegression -r v0.15.3,v0.16.2 -i results/ -o plots/ --format=pdf
+benchpkgplot SymbolicRegression \
+    -r v0.15.3,v0.16.2 \
+    -i results/ \
+    -o plots/
 ```
 
 
