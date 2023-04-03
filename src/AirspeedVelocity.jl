@@ -1,5 +1,6 @@
 module AirspeedVelocity
 
-# Write your package code here.
+include("runbenchmarks.jl")
+export run_benchmarks
 
 end
