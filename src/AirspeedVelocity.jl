@@ -1,10 +1,13 @@
 module AirspeedVelocity
 
+module Utils
+
 export benchmark
 
 using Pkg: PackageSpec
 using Pkg: Pkg
 using JSON3: JSON3
+using FilePathsBase: isabspath, absolute, PosixPath
 
 function _get_script(package_name)
     # Create temp env, add package, and get path to benchmark script.
@@ -38,11 +41,20 @@ end
 
 function _benchmark(
     spec::PackageSpec;
-    output_dir::String=".",
-    script::String=nothing,
-    tune::Bool=false,
-    exeflags::Cmd=``,
+    output_dir::String,
+    script::String,
+    tune::Bool,
+    exeflags::Cmd,
 )
+    cur_dir = pwd()
+    # Make sure paths are absolute, otherwise weird
+    # behavior inside process:
+    if !isabspath(output_dir)
+        output_dir = string(absolute(PosixPath(output_dir)))
+    end
+    if !isabspath(script)
+        script = string(absolute(PosixPath(script)))
+    end
     package_name = spec.name
     package_rev = spec.rev
     spec_str = string(package_name) * "@" * string(package_rev)
@@ -61,14 +73,16 @@ function _benchmark(
         using BenchmarkTools: run, BenchmarkGroup
         using JSON3: JSON3
 
+        cd($cur_dir)
         # Include benchmark, defining SUITE:
+        @info "    [runner] Including benchmark script: " * $script * "."
         include($script)
         # Assert that SUITE is defined:
         if !isdefined(Main, :SUITE)
-            @error "    [runner] Benchmark script $bench_path did not define SUITE."
+            @error "    [runner] Benchmark script " * $script * " did not define SUITE."
         end
         if !(typeof(SUITE) <: BenchmarkGroup)
-            @error "    [runner] Benchmark script $bench_path did not define SUITE as a BenchmarkGroup."
+            @error "    [runner] Benchmark script " * $script * " did not define SUITE as a BenchmarkGroup."
         end
         if $tune
             @info "    [runner] Tuning benchmarks."
@@ -207,5 +221,54 @@ function benchmark(
     end
     return results
 end
+end # module AirspeedVelocity.Utils
 
-end
+module BenchPkg
+
+    using ..Utils: benchmark
+    using Comonicon
+
+    """
+    Benchmark a package over a set of revisions.
+
+    # Arguments
+
+    - `package_name`: Name of the package.
+    - `rev`: Revisions to test.
+
+    # Options
+
+    - `-o, --output_dir <arg>`: Where to save the JSON results.
+    - `-s, --script <arg>`: The benchmark script. Default: `{PACKAGE_SRC_DIR}/benchmark/benchmarks.jl`.
+    - `-e, --exeflags <arg>`: CLI flags for Julia (default: none).
+
+    # Flags
+
+    - `-t, --tune`: Whether to run benchmarks with tuning (default: false).
+
+    """
+    @main function benchpkg(
+        package_name::String,
+        rev::String...;
+        output_dir::String=".",
+        script::String="",
+        exeflags::String="",
+        tune::Bool=false,
+    )
+        benchmark(
+            package_name,
+            [rev...];
+            output_dir=output_dir,
+            script=(length(script) > 0 ? script : nothing),
+            tune=tune,
+            exeflags=(length(exeflags) > 0 ? `$exeflags` : nothing),
+        )
+
+        return nothing
+    end
+end # module AirspeedVelocity.BenchPkg
+
+using .Utils
+export benchmark
+
+end # module AirspeedVelocity
