@@ -14,7 +14,7 @@ Benchmark a package over a set of revisions.
 
 # Options
 
-- `-r --rev <arg>`: Revisions to test (delimit by comma).
+- `-r, --rev <arg>`: Revisions to test (delimit by comma).
 - `-o, --output_dir <arg>`: Where to save the JSON results.
 - `-s, --script <arg>`: The benchmark script. Default: `{PACKAGE_SRC_DIR}/benchmark/benchmarks.jl`.
 - `-e, --exeflags <arg>`: CLI flags for Julia (default: none).
@@ -37,7 +37,7 @@ Benchmark a package over a set of revisions.
     revs = convert(Vector{String}, split(rev, ","))
     # Filter empty strings:
     revs = filter(x -> length(x) > 0, revs)
-    @assert length(rev) > 0, "No revisions specified."
+    @assert length(revs) > 0  "No revisions specified."
     benchmark(
         package_name,
         revs;

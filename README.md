@@ -24,7 +24,7 @@ julia -e '\
 You may then use the CLI with, e.g.,
 
 ```bash
-benchpkg Transducers --revisions='v0.4.65,v0.4.70,master' --add='BangBang,ArgCheck,Referenceables,SplitApplyCombine'
+benchpkg Transducers --rev='v0.4.65,v0.4.70,master' --add='BangBang,ArgCheck,Referenceables,SplitApplyCombine'
 ```
 
 which will download `benchmark/benchmarks.jl` of `Transducers.jl`,
