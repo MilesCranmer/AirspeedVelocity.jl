@@ -45,6 +45,7 @@ function _benchmark(
     script::String,
     tune::Bool,
     exeflags::Cmd,
+    extra_pkgs::Vector{String},
 )
     cur_dir = pwd()
     # Make sure paths are absolute, otherwise weird
@@ -63,8 +64,11 @@ function _benchmark(
     @info "    Creating temporary environment."
     Pkg.activate(tmp_env; io=devnull)
     @info "    Adding packages."
+    # Filter out empty strings from extra_pkgs:
+    extra_pkgs = filter(x -> x != "", extra_pkgs)
+    pkgs = ["BenchmarkTools", "JSON3", "Pkg", extra_pkgs...]
     Pkg.add(
-        [spec, PackageSpec(; name="BenchmarkTools"), PackageSpec(; name="JSON3")];
+        [spec, [PackageSpec(; name=pkg) for pkg in pkgs]...];
         io=devnull,
     )
     Pkg.activate(old_project; io=devnull)
@@ -75,7 +79,7 @@ function _benchmark(
 
         cd($cur_dir)
         # Include benchmark, defining SUITE:
-        @info "    [runner] Including benchmark script: " * $script * "."
+        @info "    [runner] Loading benchmark script: " * $script * "."
         include($script)
         # Assert that SUITE is defined:
         if !isdefined(Main, :SUITE)
@@ -140,6 +144,7 @@ function benchmark(
     script::Union{String,Nothing}=nothing,
     tune::Bool=false,
     exeflags::Cmd=``,
+    extra_pkgs::Vector{String}=String[],
 )
     return benchmark(
         [PackageSpec(; name=package_name, rev=rev) for rev in revs];
@@ -147,6 +152,7 @@ function benchmark(
         script=script,
         tune=tune,
         exeflags=exeflags,
+        extra_pkgs=extra_pkgs,
     )
 end
 function benchmark(
@@ -156,6 +162,7 @@ function benchmark(
     script::Union{String,Nothing}=nothing,
     tune::Bool=false,
     exeflags::Cmd=``,
+    extra_pkgs::Vector{String}=String[],
 )
     return benchmark(
         package_name,
@@ -164,6 +171,7 @@ function benchmark(
         script=script,
         tune=tune,
         exeflags=exeflags,
+        extra_pkgs=extra_pkgs,
     )
 end
 
@@ -184,6 +192,7 @@ The results of the benchmarks are saved to a JSON file named `results_packagenam
 - `script::Union{String,Nothing}=nothing`: The path to the benchmark script file. If not provided, the default script at `{PACKAGE}/benchmark/benchmarks.jl` will be used.
 - `tune::Bool=false`: Whether to run benchmarks with tuning (default: false).
 - `exeflags::Cmd=```: Additional execution flags for running the benchmark script (default: empty).
+- `extra_pkgs::Vector{String}=String[]`: Additional packages to add to the benchmark environment.
 """
 function benchmark(
     package_spec::PackageSpec;
@@ -191,12 +200,13 @@ function benchmark(
     script::Union{String,Nothing}=nothing,
     tune::Bool=false,
     exeflags::Cmd=``,
+    extra_pkgs=String[],
 )
     if script === nothing
         script = _get_script(package_name)
     end
     @info "Running benchmarks for " * package_spec.name * "@" * package_spec.rev * ":"
-    return _benchmark(package_spec; output_dir, script, tune, exeflags)
+    return _benchmark(package_spec; output_dir, script, tune, exeflags, extra_pkgs)
 end
 function benchmark(
     package_specs::Vector{PackageSpec};
@@ -204,6 +214,7 @@ function benchmark(
     script::Union{String,Nothing}=nothing,
     tune::Bool=false,
     exeflags::Cmd=``,
+    extra_pkgs=String[],
 )
     if script === nothing
         package_name = first(package_specs).name
@@ -216,7 +227,7 @@ function benchmark(
     results = Dict{String,Any}()
     for spec in package_specs
         results[spec.name * "@" * spec.rev] = benchmark(
-            spec; output_dir, script, tune, exeflags
+            spec; output_dir, script, tune, exeflags, extra_pkgs
         )
     end
     return results
@@ -241,6 +252,7 @@ module BenchPkg
     - `-o, --output_dir <arg>`: Where to save the JSON results.
     - `-s, --script <arg>`: The benchmark script. Default: `{PACKAGE_SRC_DIR}/benchmark/benchmarks.jl`.
     - `-e, --exeflags <arg>`: CLI flags for Julia (default: none).
+    - `-a, --add <arg>`: Extra packages needed (delimit by comma).
 
     # Flags
 
@@ -253,6 +265,7 @@ module BenchPkg
         output_dir::String=".",
         script::String="",
         exeflags::String="",
+        add::String="",
         tune::Bool=false,
     )
         benchmark(
@@ -262,6 +275,7 @@ module BenchPkg
             script=(length(script) > 0 ? script : nothing),
             tune=tune,
             exeflags=(length(exeflags) > 0 ? `$exeflags` : ``),
+            extra_pkgs=convert(Vector{String}, split(add, ",")),
         )
 
         return nothing
