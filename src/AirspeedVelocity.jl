@@ -40,7 +40,9 @@ function _benchmark(
     tune::Bool=false,
     exeflags::Cmd=``,
 )
-    spec_str = string(spec)
+    package_name = spec.name
+    package_rev = spec.rev
+    spec_str = string(package_name) * "@" * string(package_rev)
     tmp_env = mktempdir()
     Pkg.activate(tmp_env; io=devnull)
     Pkg.add(
@@ -106,13 +108,38 @@ function benchmark(
     end
 end
 
-function benchmark(package_name::String, revs::Vector{String}; kws...)
+function benchmark(
+    package_name::String,
+    revs::Vector{String};
+    output_dir::String=".",
+    benchmark_script::Union{String,Nothing}=nothing,
+    tune::Bool=false,
+    exeflags::Cmd=``,
+)
     return _benchmark(
-        [PackageSpec(; name=package_name, rev=rev) for rev in revs]; kws...
+        [PackageSpec(; name=package_name, rev=rev) for rev in revs];
+        output_dir=output_dir,
+        benchmark_script=benchmark_script,
+        tune=tune,
+        exeflags=exeflags,
     )
 end
-function benchmark(package_name::String, rev::String; kws...)
-    return benchmark(package_name, [rev]; kws...)
+function benchmark(
+    package_name::String,
+    rev::String;
+    output_dir::String=".",
+    benchmark_script::Union{String,Nothing}=nothing,
+    tune::Bool=false,
+    exeflags::Cmd=``,
+)
+    return benchmark(
+        package_name,
+        [rev];
+        output_dir=output_dir,
+        benchmark_script=benchmark_script,
+        tune=tune,
+        exeflags=exeflags,
+    )
 end
 
 end
