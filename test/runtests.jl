@@ -2,5 +2,5 @@ using AirspeedVelocity
 using Test
 
 @testset "AirspeedVelocity.jl" begin
-    # Write your tests here.
+    include("test_benchmark.jl")
 end
