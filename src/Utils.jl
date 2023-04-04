@@ -78,12 +78,14 @@ function _benchmark(
     to_exec = quote
         using BenchmarkTools: run, BenchmarkGroup
         using JSON3: JSON3
+        using Pkg: Pkg
 
         const PACKAGE_VERSION = $(spec.rev)
 
         cd($cur_dir)
         # Include benchmark, defining SUITE:
         @info "    [runner] Loading benchmark script: " * $script * "."
+        cur_project = Pkg.project().path
         include($script)
         # Assert that SUITE is defined:
         if !isdefined(Main, :SUITE)
@@ -93,6 +95,14 @@ function _benchmark(
             @error "    [runner] Benchmark script " *
                 $script *
                 " did not define SUITE as a BenchmarkGroup."
+        end
+        # Assert that `include` did not change environments:
+        if Pkg.project().path != cur_project
+            @error "    [runner] Benchmark script " *
+                $script *
+                " changed the active environment. " *
+                "This is not allowed, as it will "
+                "cause the benchmark to produce incorrect results."
         end
         if $tune
             @info "    [runner] Tuning benchmarks."
