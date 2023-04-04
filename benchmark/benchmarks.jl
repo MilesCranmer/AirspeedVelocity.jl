@@ -6,6 +6,5 @@ const SUITE = BenchmarkGroup()
 
 SUITE["main"] = BenchmarkGroup()
 
-SUITE["main"]["get_script"] = @benchmarkable _get_script(;
-    package_name="Convex", benchmark_on="v0.13.1"
-) evals = 1 samples = 5
+SUITE["main"]["random_sleep"] = @benchmarkable sleep(t) setup = (t = rand()) evals = 1 samples =
+    2
