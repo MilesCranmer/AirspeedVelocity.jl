@@ -69,19 +69,18 @@ a benchmark for `SymbolicRegression.jl`:
 ```julia
 using BenchmarkTools, SymbolicRegression
 const SUITE = BenchmarkGroup()
-SUITE["eval_tree_array"] = begin
-    b = BenchmarkGroup()
-    options = Options(; binary_operators=[+, -, *], unary_operators=[cos])
-    tree = Node(; feature=1) + cos(3.2f0 * Node(; feature=2))
-    X = randn(Float32, 2, 10)
-    f() = eval_tree_array(tree, X, options)
-    b["10"] = @benchmarkable f() evals=1 samples=100
 
-    X2 = randn(Float32, 2, 20)
-    f2() = eval_tree_array(tree, X2, options)
-    b["20"] = @benchmarkable f2() evals=1 samples=100
-    b
-end
+# Create hierarchy of benchmarks:
+SUITE["eval_tree_array"] = BenchmarkGroup()
+
+options = Options(; binary_operators=[+, -, *], unary_operators=[cos])
+tree = Node(; feature=1) + cos(3.2f0 * Node(; feature=2))
+
+X = randn(Float32, 2, 10)
+SUITE["eval_tree_array"]["10"] = @benchmarkable eval_tree_array($tree, $X, $options) evals=1 samples=100
+
+X2 = randn(Float32, 2, 20)
+SUITE["eval_tree_array"]["20"] = @benchmarkable eval_tree_array($tree, $X2, $options) evals=1 samples=100
 ```
 
 we can run this benchmark over the history of `SymbolicRegression.jl` with:
