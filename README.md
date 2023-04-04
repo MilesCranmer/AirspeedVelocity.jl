@@ -160,10 +160,7 @@ Plot the benchmarks of a package as created with `benchpkg`.
 ```
 
 If you prefer to use the Julia API, you can use the `benchmark` function for generating data.
-In the REPL, type `using AirspeedVelocity` and then `?benchmark` for up-to-date documentation.
-
-These output a `Dict` containing the combined results of the benchmarks,
-and also output a JSON file in the `output_dir` for each revision.
+The API is given [here](https://astroautomata.com/AirspeedVelocity.jl/dev/api/).
 
 
 # Related packages
