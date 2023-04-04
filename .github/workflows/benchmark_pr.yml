@@ -1,11 +1,13 @@
 name: Benchmark a pull request
 
 on:
-  pull_request:
-    # types:
-    #     - opened
-    #     - synchronize
-    
+  pull_request_target:
+    branches:
+      - master
+
+permissions:
+  pull-requests: write
+
 jobs:
     generate_plots:
         runs-on: ubuntu-latest
@@ -51,7 +53,6 @@ jobs:
             - name: Comment on PR
               uses: peter-evans/create-or-update-comment@v1
               with:
-                token: ${{ secrets.GITHUB_TOKEN }}
                 issue-number: ${{ github.event.pull_request.number }}
                 body: |
                     # Benchmark Results
