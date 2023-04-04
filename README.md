@@ -18,7 +18,7 @@ This package allows you to:
 This package also freezes the benchmark script at a particular revision,
 so there is no worry about the old history overwriting the benchmark.
 
-# Installation
+## Installation
 
 You can install the CLI with:
 
@@ -30,7 +30,7 @@ julia -e 'using Pkg; \
 
 This will install two executables at `~/.julia/bin` - make sure to have it on your `PATH`.
 
-# Examples
+## Examples
 
 You may then use the CLI to generate benchmarks for any package with, e.g.,
 
@@ -45,7 +45,7 @@ which will benchmark `Transducers.jl`,
 at the revisions `v0.4.20`, `v0.4.70`, and `master`,
 using the benchmark script `benchmark/benchmarks.jl` as it was defined at `v0.4.20`,
 and then save the JSON results in the current directory.
-With the `--add` option, we also specify some additional packages 
+With the `--add` option, we also specify some additional packages
 which are needed inside the benchmarks.
 
 One can then generate plots of the revisions with:
@@ -61,7 +61,6 @@ which will generate a pdf file for each set of 5 plots,
 showing the change with each revision:
 
 <img width="877" alt="Screenshot 2023-04-03 at 10 36 16 AM" src="https://user-images.githubusercontent.com/7593028/229543368-14b1da88-8315-437b-b38f-fff143f26e3a.png">
-
 
 You can also provide a custom benchmark.
 For example, let's say you have a file `script.jl`, defining
@@ -105,12 +104,12 @@ benchpkgplot SymbolicRegression \
     -o plots/
 ```
 
+## Usage
 
-# Usage
+For running benchmarks, you can use the `benchpkg` command, which is
+built into the `~/.julia/bin` folder:
 
-The CLI is documented as:
-
-```
+```text
     benchpkg package_name [-r --rev <arg>] [-o, --output-dir <arg>]
                           [-s, --script <arg>] [-e, --exeflags <arg>]
                           [-a, --add <arg>] [-t, --tune]
@@ -139,7 +138,7 @@ Benchmark a package over a set of revisions.
 
 For plotting, you can use the `benchpkgplot` function:
 
-```
+```text
     benchpkgplot package_name [-r --rev <arg>] [-i --input_dir <arg>]
                               [-o --output-dir <arg>] [-n --npart <arg>]
                               [-f --format <arg>]
@@ -162,12 +161,13 @@ Plot the benchmarks of a package as created with `benchpkg`.
 If you prefer to use the Julia API, you can use the `benchmark` function for generating data.
 The API is given [here](https://astroautomata.com/AirspeedVelocity.jl/dev/api/).
 
+## Related packages
 
-# Related packages
+Also be sure to check out [PkgBenchmark.jl](https://github.com/JuliaCI/PkgBenchmark.jl).
+PkgBenchmark.jl is a simple wrapper of BenchmarkTools.jl to interface it with Git, and
+is a good choice for building custom analysis workflows.
 
-*Why not [PkgBenchmark.jl](https://github.com/JuliaCI/PkgBenchmark.jl)?*
-
-PkgBenchmark.jl is a simple wrapper of BenchmarkTools to interface it with Git, and can be a nice library to build analysis workflows on top of.
-However, for me this wrapper is a bit too thin – AirspeedVelocity.jl tries to do more,
-and do it automatically (including plot generation, similar to `asv`),
-especially for common workflows.
+However, for me this wrapper is a bit too thin, which is why I created this package.
+AirspeedVelocity.jl tries to have more features and workflows readily-available.
+It also emphasizes a CLI (though there is a Julia API), as my subjective view
+is that this is more suitable for interacting side-by-side with `git`.
