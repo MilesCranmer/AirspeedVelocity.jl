@@ -23,43 +23,30 @@ jobs:
               run: |
                 PACKAGE_NAME=$(grep "^name" Project.toml | sed 's/^name = "\(.*\)"$/\1/')
                 echo "::set-output name=package_name::$PACKAGE_NAME"
-
             - name: Build AirspeedVelocity
               run: |
                 julia -e 'using Pkg; Pkg.add(;url="https://github.com/MilesCranmer/AirspeedVelocity.jl.git"); Pkg.build("AirspeedVelocity")'
-
             - name: Add ~/.julia/bin to PATH
               run: |
                 echo "$HOME/.julia/bin" >> $GITHUB_PATH
-
             - name: Run benchmarks
               run: |
                 echo $PATH
                 ls -l ~/.julia/bin
                 mkdir results
                 benchpkg ${{ steps.extract-package-name.outputs.package_name }} --rev="${{github.event.repository.default_branch}},${{github.event.pull_request.head.sha}}" --url=${{ github.event.repository.clone_url }} --bench-on="${{github.event.repository.default_branch}}" --output-dir=results/
-                
             - name: Create plots from benchmarks
               run: |
-                mkdir -p plots_${{ github.event.number }}
-                benchpkgplot ${{ steps.extract-package-name.outputs.package_name }} --rev="${{github.event.repository.default_branch}},${{github.event.pull_request.head.sha}}" --npart=1000 --format=png --input-dir=results/ --output-dir=plots_${{ github.event.number }}/
-
-            - name: Upload plots
+                mkdir -p plots
+                benchpkgplot ${{ steps.extract-package-name.outputs.package_name }} --rev="${{github.event.repository.default_branch}},${{github.event.pull_request.head.sha}}" --npart=10 --format=png --input-dir=results/ --output-dir=plots/
+            - name: Upload plot as artifact
               uses: actions/upload-artifact@v2
               with:
-                name: plots_${{ github.event.number }}
-                path: ./plots_${{ github.event.number }}/
-
+                name: plots
+                path: plots
             - name: Comment on PR
               uses: peter-evans/create-or-update-comment@v1
               with:
                 issue-number: ${{ github.event.pull_request.number }}
                 body: |
-                    # Benchmark Results
-
-                    <!-- This comment is automatically updated by the benchmark action. -->
-
-                    <!-- Here are the images: -->
-                    ![Plot](https://github.com/${{ github.repository }}/actions/artifacts/plots_${{ github.event.pull_request.number }}/zip?path=plot_${{ steps.extract-package-name.outputs.package_name }}.png)
-
-
+                    The benchmark results have been uploaded as an artifact to the workflow run for this PR.
