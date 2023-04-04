@@ -131,7 +131,8 @@ Benchmark a package over a set of revisions.
 - `-a, --add <arg>`: Extra packages needed (delimit by comma).
 - `--url <arg>`: URL of the package.
 - `--path <arg>`: Path of the package.
-- `--bench-on <arg>`: If the script is not set, this specifies the revision of `benchmarks.jl`.
+- `--bench-on <arg>`: If the script is not set, this specifies the revision at which
+  to download `benchmark/benchmarks.jl` from the package.
 
 # Flags
 
