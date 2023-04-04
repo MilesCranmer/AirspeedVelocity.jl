@@ -22,7 +22,7 @@ function _get_script(;
     if benchmark_on !== nothing
         @info "Downloading from $benchmark_on."
     end
-    tmp_env = mktempdir()
+    tmp_env = mktempdir(; cleanup=false)
     to_exec = quote
         ENV["JULIA_PKG_PRECOMPILE_AUTO"] = 0
         using Pkg
@@ -82,11 +82,11 @@ function _benchmark(
     end
     spec_str = get_spec_str(spec)
     old_project = Pkg.project().path
-    tmp_env = mktempdir()
+    tmp_env = mktempdir(; cleanup=false)
     @info "    Creating temporary environment at $tmp_env."
     if project_toml !== nothing
-        @info "    Copying $project_toml."
-        cp(project_toml, joinpath(tmp_env, "Project.toml"))
+        @info "    Copying $project_toml to environment."
+        run(`cp $(project_toml) $(joinpath(tmp_env, "Project.toml"))`)
     end
     Pkg.activate(tmp_env; io=devnull)
     @info "    Adding packages."

@@ -2,7 +2,7 @@ using AirspeedVelocity
 using Test
 
 @testset "Test run benchmarking" begin
-    tmp = mktempdir()
+    tmp = mktempdir(; cleanup=false)
     script = joinpath(tmp, "bench.jl")
     open(script, "w") do io
         write(
@@ -66,7 +66,7 @@ end
     # Compare against truth:
     truth = """
     using Pkg
-    tempdir = mktempdir()
+    tempdir = mktempdir(; cleanup=false)
     Pkg.activate(tempdir)
     Pkg.develop(PackageSpec(path=joinpath(@__DIR__, "..")))
     Pkg.add(["BenchmarkTools", "PkgBenchmark", "MathOptInterface"])
