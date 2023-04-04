@@ -79,6 +79,8 @@ function _benchmark(
         using BenchmarkTools: run, BenchmarkGroup
         using JSON3: JSON3
 
+        const PACKAGE_VERSION = $(spec.rev)
+
         cd($cur_dir)
         # Include benchmark, defining SUITE:
         @info "    [runner] Loading benchmark script: " * $script * "."
