@@ -37,18 +37,15 @@ You may then use the CLI to generate benchmarks for any package with, e.g.,
 ```bash
 benchpkg Transducers \
     --rev=v0.4.20,v0.4.70,master \
-    --bench-on=v0.4.20 \
-    --add=BangBang,ArgCheck,Referenceables,SplitApplyCombine
+    --bench-on=v0.4.20
 ```
 
 which will benchmark `Transducers.jl`,
 at the revisions `v0.4.20`, `v0.4.70`, and `master`,
 using the benchmark script `benchmark/benchmarks.jl` as it was defined at `v0.4.20`,
 and then save the JSON results in the current directory.
-With the `--add` option, we also specify some additional packages
-which are needed inside the benchmarks.
 
-One can then generate plots of the revisions with:
+We can then generate plots of the revisions with:
 
 ```bash
 benchpkgplot Transducers \
