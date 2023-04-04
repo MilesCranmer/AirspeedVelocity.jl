@@ -5,7 +5,7 @@ using Plots: savefig
 using Comonicon
 
 """
-    benchpkgplot package_name [-r --rev <arg>] [-i --input_dir <arg>]
+    benchpkgplot package_name [-r --rev <arg>] [-i --input-dir <arg>]
                               [-o --output-dir <arg>] [-n --npart <arg>]
                               [--format <arg>]
 

@@ -142,7 +142,7 @@ Benchmark a package over a set of revisions.
 For plotting, you can use the `benchpkgplot` function:
 
 ```text
-    benchpkgplot package_name [-r --rev <arg>] [-i --input_dir <arg>]
+    benchpkgplot package_name [-r --rev <arg>] [-i --input-dir <arg>]
                               [-o --output-dir <arg>] [-n --npart <arg>]
                               [--format <arg>]
 
