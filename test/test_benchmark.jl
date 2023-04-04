@@ -66,7 +66,7 @@ end
     # Compare against truth:
     truth = """
     using Pkg
-    tempdir = mktempdir(; cleanup=false)
+    tempdir = mktempdir()
     Pkg.activate(tempdir)
     Pkg.develop(PackageSpec(path=joinpath(@__DIR__, "..")))
     Pkg.add(["BenchmarkTools", "PkgBenchmark", "MathOptInterface"])
