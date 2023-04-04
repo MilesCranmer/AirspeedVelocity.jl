@@ -55,7 +55,7 @@ Benchmark a package over a set of revisions.
         output_dir=output_dir,
         script=(length(script) > 0 ? script : nothing),
         tune=tune,
-        exeflags=(length(exeflags) > 0 ? `$exeflags` : ``),
+        exeflags=(length(exeflags) > 0 ? `$(Cmd(split(exeflags, " ") .|> String))` : ``),
         extra_pkgs=convert(Vector{String}, split(add, ",")),
         url=(length(url) > 0 ? url : nothing),
         path=(length(path) > 0 ? path : nothing),
