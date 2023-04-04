@@ -48,7 +48,7 @@ function _get_script(;
         @error "Could not find benchmark script at $script. Please specify the `script` manually."
     end
     @info "Found benchmark script at $script."
-    maybe_project_toml = joinpath(root_dir, "Project.toml")
+    maybe_project_toml = joinpath(root_dir, "benchmark", "Project.toml")
     project_toml = if isfile(maybe_project_toml)
         @info "Found Project.toml at $maybe_project_toml."
         maybe_project_toml
