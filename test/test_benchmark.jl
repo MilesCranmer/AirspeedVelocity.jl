@@ -55,7 +55,7 @@ end
 end
 
 @testset "Test getting script" begin
-    script_path = AirspeedVelocity.Utils._get_script(;
+    script_path, project_toml = AirspeedVelocity.Utils._get_script(;
         package_name="Convex", benchmark_on="v0.13.1"
     )
 
