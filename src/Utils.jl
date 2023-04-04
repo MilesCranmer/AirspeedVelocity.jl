@@ -24,6 +24,7 @@ function _get_script(;
     end
     tmp_env = mktempdir()
     to_exec = quote
+        ENV["JULIA_PKG_PRECOMPILE_AUTO"] = 0
         using Pkg
         Pkg.add(
             PackageSpec(; name=$package_name, rev=$benchmark_on, url=$url, path=$path);
