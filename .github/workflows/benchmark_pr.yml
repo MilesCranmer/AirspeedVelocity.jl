@@ -50,3 +50,4 @@ jobs:
                 issue-number: ${{ github.event.pull_request.number }}
                 body: |
                     The benchmark results have been uploaded as an artifact to the workflow run for this PR.
+                    Go to "Actions"->"Benchmark a pull request"->[the most recent run]->"Artifacts" (at the bottom).
