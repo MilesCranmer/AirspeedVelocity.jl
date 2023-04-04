@@ -101,7 +101,7 @@ function _benchmark(
             @error "    [runner] Benchmark script " *
                 $script *
                 " changed the active environment. " *
-                "This is not allowed, as it will "
+                "This is not allowed, as it will " *
                 "cause the benchmark to produce incorrect results."
         end
         if $tune
