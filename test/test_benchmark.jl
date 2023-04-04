@@ -54,3 +54,55 @@ end
     @test length(plots) == 1
 end
 
+@testset "Test getting script" begin
+    script_path = AirspeedVelocity.Utils._get_script(;
+        package_name="Convex", benchmark_on="v0.13.1", url=nothing
+    )
+
+    script_downloaded = open(script_path, "r") do io
+        read(io, String)
+    end
+
+    # Compare against truth:
+    truth = """
+    using Pkg
+    tempdir = mktempdir()
+    Pkg.activate(tempdir)
+    Pkg.develop(PackageSpec(path=joinpath(@__DIR__, "..")))
+    Pkg.add(["BenchmarkTools", "PkgBenchmark", "MathOptInterface"])
+    Pkg.resolve()
+
+    using Convex: Convex, ProblemDepot
+    using BenchmarkTools
+    using MathOptInterface
+    const MOI = MathOptInterface
+    const MOIU = MOI.Utilities
+
+    const SUITE = BenchmarkGroup()
+
+    problems =  [   
+                    "constant_fix!_with_complex_numbers",
+                    "affine_dot_multiply_atom",
+                    "affine_hcat_atom",
+                    "affine_trace_atom",
+                    "exp_entropy_atom",
+                    "exp_log_perspective_atom",
+                    "socp_norm_2_atom",
+                    "socp_quad_form_atom",
+                    "socp_sum_squares_atom",
+                    "lp_norm_inf_atom",
+                    "lp_maximum_atom",
+                    "sdp_and_exp_log_det_atom",
+                    "sdp_norm2_atom",
+                    "sdp_lambda_min_atom",
+                    "sdp_sum_largest_eigs",
+                    "mip_integer_variables",
+                ]
+
+    SUITE["formulation"] = ProblemDepot.benchmark_suite(problems) do problem
+        model = MOIU.MockOptimizer(MOIU.Model{Float64}())
+        Convex.load_MOI_model!(model, problem)
+    end
+    """
+    @test replace(script_downloaded, r"\s" => "") == replace(truth, r"\s" => "")
+end
