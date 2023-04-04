@@ -97,6 +97,7 @@ function combined_plots(combined_results::OrderedDict; npart=10)
                 layout=(npart, 1),
                 size=(800, 250 * npart),
                 left_margin=20mm,
+                bottom_margin=10mm,
             )
         end for (i1, i2) in partitions
     ]
