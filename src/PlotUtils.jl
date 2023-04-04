@@ -60,6 +60,21 @@ function create_line_plot(data, names, title)
     return p
 end
 
+"""
+    combined_plots(combined_results::OrderedDict; npart=10)
+
+Create a combined plot of the results loaded from `load_results` function.
+The function partitions the plots into smaller groups of size `npart` (defaults to 10)
+and combines the plots in each group vertically. It returns an array of combined plots.
+
+# Arguments
+- `combined_results::OrderedDict`: Data to be plotted, obtained from the `load_results` function.
+- `npart::Int=10`: Max plots to be combined in a single vertical group. Default is 10.
+
+# Returns
+- `Array{Plots.Plot{Plots.GRBackend},1}`: An array of combined Plots objects, with each element
+  representing a group of up to `npart` vertical plots.
+"""
 function combined_plots(combined_results::OrderedDict; npart=10)
     # Creating and saving plots
     plots = []
@@ -111,6 +126,23 @@ function flatten_results(results::Dict{String,Any})
     return sort(d)
 end
 
+"""
+    load_results(specs::Vector{PackageSpec}; input_dir::String=".")
+
+Load the results from JSON files for each PackageSpec in the `specs` vector. The function assumes
+that the JSON files are located in the `input_dir` directory and are named as "results_{s}.json"
+where `s` is equal to `PackageName@Rev`.
+
+The function returns a combined OrderedDict, to be input to the `combined_plots` function.
+
+# Arguments
+- `specs::Vector{PackageSpec}`: Vector of each package revision to be loaded (as `PackageSpec`).
+- `input_dir::String="."`: Directory where the results. Default is current directory.
+
+# Returns
+- `OrderedDict{String,OrderedDict}`: Combined results ready to be passed
+  to the `combined_plots` function.
+"""
 function load_results(specs::Vector{PackageSpec}; input_dir::String=".")
     combined_results = OrderedDict{String,OrderedDict}()
     for spec in specs
