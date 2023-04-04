@@ -69,6 +69,9 @@ function _benchmark(
     if !isabspath(script)
         script = string(absolute(PosixPath(script)))
     end
+    if spec.path !== nothing && !isabspath(spec.path)
+        spec.path = string(absolute(PosixPath(spec.path)))
+    end
     spec_str = get_spec_str(spec)
     old_project = Pkg.project().path
     tmp_env = mktempdir()
