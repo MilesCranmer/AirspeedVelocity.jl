@@ -1,4 +1,5 @@
 using AirspeedVelocity
+using OrderedCollections: OrderedDict
 using Pkg
 using Documenter
 
