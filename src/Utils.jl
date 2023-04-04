@@ -16,7 +16,7 @@ function _get_script(;
     benchmark_on::Union{Nothing,String}=nothing,
     url::Union{Nothing,String}=nothing,
     path::Union{Nothing,String}=nothing,
-)::String
+)::Tuple{String,Union{String,Nothing}}
     # Create temp env, add package, and get path to benchmark script.
     @info "Downloading package's latest benchmark script, assuming it is in benchmark/benchmarks.jl"
     if benchmark_on !== nothing
@@ -42,15 +42,21 @@ function _get_script(;
     end
     run(`julia --project="$tmp_env" "$path_getter"`)
 
-    script = joinpath(
-        readchomp(joinpath(tmp_env, "package_path.txt")), "benchmark", "benchmarks.jl"
-    )
+    root_dir = readchomp(joinpath(tmp_env, "package_path.txt"))
+    script = joinpath(root_dir, "benchmark", "benchmarks.jl")
     if !isfile(script)
         @error "Could not find benchmark script at $script. Please specify the `script` manually."
     end
     @info "Found benchmark script at $script."
+    maybe_project_toml = joinpath(root_dir, "Project.toml")
+    project_toml = if isfile(maybe_project_toml)
+        @info "Found Project.toml at $maybe_project_toml."
+        maybe_project_toml
+    else
+        nothing
+    end
 
-    return script
+    return script, project_toml
 end
 
 function _benchmark(
@@ -60,6 +66,7 @@ function _benchmark(
     tune::Bool,
     exeflags::Cmd,
     extra_pkgs::Vector{String},
+    project_toml::Union{Nothing,String},
 )
     cur_dir = pwd()
     # Make sure paths are absolute, otherwise weird
@@ -77,6 +84,10 @@ function _benchmark(
     old_project = Pkg.project().path
     tmp_env = mktempdir()
     @info "    Creating temporary environment at $tmp_env."
+    if project_toml !== nothing
+        @info "    Copying $project_toml."
+        cp(project_toml, joinpath(tmp_env, "Project.toml"))
+    end
     Pkg.activate(tmp_env; io=devnull)
     @info "    Adding packages."
     # Filter out empty strings from extra_pkgs:
@@ -243,21 +254,27 @@ function benchmark(
     exeflags::Cmd=``,
     extra_pkgs=String[],
     benchmark_on::Union{String,Nothing}=nothing,
+    project_toml::Union{String,Nothing}=nothing,
 )
-    if script === nothing
+    script, project_toml = if script === nothing
         package_name = first(package_specs).name
         if !all(p -> p.name == package_name, package_specs)
             @error "All package specifications must have the same package name if you do not specify a `script`."
         end
 
-        script = _get_script(;
-            package_name, benchmark_on, first(package_specs).url, first(package_specs).path
+        _get_script(;
+            package_name,
+            benchmark_on,
+            first(package_specs).url,
+            first(package_specs).path,
         )
+    else
+        (script, project_toml)
     end
     results = Dict{String,Any}()
     for spec in package_specs
         results[spec.name * "@" * spec.rev] = benchmark(
-            spec; output_dir, script, tune, exeflags, extra_pkgs
+            spec; output_dir, script, tune, exeflags, extra_pkgs, project_toml
         )
     end
     return results
@@ -270,17 +287,22 @@ function benchmark(
     exeflags::Cmd=``,
     extra_pkgs=String[],
     benchmark_on::Union{String,Nothing}=nothing,
+    project_toml::Union{String,Nothing}=nothing,
 )
-    if script === nothing
-        script = _get_script(;
+    script, project_toml = if script === nothing
+        _get_script(;
             package_name=package_spec.name,
             benchmark_on,
             package_spec.url,
             package_spec.path,
         )
+    else
+        (script, project_toml)
     end
     @info "Running benchmarks for " * package_spec.name * "@" * package_spec.rev * ":"
-    return _benchmark(package_spec; output_dir, script, tune, exeflags, extra_pkgs)
+    return _benchmark(
+        package_spec; output_dir, script, tune, exeflags, extra_pkgs, project_toml
+    )
 end
 
 end # module AirspeedVelocity.Utils
