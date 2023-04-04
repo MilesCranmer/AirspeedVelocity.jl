@@ -12,7 +12,10 @@ function get_spec_str(spec::PackageSpec)
 end
 
 function _get_script(;
-    package_name::String, benchmark_on::Union{Nothing,String}, url::Union{Nothing,String}
+    package_name::String,
+    benchmark_on::Union{Nothing,String}=nothing,
+    url::Union{Nothing,String}=nothing,
+    path::Union{Nothing,String}=nothing,
 )::String
     # Create temp env, add package, and get path to benchmark script.
     @info "Downloading package's latest benchmark script, assuming it is in benchmark/benchmarks.jl"
@@ -22,7 +25,10 @@ function _get_script(;
     tmp_env = mktempdir()
     to_exec = quote
         using Pkg
-        Pkg.add(PackageSpec(; name=$package_name, rev=$benchmark_on, url=$url); io=devnull)
+        Pkg.add(
+            PackageSpec(; name=$package_name, rev=$benchmark_on, url=$url, path=$path);
+            io=devnull,
+        )
         using $(Symbol(package_name)): $(Symbol(package_name))
         root_dir = dirname(dirname(pathof($(Symbol(package_name)))))
         open(joinpath($tmp_env, "package_path.txt"), "w") do io
@@ -154,6 +160,7 @@ The results of the benchmarks are saved to a JSON file named `results_packagenam
 - `exeflags::Cmd=```: Additional execution flags for running the benchmark script (default: empty).
 - `extra_pkgs::Vector{String}=String[]`: Additional packages to add to the benchmark environment.
 - `url::Union{String,Nothing}=nothing`: URL of the package.
+- `path::Union{String,Nothing}=nothing`: Path to the package.
 - `benchmark_on::Union{String,Nothing}=nothing`: If the benchmark script file is to be downloaded, this specifies the revision to use.
 """
 function benchmark(
@@ -165,10 +172,11 @@ function benchmark(
     exeflags::Cmd=``,
     extra_pkgs::Vector{String}=String[],
     url::Union{String,Nothing}=nothing,
+    path::Union{String,Nothing}=nothing,
     benchmark_on::Union{String,Nothing}=nothing,
 )
     return benchmark(
-        [PackageSpec(; name=package_name, rev=rev, url=url) for rev in revs];
+        [PackageSpec(; name=package_name, rev=rev, url=url, path=path) for rev in revs];
         output_dir=output_dir,
         script=script,
         tune=tune,
@@ -186,6 +194,7 @@ function benchmark(
     exeflags::Cmd=``,
     extra_pkgs::Vector{String}=String[],
     url::Union{String,Nothing}=nothing,
+    path::Union{String,Nothing}=nothing,
     benchmark_on::Union{String,Nothing}=nothing,
 )
     return benchmark(
@@ -197,6 +206,7 @@ function benchmark(
         exeflags=exeflags,
         extra_pkgs=extra_pkgs,
         url=url,
+        path=path,
         benchmark_on=benchmark_on,
     )
 end
@@ -236,7 +246,9 @@ function benchmark(
             @error "All package specifications must have the same package name if you do not specify a `script`."
         end
 
-        script = _get_script(; package_name, benchmark_on, first(package_specs).url)
+        script = _get_script(;
+            package_name, benchmark_on, first(package_specs).url, first(package_specs).path
+        )
     end
     results = Dict{String,Any}()
     for spec in package_specs
@@ -257,7 +269,10 @@ function benchmark(
 )
     if script === nothing
         script = _get_script(;
-            package_name=package_spec.name, benchmark_on, package_spec.url
+            package_name=package_spec.name,
+            benchmark_on,
+            package_spec.url,
+            package_spec.path,
         )
     end
     @info "Running benchmarks for " * package_spec.name * "@" * package_spec.rev * ":"

@@ -112,8 +112,9 @@ built into the `~/.julia/bin` folder:
 ```text
     benchpkg package_name [-r --rev <arg>] [-o, --output-dir <arg>]
                           [-s, --script <arg>] [-e, --exeflags <arg>]
-                          [-a, --add <arg>] [-t, --tune]
-                          [-u, --url <arg>]
+                          [-a, --add <arg>] [--tune]
+                          [--url <arg>] [--path <arg>]
+                          [--bench-on <arg>]
 
 Benchmark a package over a set of revisions.
 
@@ -128,12 +129,13 @@ Benchmark a package over a set of revisions.
 - `-s, --script <arg>`: The benchmark script. Default: `benchmark/benchmarks.jl` downloaded from `stable`.
 - `-e, --exeflags <arg>`: CLI flags for Julia (default: none).
 - `-a, --add <arg>`: Extra packages needed (delimit by comma).
-- `-u, --url <arg>`: URL of the package.
+- `--url <arg>`: URL of the package.
+- `--path <arg>`: Path of the package.
 - `--bench-on <arg>`: If the script is not set, this specifies the revision of `benchmarks.jl`.
 
 # Flags
 
-- `-t, --tune`: Whether to run benchmarks with tuning (default: false).
+- `--tune`: Whether to run benchmarks with tuning (default: false).
 ```
 
 For plotting, you can use the `benchpkgplot` function:
@@ -141,7 +143,7 @@ For plotting, you can use the `benchpkgplot` function:
 ```text
     benchpkgplot package_name [-r --rev <arg>] [-i --input_dir <arg>]
                               [-o --output-dir <arg>] [-n --npart <arg>]
-                              [-f --format <arg>]
+                              [--format <arg>]
 
 Plot the benchmarks of a package as created with `benchpkg`.
 
@@ -155,7 +157,7 @@ Plot the benchmarks of a package as created with `benchpkg`.
 - `-i, --input-dir <arg>`: Where the JSON results were saved (default: ".").
 - `-o, --output-dir <arg>`: Where to save the plots results (default: ".").
 - `-n, --npart <arg>`: Max number of plots per page (default: 10).
-- `-f, --format <arg>`: File type to save the plots as (default: "png").
+- `--format <arg>`: File type to save the plots as (default: "png").
 ```
 
 If you prefer to use the Julia API, you can use the `benchmark` function for generating data.

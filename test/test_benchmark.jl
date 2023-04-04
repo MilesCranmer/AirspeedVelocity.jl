@@ -56,7 +56,7 @@ end
 
 @testset "Test getting script" begin
     script_path = AirspeedVelocity.Utils._get_script(;
-        package_name="Convex", benchmark_on="v0.13.1", url=nothing
+        package_name="Convex", benchmark_on="v0.13.1"
     )
 
     script_downloaded = open(script_path, "r") do io
