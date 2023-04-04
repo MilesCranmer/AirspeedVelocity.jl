@@ -86,7 +86,8 @@ function _benchmark(
     @info "    Creating temporary environment at $tmp_env."
     if project_toml !== nothing
         @info "    Copying $project_toml to environment."
-        run(`cp $(project_toml) $(joinpath(tmp_env, "Project.toml"))`)
+        cp(project_toml, joinpath(tmp_env, "Project.toml"))
+        chmod(joinpath(tmp_env, "Project.toml"), 0o644)
     end
     Pkg.activate(tmp_env; io=devnull)
     @info "    Adding packages."
