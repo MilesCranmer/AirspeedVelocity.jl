@@ -4,6 +4,8 @@ using Pkg: PackageSpec
 using Pkg: Pkg
 using JSON3: JSON3
 using FilePathsBase: isabspath, absolute, PosixPath
+using OrderedCollections: OrderedDict
+using Statistics: mean, median, quantile, std
 
 function get_spec_str(spec::PackageSpec)
     package_name = spec.name
@@ -304,6 +306,97 @@ function benchmark(
     return _benchmark(
         package_spec; output_dir, script, tune, exeflags, extra_pkgs, project_toml
     )
+end
+
+function compute_summary_statistics(times)
+    d = Dict("mean" => mean(times), "median" => median(times))
+    d = if length(times) > 1
+        merge(
+            d,
+            Dict(
+                "std" => std(times),
+                "25" => quantile(times, 0.25),
+                "75" => quantile(times, 0.75),
+            ),
+        )
+    else
+        d
+    end
+    return d
+end
+
+function _flatten_results!(d::OrderedDict, results::Dict{String,Any}, prefix)
+    if "times" in keys(results)
+        d[prefix] = compute_summary_statistics(results["times"])
+    elseif "data" in keys(results)
+        for (key, value) in results["data"]
+            next_prefix = if length(prefix) == 0
+                key
+            else
+                prefix * "/" * key
+            end
+            _flatten_results!(d, value, next_prefix)
+        end
+    else
+        @error "Unexpected results format. Expected 'times' or 'data' key in results."
+    end
+    return nothing
+end
+function flatten_results(results::Dict{String,Any})
+    d = OrderedDict{String,Any}()
+    _flatten_results!(d, results, "")
+    # Sort by key:
+    return sort(d)
+end
+
+"""
+    load_results(specs::Vector{PackageSpec}; input_dir::String=".")
+
+Load the results from JSON files for each PackageSpec in the `specs` vector. The function assumes
+that the JSON files are located in the `input_dir` directory and are named as "results_{s}.json"
+where `s` is equal to `PackageName@Rev`.
+
+The function returns a combined OrderedDict, to be input to the `combined_plots` function.
+
+# Arguments
+- `specs::Vector{PackageSpec}`: Vector of each package revision to be loaded (as `PackageSpec`).
+- `input_dir::String="."`: Directory where the results. Default is current directory.
+
+# Returns
+- `OrderedDict{String,OrderedDict}`: Combined results ready to be passed
+  to the `combined_plots` function.
+"""
+function load_results(specs::Vector{PackageSpec}; input_dir::String=".")
+    combined_results = OrderedDict{String,OrderedDict}()
+    for spec in specs
+        spec_str = get_spec_str(spec)
+        results_filename = joinpath(input_dir, "results_" * spec_str * ".json")
+        @info "Loading results from $results_filename"
+        results = open(results_filename, "r") do io
+            JSON3.read(io, Dict{String,Any})
+        end
+        @info "Flattening results."
+        combined_results[spec.rev] = flatten_results(results)
+    end
+
+    # Assert all keys are the same in each value:
+    keys_set = Set{String}()
+    for (_, results) in combined_results
+        keys_set = union(keys_set, keys(results))
+    end
+    for (name, results) in combined_results
+        if keys_set != Set(keys(results))
+            missing_keys = setdiff(keys_set, keys(results))
+            @error "Results for $name are missing keys $missing_keys and have extra keys $extra_keys."
+        end
+    end
+
+    return combined_results
+end
+
+function load_results(package_name::String, revs::Vector{String}; input_dir::String=".")
+    specs = [PackageSpec(; name=package_name, rev=rev) for rev in revs]
+    return load_results(specs; input_dir=input_dir)
 end
 
 end # module AirspeedVelocity.Utils

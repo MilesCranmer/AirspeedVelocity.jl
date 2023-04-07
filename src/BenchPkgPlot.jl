@@ -1,6 +1,7 @@
 module BenchPkgPlot
 
-using ..PlotUtils: load_results, combined_plots
+using ..PlotUtils: combined_plots
+using ..Utils: load_results
 using Plots: savefig
 using Comonicon
 
