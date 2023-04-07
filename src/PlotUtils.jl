@@ -35,7 +35,7 @@ function create_line_plot(data, names, title)
     xticks!(plot_xticks, names)
     title!(title)
     xlabel!("Revision")
-    ylabel!("Duration [unit_name]")
+    ylabel!("Duration [$unit_name]")
 
     return p
 end
