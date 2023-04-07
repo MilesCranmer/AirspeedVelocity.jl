@@ -44,10 +44,21 @@ jobs:
               with:
                 name: plots
                 path: plots
+            - name: Create markdown table from benchmarks
+              run: |
+                julia -e 'using AirspeedVelocity; combined_results=load_results(${{ steps.extract-package-name.outputs.package_name }}, ["${{github.event.repository.default_branch}}", "${{github.event.pull_request.head.sha}}"], input_dir="results"); table = create_table(combined_results); open("table.md", "w") do io; print(io, table); end'
+                echo '### Benchmark Results' > body.md
+                echo '' >> body.md
+                echo '' >> body.md
+                cat table.md >> body.md
+                echo '' >> body.md
+                echo '' >> body.md
+                echo '### Benchmark Plots' >> body.md
+                echo 'A plot of the benchmark results have been uploaded as an artifact to the workflow run for this PR.' >> body.md
+                echo 'Go to "Actions"->"Benchmark a pull request"->[the most recent run]->"Artifacts" (at the bottom).' >> body.md
+
             - name: Comment on PR
-              uses: peter-evans/create-or-update-comment@v1
+              uses: peter-evans/create-or-update-comment@v3
               with:
                 issue-number: ${{ github.event.pull_request.number }}
-                body: |
-                    The benchmark results have been uploaded as an artifact to the workflow run for this PR.
-                    Go to "Actions"->"Benchmark a pull request"->[the most recent run]->"Artifacts" (at the bottom).
+                body-path: body.md
