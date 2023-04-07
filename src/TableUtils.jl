@@ -24,7 +24,7 @@ function format_time(val::Number)
 end
 
 """
-    create_table(combined_results::OrderedDict)
+    create_table(combined_results::OrderedDict; kws...)
 
 Create a markdown table of the results loaded from the `load_results` function.
 If there are two results for a given benchmark, will have an additional column

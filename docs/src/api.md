@@ -19,3 +19,7 @@ load_results(specs::Vector{PackageSpec}; input_dir::String=".")
 ```@docs
 combined_plots(combined_results::OrderedDict; npart=10)
 ```
+
+```@docs
+create_table(combined_results::OrderedDict; kws...)
+```
