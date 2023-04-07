@@ -13,6 +13,15 @@ function get_spec_str(spec::PackageSpec)
     return string(package_name) * "@" * string(package_rev)
 end
 
+function get_reasonable_unit(quantities::AbstractArray)
+    units = [1e9, 1e6, 1e3, 1, 1.0 / (60 * 60)] ./ 1e9
+    units_names = ["ns", "μs", "ms", "s", "h"]
+    unit_choice = argmin(abs.(log10.(median(quantities) .* units)))
+    unit = units[unit_choice]
+    unit_name = units_names[unit_choice]
+    return unit, unit_name
+end
+
 function _get_script(;
     package_name::String,
     benchmark_on::Union{Nothing,String}=nothing,

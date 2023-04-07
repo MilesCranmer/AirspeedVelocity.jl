@@ -1,6 +1,6 @@
 module PlotUtils
 
-import ..Utils: get_spec_str
+import ..Utils: get_spec_str, get_reasonable_unit
 using Statistics: median
 using JSON3: JSON3
 using Plots: plot, scatter!, xticks!, title!, xlabel!, ylabel!
@@ -16,11 +16,7 @@ function create_line_plot(data, names, title)
     # Default unit of time is ns. Let's find one of
     # {ns, μs, ms, s} that is most appropriate
     # (i.e., log10(median / unit) should be closest to 0)
-    units = [1e9, 1e6, 1e3, 1, 1.0 / (60 * 60)] ./ 1e9
-    units_names = ["ns", "μs", "ms", "s", "h"]
-    unit_choice = argmin(abs.(log10.(median(medians) .* units)))
-    unit = units[unit_choice]
-    unit_name = units_names[unit_choice]
+    unit, unit_name = get_reasonable_unit(medians)
 
     medians = medians .* unit
     errors = if "75" in keys(first(data))
@@ -32,14 +28,8 @@ function create_line_plot(data, names, title)
     end
     plot_xticks = 1:length(names)
 
-
     p = plot(
-        plot_xticks,
-        medians;
-        yerror=errors,
-        linestyle=:solid,
-        marker=:circle,
-        legend=false,
+        plot_xticks, medians; yerror=errors, linestyle=:solid, marker=:circle, legend=false
     )
     scatter!(plot_xticks, medians; yerror=errors)
     xticks!(plot_xticks, names)
@@ -53,7 +43,7 @@ end
 """
     combined_plots(combined_results::OrderedDict; npart=10)
 
-Create a combined plot of the results loaded from `load_results` function.
+Create a combined plot of the results loaded from the `load_results` function.
 The function partitions the plots into smaller groups of size `npart` (defaults to 10)
 and combines the plots in each group vertically. It returns an array of combined plots.
 
