@@ -172,6 +172,8 @@ Every time a PR is submitted to your package, this workflow will run
 and generate plots of the performance of the PR against the default branch,
 as well as a markdown table, showing whether the PR improves or worsens performance:
 
+![Screenshot from 2023-04-07 08-00-36](https://user-images.githubusercontent.com/7593028/230605635-a9201ce3-c4bf-4bc6-a672-f6997bc605c8.png)
+
 ## Related packages
 
 Also be sure to check out [PkgBenchmark.jl](https://github.com/JuliaCI/PkgBenchmark.jl).
