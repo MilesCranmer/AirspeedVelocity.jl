@@ -13,7 +13,7 @@ This package allows you to:
 - Generate benchmarks directly from the terminal with an easy-to-use CLI.
 - Compare many commits/tags/branches at once.
 - Plot those benchmarks, automatically flattening your benchmark suite into a list of plots with generated titles.
-- Run as a GitHub action to generate benchmark comparison for every submitted PR.
+- Run as a GitHub action to create benchmark comparisons for every submitted PR (in a bot comment).
   
 This package also freezes the benchmark script at a particular revision,
 so there is no worry about the old history overwriting the benchmark.
