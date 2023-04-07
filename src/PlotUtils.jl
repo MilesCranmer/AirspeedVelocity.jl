@@ -35,16 +35,16 @@ function create_line_plot(data, names, title)
         using Plots: plot, scatter!, xticks!, title!, xlabel!, ylabel!
 
         p = plot(
-            plot_xticks,
-            medians;
-            yerror=errors,
+            $plot_xticks,
+            $medians;
+            yerror=$errors,
             linestyle=:solid,
             marker=:circle,
             legend=false,
         )
-        scatter!(plot_xticks, medians; yerror=errors)
-        xticks!(plot_xticks, names)
-        title!(title)
+        scatter!($plot_xticks, $medians; yerror=$errors)
+        xticks!($plot_xticks, $names)
+        title!($title)
         xlabel!("Revision")
         ylabel!("Duration [$unit_name]")
 
@@ -88,13 +88,13 @@ function combined_plots(combined_results::OrderedDict; npart=10)
         [
             let npart = i2 - i1 + 1
                 plot(
-                    plots[i1:i2]...;
+                    $plots[i1:i2]...;
                     layout=(npart, 1),
                     size=(800, 250 * npart),
                     left_margin=20mm,
                     bottom_margin=10mm,
                 )
-            end for (i1, i2) in partitions
+            end for (i1, i2) in $partitions
         ]
     end
 end
