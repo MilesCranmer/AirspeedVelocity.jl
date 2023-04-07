@@ -61,7 +61,8 @@ showing the change with each revision:
 
 You can also provide a custom benchmark.
 For example, let's say you have a file `script.jl`, defining
-a benchmark for `SymbolicRegression.jl`:
+a benchmark for `SymbolicRegression.jl` (we always need to define
+the `SUITE` variable as a `BenchmarkGroup`):
 
 ```julia
 using BenchmarkTools, SymbolicRegression
@@ -80,7 +81,9 @@ X2 = randn(Float32, 2, 20)
 SUITE["eval_tree_array"]["20"] = @benchmarkable eval_tree_array($tree, $X2, $options) evals=1 samples=100
 ```
 
-we can run this benchmark over the history of `SymbolicRegression.jl` with:
+Inside this script, we will also have access to the `PACKAGE_VERSION` constant,
+to allow for different behavior depending on tag.
+We can run this benchmark over the history of `SymbolicRegression.jl` with:
 
 ```bash
 benchpkg SymbolicRegression \
