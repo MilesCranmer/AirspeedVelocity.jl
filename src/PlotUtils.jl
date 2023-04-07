@@ -2,8 +2,9 @@ module PlotUtils
 
 import ..Utils: get_spec_str
 using Statistics: median
-using Requires: @require
 using JSON3: JSON3
+using Plots: plot, scatter!, xticks!, title!, xlabel!, ylabel!
+using Plots.Measures: mm
 using Pkg: PackageSpec
 using OrderedCollections: OrderedDict
 
@@ -31,25 +32,22 @@ function create_line_plot(data, names, title)
     end
     plot_xticks = 1:length(names)
 
-    return @require Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
-        using Plots: plot, scatter!, xticks!, title!, xlabel!, ylabel!
 
-        p = plot(
-            $plot_xticks,
-            $medians;
-            yerror=$errors,
-            linestyle=:solid,
-            marker=:circle,
-            legend=false,
-        )
-        scatter!($plot_xticks, $medians; yerror=$errors)
-        xticks!($plot_xticks, $names)
-        title!($title)
-        xlabel!("Revision")
-        ylabel!("Duration [$unit_name]")
+    p = plot(
+        plot_xticks,
+        medians;
+        yerror=errors,
+        linestyle=:solid,
+        marker=:circle,
+        legend=false,
+    )
+    scatter!(plot_xticks, medians; yerror=errors)
+    xticks!(plot_xticks, names)
+    title!(title)
+    xlabel!("Revision")
+    ylabel!("Duration [unit_name]")
 
-        p
-    end
+    return p
 end
 
 """
@@ -82,21 +80,18 @@ function combined_plots(combined_results::OrderedDict; npart=10)
 
     @info "Partitioning and combining plots."
     partitions = [(i, min(i + npart - 1, length(plots))) for i in 1:npart:length(plots)]
-    return @require Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
-        using Plots.Measures: mm
 
-        [
-            let npart = i2 - i1 + 1
-                plot(
-                    $plots[i1:i2]...;
-                    layout=(npart, 1),
-                    size=(800, 250 * npart),
-                    left_margin=20mm,
-                    bottom_margin=10mm,
-                )
-            end for (i1, i2) in $partitions
-        ]
-    end
+    return [
+        let npart = i2 - i1 + 1
+            plot(
+                plots[i1:i2]...;
+                layout=(npart, 1),
+                size=(800, 250 * npart),
+                left_margin=20mm,
+                bottom_margin=10mm,
+            )
+        end for (i1, i2) in partitions
+    ]
 end
 
 end # AirspeedVelocity.PlotUtils
