@@ -3,6 +3,7 @@ module TableUtils
 using ..Utils: get_reasonable_unit
 using OrderedCollections: OrderedDict
 using Printf: @sprintf
+using PrettyTables: pretty_table, tf_markdown
 
 function format_time(val::Dict)
     unit, unit_name = get_reasonable_unit([val["median"]])
@@ -35,7 +36,6 @@ function create_table(
     add_ratio_col=true,
     pretty_table_kws=nothing,
 )
-    using PrettyTables: pretty_table, tf_markdown
     if pretty_table_kws === nothing
         pretty_table_kws = (backend=Val(:text), tf=tf_markdown)
     end
