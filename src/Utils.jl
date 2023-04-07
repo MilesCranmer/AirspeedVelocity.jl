@@ -42,7 +42,7 @@ function _get_script(;
     open(path_getter, "w") do io
         println(io, to_exec)
     end
-    run(`julia --project="$tmp_env" "$path_getter"`)
+    run(`julia --project="$tmp_env" --startup-file=no "$path_getter"`)
 
     root_dir = readchomp(joinpath(tmp_env, "package_path.txt"))
     script = joinpath(root_dir, "benchmark", "benchmarks.jl")
@@ -147,7 +147,7 @@ function _benchmark(
         println(io, string(to_exec))
     end
     @info "    Launching benchmark runner."
-    run(`julia --project="$tmp_env" $exeflags "$runner_filename"`)
+    run(`julia --project="$tmp_env" --startup-file=no $exeflags "$runner_filename"`)
     # Return results from JSON file:
     @info "    Benchmark runner exited."
     @info "    Reading results."
