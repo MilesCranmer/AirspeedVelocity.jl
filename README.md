@@ -166,7 +166,8 @@ You can use this package in GitHub actions to benchmark every PR submitted to yo
 by copying the example: [`.github/workflows/benchmark_pr.yml`](https://github.com/MilesCranmer/AirspeedVelocity.jl/blob/master/.github/workflows/benchmark_pr.yml).
 
 Every time a PR is submitted to your package, this workflow will run
-and generate plots of the performance of the PR against the default branch.
+and generate plots of the performance of the PR against the default branch,
+as well as a markdown table, showing whether the PR improves or worsens performance:
 
 ## Related packages
 
