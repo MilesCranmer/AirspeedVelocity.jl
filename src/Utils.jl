@@ -320,22 +320,26 @@ end
 function compute_summary_statistics(times)
     d = Dict(
         "mean" => mean(times),
+        "raw_mean_logspace" => mean(log.(times)),
         "mean_logspace" => exp(mean(log.(times))),
         "median" => median(times),
         "num_samples" => length(times),
     )
     d = if length(times) > 1
         stdt = std(times)
-        stdt_l = exp(std(log.(times)))
+        stdt_l = std(log.(times))
+        standard_l = std(log.(times)) / sqrt(d["num_samples"])
         merge(
             d,
             Dict(
                 "std" => stdt,
-                "std_logspace" => stdt_l,
+                "std_logspace_up" => exp(d["raw_mean_logspace"] + stdt_l) - d["mean_logspace"],
+                "std_logspace_down" => d["mean_logspace"] - exp(d["raw_mean_logspace"] - stdt_l),
                 "25" => quantile(times, 0.25),
                 "75" => quantile(times, 0.75),
                 "standard_error" => stdt / sqrt(d["num_samples"]),
-                "standard_error_logspace" => stdt_l / sqrt(d["num_samples"]),
+                "standard_error_logspace_up" => exp(d["raw_mean_logspace"] + standard_l) - d["mean_logspace"],
+                "standard_error_logspace_down" => d["mean_logspace"] - exp(d["raw_mean_logspace"] - standard_l),
             ),
         )
     else
