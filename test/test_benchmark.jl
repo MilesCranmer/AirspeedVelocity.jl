@@ -116,12 +116,16 @@ end
 @testset "Test table generation" begin
     combined_results = OrderedDict(
         "v1" => OrderedDict(
-            "bench1" => Dict("median" => 1.2e9, "75" => 1.3e9, "25" => 1.1e9),
-            "bench2" => Dict("median" => 0.2e6, "75" => 0.3e6, "25" => 0.1e6),
+            "bench1" =>
+                Dict("mean_logspace" => 1.2e9, "standard_error_logspace" => 0.2e9),
+            "bench2" =>
+                Dict("mean_logspace" => 0.2e6, "standard_error_logspace" => 0.2e6),
         ),
         "v2" => OrderedDict(
-            "bench1" => Dict("median" => 1.2e10, "75" => 1.3e10, "25" => 1.1e10),
-            "bench2" => Dict("median" => 0.2e5, "75" => 0.3e5, "25" => 0.1e5),
+            "bench1" =>
+                Dict("mean_logspace" => 1.2e10, "standard_error_logspace" => 0.2e10),
+            "bench2" =>
+                Dict("mean_logspace" => 0.2e5, "standard_error_logspace" => 0.2e5),
         ),
     )
 

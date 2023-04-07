@@ -318,14 +318,24 @@ function benchmark(
 end
 
 function compute_summary_statistics(times)
-    d = Dict("mean" => mean(times), "median" => median(times))
+    d = Dict(
+        "mean" => mean(times),
+        "mean_logspace" => exp(mean(log.(times))),
+        "median" => median(times),
+        "num_samples" => length(times),
+    )
     d = if length(times) > 1
+        stdt = std(times)
+        stdt_l = exp(std(log.(times)))
         merge(
             d,
             Dict(
-                "std" => std(times),
+                "std" => stdt,
+                "std_logspace" => stdt_l,
                 "25" => quantile(times, 0.25),
                 "75" => quantile(times, 0.75),
+                "standard_error" => stdt / sqrt(d["num_samples"]),
+                "standard_error_logspace" => stdt_l / sqrt(d["num_samples"]),
             ),
         )
     else

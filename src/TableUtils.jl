@@ -6,16 +6,16 @@ using Printf: @sprintf
 using PrettyTables: pretty_table, tf_markdown
 
 function format_time(val::Dict)
-    unit, unit_name = get_reasonable_unit([val["median"]])
-    if haskey(val, "75")
+    unit, unit_name = get_reasonable_unit([val["mean_logspace"]])
+    if haskey(val, "standard_error_logspace")
         @sprintf(
             "%.3g ± %.2g %s",
-            val["median"] * unit,
-            (val["75"] - val["25"]) * unit,
+            val["mean_logspace"] * unit,
+            val["standard_error_logspace"] * unit,
             unit_name
         )
     else
-        @sprintf("%.3g %s", val["median"] * unit, unit_name)
+        @sprintf("%.3g %s", val["mean_logspace"] * unit, unit_name)
     end
 end
 function format_time(val::Number)
@@ -32,9 +32,7 @@ for the comparison, assuming the first revision is one to compare against.
 
 """
 function create_table(
-    combined_results::OrderedDict;
-    add_ratio_col=true,
-    pretty_table_kws=nothing,
+    combined_results::OrderedDict; add_ratio_col=true, pretty_table_kws=nothing
 )
     if pretty_table_kws === nothing
         pretty_table_kws = (backend=Val(:text), tf=tf_markdown)
@@ -73,7 +71,7 @@ function create_table(
     if num_revisions == 2 && add_ratio_col
         col = []
         for row in data[1]
-            ratio = (/)([val[row]["median"] for val in values(combined_results)]...)
+            ratio = (/)([val[row]["mean_logspace"] for val in values(combined_results)]...)
             push!(col, @sprintf("%.3g", ratio))
         end
         push!(data, col)

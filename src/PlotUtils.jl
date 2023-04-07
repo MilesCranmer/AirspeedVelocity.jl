@@ -11,27 +11,25 @@ using OrderedCollections: OrderedDict
 # Now, we want to create a plot for each key, over the different revisions,
 # ordered by the order in which they were passed:
 function create_line_plot(data, names, title)
-    medians = [d["median"] for d in data]
+    centers = [d["mean_logspace"] for d in data]
 
     # Default unit of time is ns. Let's find one of
     # {ns, μs, ms, s} that is most appropriate
     # (i.e., log10(median / unit) should be closest to 0)
-    unit, unit_name = get_reasonable_unit(medians)
+    unit, unit_name = get_reasonable_unit(centers)
 
-    medians = medians .* unit
-    errors = if "75" in keys(first(data))
-        lower_errors = [d["median"] - d["25"] for d in data] .* unit
-        upper_errors = [d["75"] - d["median"] for d in data] .* unit
-        hcat(lower_errors', upper_errors')
+    centers = centers .* unit
+    errors = if "standard_error_logspace" in keys(first(data))
+        [d["standard_error_logspace"] for d in data] .* unit
     else
         nothing
     end
     plot_xticks = 1:length(names)
 
     p = plot(
-        plot_xticks, medians; yerror=errors, linestyle=:solid, marker=:circle, legend=false
+        plot_xticks, centers; yerror=errors, linestyle=:solid, marker=:circle, legend=false
     )
-    scatter!(plot_xticks, medians; yerror=errors)
+    scatter!(plot_xticks, centers; yerror=errors)
     xticks!(plot_xticks, names)
     title!(title)
     xlabel!("Revision")
