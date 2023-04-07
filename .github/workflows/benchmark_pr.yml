@@ -24,8 +24,12 @@ jobs:
                 PACKAGE_NAME=$(grep "^name" Project.toml | sed 's/^name = "\(.*\)"$/\1/')
                 echo "::set-output name=package_name::$PACKAGE_NAME"
             - name: Build AirspeedVelocity
+              env:
+                JULIA_NUM_THREADS: 2
               run: |
-                julia -e 'using Pkg; Pkg.add(;url="https://github.com/MilesCranmer/AirspeedVelocity.jl.git"); Pkg.build("AirspeedVelocity")'
+                # Lightweight build step, as sometimes the runner runs out of memory:
+                julia -e 'ENV["JULIA_PKG_PRECOMPILE_AUTO"]=0; import Pkg; Pkg.add(;url="https://github.com/MilesCranmer/AirspeedVelocity.jl.git")'
+                julia -e 'ENV["JULIA_PKG_PRECOMPILE_AUTO"]=0; import Pkg; Pkg.build("AirspeedVelocity")'
             - name: Add ~/.julia/bin to PATH
               run: |
                 echo "$HOME/.julia/bin" >> $GITHUB_PATH

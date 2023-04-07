@@ -1,7 +1,6 @@
 module TableUtils
 
 using ..Utils: get_reasonable_unit
-using PrettyTables: pretty_table, tf_markdown
 using OrderedCollections: OrderedDict
 using Printf: @sprintf
 
@@ -34,8 +33,12 @@ for the comparison, assuming the first revision is one to compare against.
 function create_table(
     combined_results::OrderedDict;
     add_ratio_col=true,
-    pretty_table_kws=(backend=Val(:text), tf=tf_markdown),
+    pretty_table_kws=nothing,
 )
+    using PrettyTables: pretty_table, tf_markdown
+    if pretty_table_kws === nothing
+        pretty_table_kws = (backend=Val(:text), tf=tf_markdown)
+    end
     num_revisions = length(combined_results)
     num_cols = 1 + num_revisions
 
