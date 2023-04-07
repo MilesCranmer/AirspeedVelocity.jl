@@ -23,9 +23,7 @@ so there is no worry about the old history overwriting the benchmark.
 You can install the CLI with:
 
 ```bash
-julia -e 'using Pkg; \
-          Pkg.add(url="https://github.com/MilesCranmer/AirspeedVelocity.jl.git"); \
-          Pkg.build("AirspeedVelocity")'
+julia -e 'using Pkg; Pkg.add("AirspeedVelocity"); Pkg.build("AirspeedVelocity")'
 ```
 
 This will install two executables at `~/.julia/bin` - make sure to have it on your `PATH`.
