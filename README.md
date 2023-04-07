@@ -11,9 +11,9 @@ It is inspired by [asv](https://asv.readthedocs.io/en/stable/).
 This package allows you to:
 
 - Generate benchmarks directly from the terminal with an easy-to-use CLI.
-- Query many commits/tags/branches at a time.
-- Plot those benchmarks, automatically flattening your benchmark suite into a list of plots with generated titles,
-  with the x-axis showing revisions.
+- Compare many commits/tags/branches at once.
+- Plot those benchmarks, automatically flattening your benchmark suite into a list of plots with generated titles.
+- Run as a GitHub action to generate benchmark comparison for every submitted PR.
   
 This package also freezes the benchmark script at a particular revision,
 so there is no worry about the old history overwriting the benchmark.
