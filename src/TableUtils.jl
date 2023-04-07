@@ -1,7 +1,7 @@
 module TableUtils
 
 using ..Utils: get_reasonable_unit
-using PrettyTables: pretty_table
+using PrettyTables: pretty_table, tf_markdown
 using OrderedCollections: OrderedDict
 using Printf: @sprintf
 
