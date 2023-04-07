@@ -1,7 +1,7 @@
 module AirspeedVelocity
 
 include("Utils.jl")
-using .Utils: benchmark, load_results 
+using .Utils: benchmark, load_results
 export benchmark, load_results
 
 include("PlotUtils.jl")
@@ -15,5 +15,9 @@ export benchpkg
 include("BenchPkgPlot.jl")
 import .BenchPkgPlot: benchpkgplot
 export benchpkgplot
+
+include("TableUtils.jl")
+import .TableUtils: create_table
+export create_table
 
 end # module AirspeedVelocity

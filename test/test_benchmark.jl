@@ -1,5 +1,11 @@
 using AirspeedVelocity
+using OrderedCollections: OrderedDict
 using Test
+import Base: isapprox
+
+function Base.isapprox(s1::String, s2::String)
+    return replace(s1, r"\s+" => "") == replace(s2, r"\s+" => "")
+end
 
 @testset "Test run benchmarking" begin
     tmp = mktempdir(; cleanup=false)
@@ -104,5 +110,26 @@ end
         Convex.load_MOI_model!(model, problem)
     end
     """
-    @test replace(script_downloaded, r"\s" => "") == replace(truth, r"\s" => "")
+    @test script_downloaded ≈ truth
+end
+
+@testset "Test table generation" begin
+    combined_results = OrderedDict(
+        "v1" => OrderedDict(
+            "bench1" => Dict("median" => 1.2e9, "75" => 1.3e9, "25" => 1.1e9),
+            "bench2" => Dict("median" => 0.2e6, "75" => 0.3e6, "25" => 0.1e6),
+        ),
+        "v2" => OrderedDict(
+            "bench1" => Dict("median" => 1.2e10, "75" => 1.3e10, "25" => 1.1e10),
+            "bench2" => Dict("median" => 0.2e5, "75" => 0.3e5, "25" => 0.1e5),
+        ),
+    )
+
+    truth = """
+    |        |      v1      |     v2     | t[v1]/t[v2] |
+    |--------|--------------|------------|-------------|
+    | bench1 | 1.2 ± 0.2 s  |  12 ± 2 s  |     0.1     |
+    | bench2 | 0.2 ± 0.2 ms | 20 ± 20 μs |     10      |
+    """
+    @test truth ≈ create_table(combined_results)
 end
