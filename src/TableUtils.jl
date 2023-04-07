@@ -8,14 +8,14 @@ using PrettyTables: pretty_table, tf_markdown
 function format_time(val::Dict)
     unit, unit_name = get_reasonable_unit([val["mean_logspace"]])
     if haskey(val, "standard_error_logspace")
-        @sprintf(
-            "%.3g ± %.2g %s",
+        "\$" * @sprintf(
+            "%.3g^{+%.1g}_{-%.1g}",
             val["mean_logspace"] * unit,
-            val["standard_error_logspace"] * unit,
-            unit_name
-        )
+            val["standard_error_logspace_up"] * unit,
+            val["standard_error_logspace_down"] * unit,
+        ) * "\$ " * unit_name
     else
-        @sprintf("%.3g %s", val["mean_logspace"] * unit, unit_name)
+        "\$" * @sprintf("%.3g", val["mean_logspace"] * unit) * "\$ " * unit_name
     end
 end
 function format_time(val::Number)

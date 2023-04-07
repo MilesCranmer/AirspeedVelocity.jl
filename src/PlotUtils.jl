@@ -19,17 +19,19 @@ function create_line_plot(data, names, title)
     unit, unit_name = get_reasonable_unit(centers)
 
     centers = centers .* unit
-    errors = if "standard_error_logspace" in keys(first(data))
-        [d["standard_error_logspace"] for d in data] .* unit
+    errors = if "standard_error_logspace_up" in keys(first(data))
+        lower_errors = [d["standard_error_logspace_down"] for d in data] .* unit
+        upper_errors = [d["standard_error_logspace_up"] for d in data] .* unit
+        hcat(lower_errors', upper_errors')
     else
         nothing
     end
     plot_xticks = 1:length(names)
 
     p = plot(
-        plot_xticks, centers; yerror=errors, linestyle=:solid, marker=:circle, legend=false
+        plot_xticks, centers; yerror=errors, linestyle=:solid, marker=:circle, legend=false, yscale=:log10
     )
-    scatter!(plot_xticks, centers; yerror=errors)
+    scatter!(plot_xticks, centers; yerror=errors, yscale=:log10)
     xticks!(plot_xticks, names)
     title!(title)
     xlabel!("Revision")
