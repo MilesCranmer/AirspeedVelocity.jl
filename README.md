@@ -72,11 +72,16 @@ SUITE["eval_tree_array"] = BenchmarkGroup()
 options = Options(; binary_operators=[+, -, *], unary_operators=[cos])
 tree = Node(; feature=1) + cos(3.2f0 * Node(; feature=2))
 
-X = randn(Float32, 2, 10)
-SUITE["eval_tree_array"]["10"] = @benchmarkable eval_tree_array($tree, $X, $options) evals=1 samples=100
 
-X2 = randn(Float32, 2, 20)
-SUITE["eval_tree_array"]["20"] = @benchmarkable eval_tree_array($tree, $X2, $options) evals=1 samples=100
+for n in [10, 20]
+    SUITE["eval_tree_array"][n] = @benchmarkable(
+        eval_tree_array($tree, X, $options),
+        evals=10,
+        samples=1000,
+        X=randn(Float32, 2, $n),
+    )
+end
+
 ```
 
 Inside this script, we will also have access to the `PACKAGE_VERSION` constant,
