@@ -106,6 +106,17 @@ benchpkgplot SymbolicRegression \
     -o plots/
 ```
 
+## Using in CI
+
+You can use this package in GitHub actions to benchmark every PR submitted to your package,
+by copying the example: [`.github/workflows/benchmark_pr.yml`](https://github.com/MilesCranmer/AirspeedVelocity.jl/blob/master/.github/workflows/benchmark_pr.yml).
+
+Every time a PR is submitted to your package, this workflow will run
+and generate plots of the performance of the PR against the default branch,
+as well as a markdown table, showing whether the PR improves or worsens performance:
+
+![regression_example](https://user-images.githubusercontent.com/7593028/230768154-beb001e0-d115-4aaa-bd22-89376c1f7556.jpg)
+
 ## Usage
 
 For running benchmarks, you can use the `benchpkg` command, which is
@@ -165,17 +176,6 @@ Plot the benchmarks of a package as created with `benchpkg`.
 
 If you prefer to use the Julia API, you can use the `benchmark` function for generating data.
 The API is given [here](https://astroautomata.com/AirspeedVelocity.jl/dev/api/).
-
-## Using in CI
-
-You can use this package in GitHub actions to benchmark every PR submitted to your package,
-by copying the example: [`.github/workflows/benchmark_pr.yml`](https://github.com/MilesCranmer/AirspeedVelocity.jl/blob/master/.github/workflows/benchmark_pr.yml).
-
-Every time a PR is submitted to your package, this workflow will run
-and generate plots of the performance of the PR against the default branch,
-as well as a markdown table, showing whether the PR improves or worsens performance:
-
-![regression_example](https://user-images.githubusercontent.com/7593028/230768154-beb001e0-d115-4aaa-bd22-89376c1f7556.jpg)
 
 ## Related packages
 
