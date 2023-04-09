@@ -109,7 +109,7 @@ function _benchmark(
     Pkg.activate(old_project; io=devnull)
     results_filename = joinpath(output_dir, "results_" * spec_str * ".json")
     to_exec = quote
-        using BenchmarkTools: run, BenchmarkGroup
+        using BenchmarkTools: run, tune!, BenchmarkGroup
         using JSON3: JSON3
         using Pkg: Pkg
 
