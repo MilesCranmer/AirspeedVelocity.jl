@@ -63,8 +63,7 @@ end
                 return 1:3 |> Map(x -> 2x) |> collect
             end
             SUITE["simple"] = @benchmarkable f()
-        """ |> s -> replace(s, r"^\s+" => "")
-        )
+        """ |> s -> replace(s, r"^\s+" => ""))
     end
 
     # Test with CLI version:
