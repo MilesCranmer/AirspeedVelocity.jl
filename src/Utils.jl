@@ -409,8 +409,7 @@ function load_results(specs::Vector{PackageSpec}; input_dir::String=".")
     for (name, results) in combined_results
         if keys_set != Set(keys(results))
             missing_keys = setdiff(keys_set, keys(results))
-            # TODO: This is missing `extra_keys`!
-            @error "Results for $name are missing keys $missing_keys and have extra keys $extra_keys."
+            @warn "Results for $name missing keys $missing_keys."
         end
     end
 
