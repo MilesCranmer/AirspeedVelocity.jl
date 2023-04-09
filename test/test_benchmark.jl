@@ -49,6 +49,35 @@ end
     @test length(
         results["SymbolicRegression@v0.16.2"]["data"]["eval_tree_array"]["data"]["eval_10"]["times"],
     ) == 100
+
+    # Ensure Transducers.jl has its Project.toml copied:
+    tmp2 = mktempdir(; cleanup=false)
+    script = joinpath(tmp2, "bench.jl")
+    open(script, "w") do io
+        print(io, """
+            using BenchmarkTools
+            using Transducers
+
+            const SUITE = BenchmarkGroup()
+            function f()
+                return 1:3 |> Map(x -> 2x) |> collect
+            end
+            SUITE["simple"] = @benchmarkable f()
+        """ |> s -> replace(s, r"^\s+" => "")
+        )
+    end
+
+    # Test with CLI version:
+    results_dir = mktempdir(; cleanup=false)
+    benchpkg(
+        "Transducers";
+        rev="v0.4.50,v0.4.70",
+        script=script,
+        tune=true,
+        output_dir=string(results_dir),
+    )
+    @test isfile(joinpath(results_dir, "results_Transducers@v0.4.50.json"))
+    @test isfile(joinpath(results_dir, "results_Transducers@v0.4.70.json"))
 end
 
 @testset "Test plot results" begin
