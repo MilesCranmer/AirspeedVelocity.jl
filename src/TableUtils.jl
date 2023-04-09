@@ -3,7 +3,6 @@ module TableUtils
 using ..Utils: get_reasonable_unit
 using OrderedCollections: OrderedDict
 using Printf: @sprintf
-using PrettyTables: pretty_table, tf_markdown
 
 function format_time(val::Dict)
     unit, unit_name = get_reasonable_unit([val["median"]])
@@ -31,14 +30,7 @@ If there are two results for a given benchmark, will have an additional column
 for the comparison, assuming the first revision is one to compare against.
 
 """
-function create_table(
-    combined_results::OrderedDict;
-    add_ratio_col=true,
-    pretty_table_kws=nothing,
-)
-    if pretty_table_kws === nothing
-        pretty_table_kws = (backend=Val(:text), tf=tf_markdown)
-    end
+function create_table(combined_results::OrderedDict; add_ratio_col=true)
     num_revisions = length(combined_results)
     num_cols = 1 + num_revisions
 
@@ -83,13 +75,23 @@ function create_table(
 
     mdata = hcat(data...)
     # With headers and data, let's make a markdown table with PrettyTables:
-    return pretty_table(
-        String,
-        mdata;
-        alignment=[:r, fill(:c, num_cols - 1)...],
-        header=headers,
-        pretty_table_kws...,
-    )
+    return markdown_table(; data=mdata, header=headers)
+end
+
+function markdown_table(; data::AbstractMatrix, header::AbstractVector)
+    @assert size(data, 2) == length(header)
+    # GitHub-style markdown table.
+    io = IOBuffer()
+    println(io, "| $(join(header, " | ")) |")
+    # First column left-aligned:
+    print(io, "| :--- | ")
+    # Rest are centered:
+    print(io, join(fill(":---:", size(data, 2) - 1), " | "), " |")
+    println(io)
+    for row in eachrow(data)
+        println(io, "| $(join(row, " | ")) |")
+    end
+    return take!(io) |> String
 end
 
 end # AirspeedVelocity.TableUtils
