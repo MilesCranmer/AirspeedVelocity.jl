@@ -78,7 +78,7 @@ for n in [10, 20]
         eval_tree_array($tree, X, $options),
         evals=10,
         samples=1000,
-        X=randn(Float32, 2, $n),
+        setup=(X=randn(Float32, 2, $n))
     )
 end
 
