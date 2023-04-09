@@ -114,17 +114,23 @@ function _benchmark(
         using JSON3: JSON3
         using Pkg: Pkg
 
-        const PACKAGE_VERSION = $(spec.rev)
-
         cd($cur_dir)
         # Include benchmark, defining SUITE:
         @info "    [runner] Loading benchmark script: " * $script * "."
         cur_project = Pkg.project().path
-        include($script)
+
+        # Safely include, via module:
+        module AirspeedVelocityRunner
+            const PACKAGE_VERSION = $(spec.rev)
+            include($script)
+        end
+        using .AirspeedVelocityRunner: AirspeedVelocityRunner
+
         # Assert that SUITE is defined:
-        if !isdefined(Main, :SUITE)
+        if !isdefined(AirspeedVelocityRunner, :SUITE)
             @error "    [runner] Benchmark script " * $script * " did not define SUITE."
         end
+        const SUITE = AirspeedVelocityRunner.SUITE
         if !(typeof(SUITE) <: BenchmarkGroup)
             @error "    [runner] Benchmark script " *
                 $script *
