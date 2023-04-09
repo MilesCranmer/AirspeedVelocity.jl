@@ -175,7 +175,7 @@ Every time a PR is submitted to your package, this workflow will run
 and generate plots of the performance of the PR against the default branch,
 as well as a markdown table, showing whether the PR improves or worsens performance:
 
-![Screenshot from 2023-04-07 08-00-36](https://user-images.githubusercontent.com/7593028/230605635-a9201ce3-c4bf-4bc6-a672-f6997bc605c8.png)
+![regression_example](https://user-images.githubusercontent.com/7593028/230768154-beb001e0-d115-4aaa-bd22-89376c1f7556.jpg)
 
 ## Related packages
 
