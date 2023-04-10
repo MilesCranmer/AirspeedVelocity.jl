@@ -80,16 +80,37 @@ end
 
 function markdown_table(; data::AbstractMatrix, header::AbstractVector)
     @assert size(data, 2) == length(header)
-    # GitHub-style markdown table.
+    col_widths = [max(length(head), 4) for head in header]
+    for row in eachrow(data)
+        for (i, val) in enumerate(row)
+            col_widths[i] = max(col_widths[i], length(string(val)))
+        end
+    end
+    # GitHub-style markdown table:
     io = IOBuffer()
-    println(io, "| $(join(header, " | ")) |")
+    # println(io, "| $(join(header, " | ")) |")
+    print(io, "|")
+    for (i, head) in enumerate(header)
+        print(io, " $(head) " * " "^(col_widths[i] - length(head)) * "|")
+    end
+    println(io)
+
     # First column left-aligned:
-    print(io, "| :--- | ")
+    print(io, "|:---" * "-"^(col_widths[1] - 2) * "|")
     # Rest are centered:
-    print(io, join(fill(":---:", size(data, 2) - 1), " | "), " |")
+    for (i, head) in enumerate(header)
+        i == 1 && continue
+        print(io, ":---" * "-"^(col_widths[i] - 3) * ":|")
+    end
+
     println(io)
     for row in eachrow(data)
-        println(io, "| $(join(row, " | ")) |")
+        # println(io, "| $(join(row, " | ")) |")
+        print(io, "|")
+        for (i, val) in enumerate(row)
+            print(io, " $(val) " * " "^(col_widths[i] - length(string(val))) * "|")
+        end
+        println(io)
     end
     return take!(io) |> String
 end

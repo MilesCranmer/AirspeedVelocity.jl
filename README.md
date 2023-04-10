@@ -122,7 +122,7 @@ as well as a markdown table, showing whether the PR improves or worsens performa
 For running benchmarks, you can use the `benchpkg` command, which is
 built into the `~/.julia/bin` folder:
 
-```text
+```markdown
     benchpkg package_name [-r --rev <arg>] [-o, --output-dir <arg>]
                           [-s, --script <arg>] [-e, --exeflags <arg>]
                           [-a, --add <arg>] [--tune]
@@ -154,7 +154,7 @@ Benchmark a package over a set of revisions.
 
 For plotting, you can use the `benchpkgplot` function:
 
-```text
+```markdown
     benchpkgplot package_name [-r --rev <arg>] [-i --input-dir <arg>]
                               [-o --output-dir <arg>] [-n --npart <arg>]
                               [--format <arg>]
@@ -172,6 +172,29 @@ Plot the benchmarks of a package as created with `benchpkg`.
 - `-o, --output-dir <arg>`: Where to save the plots results (default: ".").
 - `-n, --npart <arg>`: Max number of plots per page (default: 10).
 - `--format <arg>`: File type to save the plots as (default: "png").
+```
+
+You can also just generate a table:
+
+```markdown
+    benchpkgtable package_name [-r --rev <arg>] [-i --input-dir <arg>]
+                               [--ratio]
+
+Print a table of the benchmarks of a package as created with `benchpkg`.
+
+# Arguments
+
+- `package_name`: Name of the package.
+
+# Options
+
+- `-r, --rev <arg>`: Revisions to test (delimit by comma).
+- `-i, --input-dir <arg>`: Where the JSON results were saved (default: ".").
+
+# Flags
+
+- `--ratio`: Whether to include the ratio (default: false). Only applies when
+    comparing two revisions.
 ```
 
 If you prefer to use the Julia API, you can use the `benchmark` function for generating data.

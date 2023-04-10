@@ -20,4 +20,8 @@ include("TableUtils.jl")
 import .TableUtils: create_table
 export create_table
 
+include("BenchPkgTable.jl")
+import .BenchPkgTable: benchpkgtable
+export benchpkgtable
+
 end # module AirspeedVelocity
