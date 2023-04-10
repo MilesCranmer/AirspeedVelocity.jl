@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Home · AirspeedVelocity.jl</title><script data-outdated-warner src="assets/warner.js"></script><link rel="canonical" href="https://MilesCranmer.github.io/AirspeedVelocity.jl/"/><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href>AirspeedVelocity.jl</a></span></div><form class="docs-search" action="search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li class="is-active"><a class="tocitem" href>Home</a><ul class="internal"><li><a class="tocitem" href="#Installation"><span>Installation</span></a></li><li><a class="tocitem" href="#Examples"><span>Examples</span></a></li><li><a class="tocitem" href="#Using-in-CI"><span>Using in CI</span></a></li><li><a class="tocitem" href="#Usage"><span>Usage</span></a></li><li><a class="tocitem" href="#Related-packages"><span>Related packages</span></a></li></ul></li><li><a class="tocitem" href="api/">API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Home</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Home</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/MilesCranmer/AirspeedVelocity.jl/blob/master/docs/src/index.md#" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="AirspeedVelocity.jl"><a class="docs-heading-anchor" href="#AirspeedVelocity.jl">AirspeedVelocity.jl</a><a id="AirspeedVelocity.jl-1"></a><a class="docs-heading-anchor-permalink" href="#AirspeedVelocity.jl" title="Permalink"></a></h1><p><a href="https://MilesCranmer.github.io/AirspeedVelocity.jl/stable/"><img src="https://img.shields.io/badge/docs-stable-blue.svg" alt="Stable"/></a> <a href="https://MilesCranmer.github.io/AirspeedVelocity.jl/dev/"><img src="https://img.shields.io/badge/docs-dev-blue.svg" alt="Dev"/></a> <a href="https://github.com/MilesCranmer/AirspeedVelocity.jl/actions/workflows/CI.yml?query=branch%3Amaster"><img src="https://github.com/MilesCranmer/AirspeedVelocity.jl/actions/workflows/CI.yml/badge.svg?branch=master" alt="Build Status"/></a> <a href="https://coveralls.io/github/MilesCranmer/AirspeedVelocity.jl?branch=master"><img src="https://coveralls.io/repos/github/MilesCranmer/AirspeedVelocity.jl/badge.svg?branch=master" alt="Coverage"/></a></p><p>AirspeedVelocity.jl strives to make it easy to benchmark Julia packages over their lifetime. It is inspired by <a href="https://asv.readthedocs.io/en/stable/">asv</a>.</p><p>This package allows you to:</p><ul><li>Generate benchmarks directly from the terminal with an easy-to-use CLI.</li><li>Compare many commits/tags/branches at once.</li><li>Plot those benchmarks, automatically flattening your benchmark suite into a list of plots with generated titles.</li><li>Run as a GitHub action to create benchmark comparisons for every submitted PR (in a bot comment).</li></ul><p>This package also freezes the benchmark script at a particular revision, so there is no worry about the old history overwriting the benchmark.</p><h2 id="Installation"><a class="docs-heading-anchor" href="#Installation">Installation</a><a id="Installation-1"></a><a class="docs-heading-anchor-permalink" href="#Installation" title="Permalink"></a></h2><p>You can install the CLI with:</p><pre><code class="language-bash hljs">julia -e &#39;using Pkg; Pkg.add(&quot;AirspeedVelocity&quot;); Pkg.build(&quot;AirspeedVelocity&quot;)&#39;</code></pre><p>This will install two executables at <code>~/.julia/bin</code> - make sure to have it on your <code>PATH</code>.</p><h2 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h2><p>You may then use the CLI to generate benchmarks for any package with, e.g.,</p><pre><code class="language-bash hljs">benchpkg Transducers \
+    --rev=v0.4.20,v0.4.70,master \
+    --bench-on=v0.4.20</code></pre><p>which will benchmark <code>Transducers.jl</code>, at the revisions <code>v0.4.20</code>, <code>v0.4.70</code>, and <code>master</code>, using the benchmark script <code>benchmark/benchmarks.jl</code> as it was defined at <code>v0.4.20</code>, and then save the JSON results in the current directory.</p><p>We can then generate plots of the revisions with:</p><pre><code class="language-bash hljs">benchpkgplot Transducers \
+    --rev=v0.4.20,v0.4.70,master \
+    --format=pdf \
+    --npart=5</code></pre><p>which will generate a pdf file for each set of 5 plots, showing the change with each revision:</p><p>&lt;img width=&quot;877&quot; alt=&quot;Screenshot 2023-04-03 at 10 36 16 AM&quot; src=&quot;https://user-images.githubusercontent.com/7593028/229543368-14b1da88-8315-437b-b38f-fff143f26e3a.png&quot;&gt;</p><p>You can also provide a custom benchmark. For example, let&#39;s say you have a file <code>script.jl</code>, defining a benchmark for <code>SymbolicRegression.jl</code> (we always need to define the <code>SUITE</code> variable as a <code>BenchmarkGroup</code>):</p><pre><code class="language-julia hljs">using BenchmarkTools, SymbolicRegression
+const SUITE = BenchmarkGroup()
+
+# Create hierarchy of benchmarks:
+SUITE[&quot;eval_tree_array&quot;] = BenchmarkGroup()
+
+options = Options(; binary_operators=[+, -, *], unary_operators=[cos])
+tree = Node(; feature=1) + cos(3.2f0 * Node(; feature=2))
+
+
+for n in [10, 20]
+    SUITE[&quot;eval_tree_array&quot;][n] = @benchmarkable(
+        eval_tree_array($tree, X, $options),
+        evals=10,
+        samples=1000,
+        setup=(X=randn(Float32, 2, $n))
+    )
+end
+</code></pre><p>Inside this script, we will also have access to the <code>PACKAGE_VERSION</code> constant, to allow for different behavior depending on tag. We can run this benchmark over the history of <code>SymbolicRegression.jl</code> with:</p><pre><code class="language-bash hljs">benchpkg SymbolicRegression \
+    -r v0.15.3,v0.16.2 \
+    -s script.jl \
+    -o results/ \
+    --exeflags=&quot;--threads=4 -O3&quot;</code></pre><p>where we have also specified the output directory and extra flags to pass to the <code>julia</code> executable. We can also now visualize this:</p><pre><code class="language-bash hljs">benchpkgplot SymbolicRegression \
+    -r v0.15.3,v0.16.2 \
+    -i results/ \
+    -o plots/</code></pre><h2 id="Using-in-CI"><a class="docs-heading-anchor" href="#Using-in-CI">Using in CI</a><a id="Using-in-CI-1"></a><a class="docs-heading-anchor-permalink" href="#Using-in-CI" title="Permalink"></a></h2><p>You can use this package in GitHub actions to benchmark every PR submitted to your package, by copying the example: <a href="https://github.com/MilesCranmer/AirspeedVelocity.jl/blob/master/.github/workflows/benchmark_pr.yml"><code>.github/workflows/benchmark_pr.yml</code></a>.</p><p>Every time a PR is submitted to your package, this workflow will run and generate plots of the performance of the PR against the default branch, as well as a markdown table, showing whether the PR improves or worsens performance:</p><p><img src="https://user-images.githubusercontent.com/7593028/230768154-beb001e0-d115-4aaa-bd22-89376c1f7556.jpg" alt="regression_example"/></p><h2 id="Usage"><a class="docs-heading-anchor" href="#Usage">Usage</a><a id="Usage-1"></a><a class="docs-heading-anchor-permalink" href="#Usage" title="Permalink"></a></h2><p>For running benchmarks, you can use the <code>benchpkg</code> command, which is built into the <code>~/.julia/bin</code> folder:</p><pre><code class="language-markdown hljs">    benchpkg package_name [-r --rev &lt;arg&gt;] [-o, --output-dir &lt;arg&gt;]
+                          [-s, --script &lt;arg&gt;] [-e, --exeflags &lt;arg&gt;]
+                          [-a, --add &lt;arg&gt;] [--tune]
+                          [--url &lt;arg&gt;] [--path &lt;arg&gt;]
+                          [--bench-on &lt;arg&gt;]
+
+Benchmark a package over a set of revisions.
+
+# Arguments
+
+- `package_name`: Name of the package.
+
+# Options
+
+- `-r, --rev &lt;arg&gt;`: Revisions to test (delimit by comma).
+- `-o, --output-dir &lt;arg&gt;`: Where to save the JSON results.
+- `-s, --script &lt;arg&gt;`: The benchmark script. Default: `benchmark/benchmarks.jl` downloaded from `stable`.
+- `-e, --exeflags &lt;arg&gt;`: CLI flags for Julia (default: none).
+- `-a, --add &lt;arg&gt;`: Extra packages needed (delimit by comma).
+- `--url &lt;arg&gt;`: URL of the package.
+- `--path &lt;arg&gt;`: Path of the package.
+- `--bench-on &lt;arg&gt;`: If the script is not set, this specifies the revision at which
+  to download `benchmark/benchmarks.jl` from the package.
+
+# Flags
+
+- `--tune`: Whether to run benchmarks with tuning (default: false).</code></pre><p>For plotting, you can use the <code>benchpkgplot</code> function:</p><pre><code class="language-markdown hljs">    benchpkgplot package_name [-r --rev &lt;arg&gt;] [-i --input-dir &lt;arg&gt;]
+                              [-o --output-dir &lt;arg&gt;] [-n --npart &lt;arg&gt;]
+                              [--format &lt;arg&gt;]
+
+Plot the benchmarks of a package as created with `benchpkg`.
+
+# Arguments
+
+- `package_name`: Name of the package.
+
+# Options
+
+- `-r, --rev &lt;arg&gt;`: Revisions to test (delimit by comma).
+- `-i, --input-dir &lt;arg&gt;`: Where the JSON results were saved (default: &quot;.&quot;).
+- `-o, --output-dir &lt;arg&gt;`: Where to save the plots results (default: &quot;.&quot;).
+- `-n, --npart &lt;arg&gt;`: Max number of plots per page (default: 10).
+- `--format &lt;arg&gt;`: File type to save the plots as (default: &quot;png&quot;).</code></pre><p>You can also just generate a table:</p><pre><code class="language-markdown hljs">    benchpkgtable package_name [-r --rev &lt;arg&gt;] [-i --input-dir &lt;arg&gt;]
+                               [--ratio]
+
+Print a table of the benchmarks of a package as created with `benchpkg`.
+
+# Arguments
+
+- `package_name`: Name of the package.
+
+# Options
+
+- `-r, --rev &lt;arg&gt;`: Revisions to test (delimit by comma).
+- `-i, --input-dir &lt;arg&gt;`: Where the JSON results were saved (default: &quot;.&quot;).
+
+# Flags
+
+- `--ratio`: Whether to include the ratio (default: false). Only applies when
+    comparing two revisions.</code></pre><p>If you prefer to use the Julia API, you can use the <code>benchmark</code> function for generating data. The API is given <a href="https://astroautomata.com/AirspeedVelocity.jl/dev/api/">here</a>.</p><h2 id="Related-packages"><a class="docs-heading-anchor" href="#Related-packages">Related packages</a><a id="Related-packages-1"></a><a class="docs-heading-anchor-permalink" href="#Related-packages" title="Permalink"></a></h2><p>Also be sure to check out <a href="https://github.com/JuliaCI/PkgBenchmark.jl">PkgBenchmark.jl</a>. PkgBenchmark.jl is a simple wrapper of BenchmarkTools.jl to interface it with Git, and is a good choice for building custom analysis workflows.</p><p>However, for me this wrapper is a bit too thin, which is why I created this package. AirspeedVelocity.jl tries to have more features and workflows readily-available. It also emphasizes a CLI (though there is a Julia API), as my subjective view is that this is more suitable for interacting side-by-side with <code>git</code>.</p><ul><li><a href="api/#AirspeedVelocity.PlotUtils.combined_plots-Tuple{OrderedDict}"><code>AirspeedVelocity.PlotUtils.combined_plots</code></a></li><li><a href="api/#AirspeedVelocity.TableUtils.create_table-Tuple{OrderedDict}"><code>AirspeedVelocity.TableUtils.create_table</code></a></li><li><a href="api/#AirspeedVelocity.Utils.benchmark-Tuple{String, Vector{String}}"><code>AirspeedVelocity.Utils.benchmark</code></a></li><li><a href="api/#AirspeedVelocity.Utils.benchmark-Tuple{Vector{Pkg.Types.PackageSpec}}"><code>AirspeedVelocity.Utils.benchmark</code></a></li><li><a href="api/#AirspeedVelocity.Utils.load_results-Tuple{Vector{Pkg.Types.PackageSpec}}"><code>AirspeedVelocity.Utils.load_results</code></a></li></ul></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="api/">API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Monday 10 April 2023 18:58">Monday 10 April 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
