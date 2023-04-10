@@ -160,4 +160,32 @@ end
     | bench2 | 0.2 ± 0.2 ms | 20 ± 20 μs | 10          |
     """
     @test truth == replace(create_table(combined_results), r"^\s+\n?" => " ")
+
+    tempdir = mktempdir()
+    results_fname = joinpath(tempdir, "results_TestPackage@v1.json")
+
+    open(results_fname, "w") do io
+        write(
+            io,
+            """{"tags":[],"data":{"findall":{"tags":[],"data":{"base": {"times":[1, 2, 3]},"xf-array":{"times":[5, 5, 5, 5, 5]},"xf-iter":{"times":[9, 9, 10, 11, 11]}}}}}""",
+        )
+    end
+
+    original_stdout = stdout
+
+    (rd, wr) = redirect_stdout()
+    benchpkgtable("TestPackage"; rev="v1", input_dir=tempdir)
+    redirect_stdout(original_stdout)
+
+    close(wr)
+    s = read(rd, String)
+
+    truth = """
+    |                  | v1        |
+    |:-----------------|:---------:|
+    | findall/base     | 2 ± 1 ns  |
+    | findall/xf-array | 5 ± 0 ns  |
+    | findall/xf-iter  | 10 ± 2 ns |"""
+
+    @test truth ≈ s
 end
