@@ -50,7 +50,7 @@ jobs:
                 path: plots
             - name: Create markdown table from benchmarks
               run: |
-                julia -e 'using AirspeedVelocity; combined_results=load_results("${{ steps.extract-package-name.outputs.package_name }}", ["${{github.event.repository.default_branch}}", "${{github.event.pull_request.head.sha}}"], input_dir="results"); table = create_table(combined_results); open("table.md", "w") do io; print(io, table); end'
+                benchpkgtable ${{ steps.extract-package-name.outputs.package_name }} --rev="${{github.event.repository.default_branch}},${{github.event.pull_request.head.sha}}" --input-dir=results/ > table.md
                 echo '### Benchmark Results' > body.md
                 echo '' >> body.md
                 echo '' >> body.md
