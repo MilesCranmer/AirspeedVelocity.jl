@@ -107,10 +107,11 @@ function _benchmark(
     extra_pkgs = filter(x -> x != "", extra_pkgs)
     pkgs = ["BenchmarkTools", "JSON3", "Pkg", extra_pkgs...]
     Pkg.add([spec, [PackageSpec(; name=pkg) for pkg in pkgs]...]; io=devnull)
+    Pkg.precompile()
     Pkg.activate(old_project; io=devnull)
     results_filename = joinpath(output_dir, "results_" * spec_str * ".json")
     to_exec = quote
-        using BenchmarkTools: run, tune!, BenchmarkGroup
+        using BenchmarkTools: @benchmarkable, run, tune!, BenchmarkGroup
         using JSON3: JSON3
         using Pkg: Pkg
 
@@ -119,11 +120,22 @@ function _benchmark(
         @info "    [runner] Loading benchmark script: " * $script * "."
         cur_project = Pkg.project().path
 
+        #! format: off
+        const _airspeed_velocity_extra_suite = BenchmarkGroup()
+        _airspeed_velocity_extra_suite["time_to_load"] = @benchmarkable(
+            @eval(using $(Symbol(spec.name)): $(Symbol(spec.name)) as _AirspeedVelocityTestImport),
+            evals=1,
+            samples=1,
+        )
+        const _airspeed_velocity_extra_results = run(_airspeed_velocity_extra_suite)
+        #! format: on
+
         # Safely include, via module:
         module AirspeedVelocityRunner
             const PACKAGE_VERSION = $(spec.rev)
             include($script)
         end
+
         using .AirspeedVelocityRunner: AirspeedVelocityRunner
 
         # Assert that SUITE is defined:
@@ -153,6 +165,10 @@ function _benchmark(
         results = run(SUITE; verbose=true)
         @info "-"^80
         @info "    [runner] Finished benchmarks for " * $spec_str * "."
+        # Combine extra results:
+        for (k, v) in _airspeed_velocity_extra_results.data
+            results.data[k] = v
+        end
         open($results_filename, "w") do io
             JSON3.write(io, results)
         end
