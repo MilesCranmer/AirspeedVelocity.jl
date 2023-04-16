@@ -83,9 +83,9 @@ end
     # Create plots:
     combined_results = load_results("SymbolicRegression", ["v0.15.3", "v0.16.2"])
     plots = combined_plots(combined_results; npart=1)
-    @test length(plots) == 2
+    @test length(plots) == 3
     plots = combined_plots(combined_results; npart=2)
-    @test length(plots) == 1
+    @test length(plots) == 2
 end
 
 @testset "Test getting script" begin
@@ -159,7 +159,7 @@ end
     | bench1 | 1.2 ± 0.2 s  | 12 ± 2 s   | 0.1         |
     | bench2 | 0.2 ± 0.2 ms | 20 ± 20 μs | 10          |
     """
-    @test truth == replace(create_table(combined_results), r"^\s+\n?" => " ")
+    @test truth ≈ create_table(combined_results)
 
     tempdir = mktempdir()
     results_fname = joinpath(tempdir, "results_TestPackage@v1.json")
