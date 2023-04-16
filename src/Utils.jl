@@ -196,7 +196,7 @@ function _benchmark(
     if nsamples_load_time > 1
         @info "    Running additional time-to-load tests."
         load_times = results["data"]["time_to_load"]["times"]
-        exe_string = "start=time_ns(); using $(spec.name); stop=time_ns(); println(stop-start)"
+        exe_string = "start=time_ns(); redirect_stdout(devnull) do; @eval using $(spec.name); end; stop=time_ns(); println(stop-start)"
         cmd = io -> pipeline(
             `julia --project="$tmp_env" --startup-file=no $exeflags -e "$exe_string"`;
             stdout=io
