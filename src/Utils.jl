@@ -240,7 +240,7 @@ The results of the benchmarks are saved to a JSON file named `results_packagenam
 - `url::Union{String,Nothing}=nothing`: URL of the package.
 - `path::Union{String,Nothing}=nothing`: Path to the package.
 - `benchmark_on::Union{String,Nothing}=nothing`: If the benchmark script file is to be downloaded, this specifies the revision to use.
-- `nsamples_load_time::Int=1`: Number of samples to take for the time-to-load benchmark.
+- `nsamples_load_time::Int=5`: Number of samples to take for the time-to-load benchmark.
 """
 function benchmark(
     package_name::String,
@@ -253,7 +253,7 @@ function benchmark(
     url::Union{String,Nothing}=nothing,
     path::Union{String,Nothing}=nothing,
     benchmark_on::Union{String,Nothing}=nothing,
-    nsamples_load_time::Int=1,
+    nsamples_load_time::Int=5,
 )
     return benchmark(
         [PackageSpec(; name=package_name, rev=rev, url=url, path=path) for rev in revs];
@@ -277,7 +277,7 @@ function benchmark(
     url::Union{String,Nothing}=nothing,
     path::Union{String,Nothing}=nothing,
     benchmark_on::Union{String,Nothing}=nothing,
-    nsamples_load_time::Int=1,
+    nsamples_load_time::Int=5,
 )
     return benchmark(
         package_name,
@@ -313,7 +313,7 @@ The results of the benchmarks are saved to a JSON file named `results_packagenam
 - `exeflags::Cmd=```: Additional execution flags for running the benchmark script (default: empty).
 - `extra_pkgs::Vector{String}=String[]`: Additional packages to add to the benchmark environment.
 - `benchmark_on::Union{String,Nothing}=nothing`: If the benchmark script file is to be downloaded, this specifies the revision to use.
-- `nsamples_load_time::Int=1`: Number of samples to take for the time-to-load benchmark.
+- `nsamples_load_time::Int=5`: Number of samples to take for the time-to-load benchmark.
 """
 function benchmark(
     package_specs::Vector{PackageSpec};
@@ -324,7 +324,7 @@ function benchmark(
     extra_pkgs=String[],
     benchmark_on::Union{String,Nothing}=nothing,
     project_toml::Union{String,Nothing}=nothing,
-    nsamples_load_time::Int=1,
+    nsamples_load_time::Int=5,
 )
     script, project_toml = if script === nothing
         package_name = first(package_specs).name
@@ -365,7 +365,7 @@ function benchmark(
     extra_pkgs=String[],
     benchmark_on::Union{String,Nothing}=nothing,
     project_toml::Union{String,Nothing}=nothing,
-    nsamples_load_time::Int=1,
+    nsamples_load_time::Int=5,
 )
     script, project_toml = if script === nothing
         _get_script(;
