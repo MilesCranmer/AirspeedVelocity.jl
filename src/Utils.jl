@@ -79,6 +79,7 @@ function _benchmark(
     exeflags::Cmd,
     extra_pkgs::Vector{String},
     project_toml::Union{Nothing,String},
+    nsamples_load_time::Int,
 )
     cur_dir = pwd()
     # Make sure paths are absolute, otherwise weird
@@ -169,7 +170,7 @@ function _benchmark(
         for (k, v) in _airspeed_velocity_extra_results.data
             results.data[k] = v
         end
-        open($results_filename, "w") do io
+        open($results_filename * ".tmp", "w") do io
             JSON3.write(io, results)
         end
         @info "    [runner] Benchmark results saved at " * $results_filename
@@ -189,8 +190,28 @@ function _benchmark(
     # Return results from JSON file:
     @info "    Benchmark runner exited."
     @info "    Reading results."
-    results = open(results_filename, "r") do io
+    results = open(results_filename * ".tmp", "r") do io
         JSON3.read(io, Dict{String,Any})
+    end
+    if nsamples_load_time > 1
+        @info "    Running additional time-to-load tests."
+        load_times = results["data"]["time_to_load"]["times"]
+        exe_string = "start=time_ns(); using $(spec.name); stop=time_ns(); println(stop-start)"
+        cmd = io -> pipeline(
+            `julia --project="$tmp_env" --startup-file=no $exeflags -e "$exe_string"`;
+            stdout=io
+        )
+        for i in 2:nsamples_load_time
+            @info "    Running time-to-load test $(i)/nsamples_load_time."
+            io = IOBuffer()
+            run(cmd(io))
+            push!(load_times, parse(Float64, String(take!(io))))
+        end
+        @info "    Done time-to-load tests."
+    end
+    # Write to results file:
+    open(results_filename, "w") do io
+        JSON3.write(io, results)
     end
     @info "    Finished."
     return results
@@ -218,6 +239,7 @@ The results of the benchmarks are saved to a JSON file named `results_packagenam
 - `url::Union{String,Nothing}=nothing`: URL of the package.
 - `path::Union{String,Nothing}=nothing`: Path to the package.
 - `benchmark_on::Union{String,Nothing}=nothing`: If the benchmark script file is to be downloaded, this specifies the revision to use.
+- `nsamples_load_time::Int=1`: Number of samples to take for the time-to-load benchmark.
 """
 function benchmark(
     package_name::String,
@@ -230,6 +252,7 @@ function benchmark(
     url::Union{String,Nothing}=nothing,
     path::Union{String,Nothing}=nothing,
     benchmark_on::Union{String,Nothing}=nothing,
+    nsamples_load_time::Int=1,
 )
     return benchmark(
         [PackageSpec(; name=package_name, rev=rev, url=url, path=path) for rev in revs];
@@ -239,6 +262,7 @@ function benchmark(
         exeflags=exeflags,
         extra_pkgs=extra_pkgs,
         benchmark_on=benchmark_on,
+        nsamples_load_time=nsamples_load_time,
     )
 end
 function benchmark(
@@ -252,6 +276,7 @@ function benchmark(
     url::Union{String,Nothing}=nothing,
     path::Union{String,Nothing}=nothing,
     benchmark_on::Union{String,Nothing}=nothing,
+    nsamples_load_time::Int=1,
 )
     return benchmark(
         package_name,
@@ -264,6 +289,7 @@ function benchmark(
         url=url,
         path=path,
         benchmark_on=benchmark_on,
+        nsamples_load_time=nsamples_load_time,
     )
 end
 
@@ -286,6 +312,7 @@ The results of the benchmarks are saved to a JSON file named `results_packagenam
 - `exeflags::Cmd=```: Additional execution flags for running the benchmark script (default: empty).
 - `extra_pkgs::Vector{String}=String[]`: Additional packages to add to the benchmark environment.
 - `benchmark_on::Union{String,Nothing}=nothing`: If the benchmark script file is to be downloaded, this specifies the revision to use.
+- `nsamples_load_time::Int=1`: Number of samples to take for the time-to-load benchmark.
 """
 function benchmark(
     package_specs::Vector{PackageSpec};
@@ -296,6 +323,7 @@ function benchmark(
     extra_pkgs=String[],
     benchmark_on::Union{String,Nothing}=nothing,
     project_toml::Union{String,Nothing}=nothing,
+    nsamples_load_time::Int=1,
 )
     script, project_toml = if script === nothing
         package_name = first(package_specs).name
@@ -315,7 +343,7 @@ function benchmark(
     results = Dict{String,Any}()
     for spec in package_specs
         results[spec.name * "@" * spec.rev] = benchmark(
-            spec; output_dir, script, tune, exeflags, extra_pkgs, project_toml
+            spec; output_dir, script, tune, exeflags, extra_pkgs, project_toml, nsamples_load_time
         )
     end
     return results
@@ -329,6 +357,7 @@ function benchmark(
     extra_pkgs=String[],
     benchmark_on::Union{String,Nothing}=nothing,
     project_toml::Union{String,Nothing}=nothing,
+    nsamples_load_time::Int=1,
 )
     script, project_toml = if script === nothing
         _get_script(;
@@ -342,7 +371,7 @@ function benchmark(
     end
     @info "Running benchmarks for " * package_spec.name * "@" * package_spec.rev * ":"
     return _benchmark(
-        package_spec; output_dir, script, tune, exeflags, extra_pkgs, project_toml
+        package_spec; output_dir, script, tune, exeflags, extra_pkgs, project_toml, nsamples_load_time
     )
 end
 

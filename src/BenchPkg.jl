@@ -8,7 +8,7 @@ using Comonicon
                           [-s, --script <arg>] [-e, --exeflags <arg>]
                           [-a, --add <arg>] [--tune]
                           [--url <arg>] [--path <arg>]
-                          [--bench-on <arg>]
+                          [--bench-on <arg>] [--nsamples-load-time <arg>]
 
 Benchmark a package over a set of revisions.
 
@@ -27,6 +27,8 @@ Benchmark a package over a set of revisions.
 - `--path <arg>`: Path of the package.
 - `--bench-on <arg>`: If the script is not set, this specifies the revision at which
   to download `benchmark/benchmarks.jl` from the package.
+- `--nsamples-load-time <arg>`: Number of samples to take when measuring load time of
+    the package (default: 1). (This means starting a Julia process for each sample.)
 
 # Flags
 
@@ -44,11 +46,13 @@ Benchmark a package over a set of revisions.
     url::String="",
     path::String="",
     bench_on::String="",
+    nsamples_load_time::Int=1,
 )
     revs = convert(Vector{String}, split(rev, ","))
     # Filter empty strings:
     revs = filter(x -> length(x) > 0, revs)
     @assert length(revs) > 0 "No revisions specified."
+    @assert nsamples_load_time > 0 "nsamples_load_time must be positive."
     benchmark(
         package_name,
         revs;
@@ -60,6 +64,7 @@ Benchmark a package over a set of revisions.
         url=(length(url) > 0 ? url : nothing),
         path=(length(path) > 0 ? path : nothing),
         benchmark_on=(length(bench_on) > 0 ? bench_on : nothing),
+        nsamples_load_time=nsamples_load_time,
     )
 
     return nothing

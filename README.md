@@ -127,7 +127,7 @@ built into the `~/.julia/bin` folder:
                           [-s, --script <arg>] [-e, --exeflags <arg>]
                           [-a, --add <arg>] [--tune]
                           [--url <arg>] [--path <arg>]
-                          [--bench-on <arg>]
+                          [--bench-on <arg>] [--nsamples-load-time <arg>]
 
 Benchmark a package over a set of revisions.
 
@@ -146,6 +146,8 @@ Benchmark a package over a set of revisions.
 - `--path <arg>`: Path of the package.
 - `--bench-on <arg>`: If the script is not set, this specifies the revision at which
   to download `benchmark/benchmarks.jl` from the package.
+- `--nsamples-load-time <arg>`: Number of samples to take when measuring load time of
+    the package (default: 1). (This means starting a Julia process for each sample.)
 
 # Flags
 
