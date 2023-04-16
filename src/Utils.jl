@@ -197,10 +197,11 @@ function _benchmark(
         @info "    Running additional time-to-load tests."
         load_times = results["data"]["time_to_load"]["times"]
         exe_string = "start=time_ns(); redirect_stdout(devnull) do; @eval using $(spec.name); end; stop=time_ns(); println(stop-start)"
-        cmd = io -> pipeline(
-            `julia --project="$tmp_env" --startup-file=no $exeflags -e "$exe_string"`;
-            stdout=io
-        )
+        cmd =
+            io -> pipeline(
+                `julia --project="$tmp_env" --startup-file=no $exeflags -e "$exe_string"`;
+                stdout=io,
+            )
         for i in 2:nsamples_load_time
             @info "    Running time-to-load test $(i)/nsamples_load_time."
             io = IOBuffer()
@@ -343,7 +344,14 @@ function benchmark(
     results = Dict{String,Any}()
     for spec in package_specs
         results[spec.name * "@" * spec.rev] = benchmark(
-            spec; output_dir, script, tune, exeflags, extra_pkgs, project_toml, nsamples_load_time
+            spec;
+            output_dir,
+            script,
+            tune,
+            exeflags,
+            extra_pkgs,
+            project_toml,
+            nsamples_load_time,
         )
     end
     return results
@@ -371,7 +379,14 @@ function benchmark(
     end
     @info "Running benchmarks for " * package_spec.name * "@" * package_spec.rev * ":"
     return _benchmark(
-        package_spec; output_dir, script, tune, exeflags, extra_pkgs, project_toml, nsamples_load_time
+        package_spec;
+        output_dir,
+        script,
+        tune,
+        exeflags,
+        extra_pkgs,
+        project_toml,
+        nsamples_load_time,
     )
 end
 
