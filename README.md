@@ -147,7 +147,7 @@ Benchmark a package over a set of revisions.
 - `--bench-on <arg>`: If the script is not set, this specifies the revision at which
   to download `benchmark/benchmarks.jl` from the package.
 - `--nsamples-load-time <arg>`: Number of samples to take when measuring load time of
-    the package (default: 1). (This means starting a Julia process for each sample.)
+    the package (default: 5). (This means starting a Julia process for each sample.)
 
 # Flags
 
