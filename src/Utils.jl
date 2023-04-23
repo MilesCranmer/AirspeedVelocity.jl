@@ -106,7 +106,7 @@ function _benchmark(
     @info "    Adding packages."
     # Filter out empty strings from extra_pkgs:
     extra_pkgs = filter(x -> x != "", extra_pkgs)
-    pkgs = ["BenchmarkTools", "JSON3", "Pkg", extra_pkgs...]
+    pkgs = ["BenchmarkTools", "JSON3", "Pkg", "TOML", extra_pkgs...]
     Pkg.add([spec, [PackageSpec(; name=pkg) for pkg in pkgs]...]; io=devnull)
     Pkg.precompile()
     Pkg.activate(old_project; io=devnull)
