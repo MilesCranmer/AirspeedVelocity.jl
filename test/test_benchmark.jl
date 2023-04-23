@@ -17,6 +17,8 @@ end
         using BenchmarkTools
         using SymbolicRegression
 
+        @assert PACKAGE_VERSION in (v"0.15.3", v"0.16.2")
+
         const SUITE = BenchmarkGroup()
         SUITE["eval_tree_array"] = begin
             b = BenchmarkGroup()
@@ -54,7 +56,7 @@ end
     tmp2 = mktempdir(; cleanup=false)
     script = joinpath(tmp2, "bench.jl")
     open(script, "w") do io
-        print(io, """
+        write(io, """
             using BenchmarkTools
             using Transducers
 
