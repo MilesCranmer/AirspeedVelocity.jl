@@ -133,7 +133,20 @@ function _benchmark(
 
         # Safely include, via module:
         module AirspeedVelocityRunner
-            const PACKAGE_VERSION = $(spec.rev)
+            import $(Symbol(spec.name)): $(Symbol(spec.name)) as _AirspeedVelocityTestImport
+            import TOML: parsefile as toml_parsefile
+            const PACKAGE_VERSION = let
+                try
+                    project = toml_parsefile(
+                        joinpath(pkgdir(_AirspeedVelocityTestImport), "Project.toml"),
+                    )
+                    VersionNumber(project["version"])
+                catch
+                    VersionNumber("0.0.0")
+                end
+            end
+
+            # Included benchmark script:
             include($script)
         end
 
