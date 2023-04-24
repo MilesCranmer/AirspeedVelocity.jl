@@ -106,7 +106,7 @@ function _benchmark(
     @info "    Adding packages."
     # Filter out empty strings from extra_pkgs:
     extra_pkgs = filter(x -> x != "", extra_pkgs)
-    pkgs = ["BenchmarkTools", "JSON3", "Pkg", extra_pkgs...]
+    pkgs = ["BenchmarkTools", "JSON3", "Pkg", "TOML", extra_pkgs...]
     Pkg.add([spec, [PackageSpec(; name=pkg) for pkg in pkgs]...]; io=devnull)
     Pkg.precompile()
     Pkg.activate(old_project; io=devnull)
@@ -133,7 +133,21 @@ function _benchmark(
 
         # Safely include, via module:
         module AirspeedVelocityRunner
-            const PACKAGE_VERSION = $(spec.rev)
+            import $(Symbol(spec.name)): $(Symbol(spec.name)) as _AirspeedVelocityTestImport2
+            import TOML: parsefile as toml_parsefile
+            const PACKAGE_VERSION = let
+                try
+                    project = toml_parsefile(
+                        joinpath(pkgdir(_AirspeedVelocityTestImport2), "Project.toml"),
+                    )
+                    VersionNumber(project["version"])
+                catch
+                    @warn "Failed to create `PACKAGE_VERSION`"
+                    VersionNumber("0.0.0")
+                end
+            end
+
+            # Included benchmark script:
             include($script)
         end
 
