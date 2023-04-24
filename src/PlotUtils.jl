@@ -134,7 +134,7 @@ function combined_plots(combined_results::OrderedDict; npart=10)
                         x=0.5,
                         xanchor="center",
                         yref="y$(i)",
-                        y=top + 0.05 * between,
+                        y=top - 0.05 * between,
                         yanchor="bottom",
                         showarrow=false,
                         font=(size=16,),
