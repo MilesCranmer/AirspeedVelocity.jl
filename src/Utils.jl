@@ -11,6 +11,7 @@ using Chain: @chain
 function get_spec_str(spec::PackageSpec)
     package_name = spec.name
     package_rev = spec.rev
+    package_rev = replace(package_rev, "/" => "_")
     return string(package_name) * "@" * string(package_rev)
 end
 
