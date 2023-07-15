@@ -191,3 +191,14 @@ end
 
     @test truth ≈ s
 end
+
+@testset "Test Manifest.toml being used" begin
+    # Ensure AirspeedVelocity-ManifestTest.jl has its Manifest.toml copied:
+    # Test with CLI version:
+    @test nothing === benchpkg(
+        "AirspeedVelocity_ManifestTest";
+        rev="main",
+        url="https://github.com/Zentrik/AirspeedVelocity_ManifestTest",
+        use_manifest=true
+    )
+end
