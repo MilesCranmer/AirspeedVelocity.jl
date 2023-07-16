@@ -143,7 +143,7 @@ function _benchmark(
     pkgs = ["BenchmarkTools", "JSON3", "Pkg", "TOML", extra_pkgs...]
     for pkg in pkgs
         try
-            Pkg.why(pkg) # will throw if pkg is not installed
+            Pkg.why(pkg; io=devnull) # will throw if pkg is not installed
         catch
             Pkg.add([spec, PackageSpec(; name=pkg)]; io=devnull)
         end
