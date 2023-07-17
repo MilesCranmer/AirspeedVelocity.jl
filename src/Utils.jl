@@ -141,12 +141,17 @@ function _benchmark(
     # Filter out empty strings from extra_pkgs:
     extra_pkgs = filter(x -> x != "", extra_pkgs)
     pkgs = ["BenchmarkTools", "JSON3", "Pkg", "TOML", extra_pkgs...]
-    for pkg in pkgs
-        try
-            Pkg.why(pkg; io=devnull) # will throw if pkg is not installed
-        catch
-            Pkg.add([spec, PackageSpec(; name=pkg)]; io=devnull)
+    function install_pkg(pkg_spec)
+        tmp_io = IOBuffer()
+        Pkg.status(pkg_spec; mode=Pkg.PKGMODE_MANIFEST, io=tmp_io) 
+        # if Manifest.toml doesn't exist then status will not include "No Matches"
+        if manifest_toml === nothing || contains(lowercase(String(take!(tmp_io))), "no matches") # if package not installed, we don't want to update packages that have been installed from a provided Manifest.toml
+            Pkg.add(pkg_spec; io=devnull)
         end
+    end
+    install_pkg(spec)
+    for pkg in pkgs
+        install_pkg(PackageSpec(; name=pkg))
     end
     Pkg.precompile()
     Pkg.activate(old_project; io=devnull)
