@@ -1,27 +1,19 @@
 module AirspeedVelocity
 
 include("Utils.jl")
-using .Utils: benchmark, load_results
-export benchmark, load_results
-
 include("PlotUtils.jl")
-using .PlotUtils: combined_plots
-export combined_plots
-
 include("BenchPkg.jl")
-import .BenchPkg: benchpkg
-export benchpkg
-
 include("BenchPkgPlot.jl")
-import .BenchPkgPlot: benchpkgplot
-export benchpkgplot
-
 include("TableUtils.jl")
-import .TableUtils: create_table
-export create_table
-
 include("BenchPkgTable.jl")
-import .BenchPkgTable: benchpkgtable
-export benchpkgtable
+
+import Reexport: @reexport
+
+@reexport import .Utils: benchmark, load_results
+@reexport import .PlotUtils: combined_plots
+@reexport import .BenchPkg: benchpkg
+@reexport import .BenchPkgPlot: benchpkgplot
+@reexport import .TableUtils: create_table
+@reexport import .BenchPkgTable: benchpkgtable
 
 end # module AirspeedVelocity
