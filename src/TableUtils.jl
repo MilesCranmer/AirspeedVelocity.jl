@@ -112,7 +112,9 @@ function markdown_table(; data::AbstractMatrix, header::AbstractVector)
         end
         println(io)
     end
-    return take!(io) |> String
+    s = String(take!(io))
+    close(io)
+    return s
 end
 
 end # AirspeedVelocity.TableUtils

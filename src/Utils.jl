@@ -35,27 +35,28 @@ function _get_script(;
     if benchmark_on !== nothing
         @info "Downloading from $benchmark_on."
     end
-    tmp_env = mktempdir(; cleanup=false)
-    to_exec = quote
-        ENV["JULIA_PKG_PRECOMPILE_AUTO"] = 0
-        using Pkg
-        Pkg.add(
-            PackageSpec(; name=$package_name, rev=$benchmark_on, url=$url, path=$path);
-            io=devnull,
-        )
-        using $(Symbol(package_name)): $(Symbol(package_name))
-        root_dir = dirname(dirname(pathof($(Symbol(package_name)))))
-        open(joinpath($tmp_env, "package_path.txt"), "w") do io
-            write(io, root_dir)
+    root_dir = mktempdir() do tmp_env
+        to_exec = quote
+            ENV["JULIA_PKG_PRECOMPILE_AUTO"] = 0
+            using Pkg
+            Pkg.add(
+                PackageSpec(; name=$package_name, rev=$benchmark_on, url=$url, path=$path);
+                io=devnull,
+            )
+            using $(Symbol(package_name)): $(Symbol(package_name))
+            root_dir = dirname(dirname(pathof($(Symbol(package_name)))))
+            open(joinpath($tmp_env, "package_path.txt"), "w") do io
+                write(io, root_dir)
+            end
         end
-    end
-    path_getter = joinpath(tmp_env, "path_getter.jl")
-    open(path_getter, "w") do io
-        println(io, to_exec)
-    end
-    run(`julia --project="$tmp_env" --startup-file=no "$path_getter"`)
+        path_getter = joinpath(tmp_env, "path_getter.jl")
+        open(path_getter, "w") do io
+            println(io, to_exec)
+        end
+        run(`julia --project="$tmp_env" --startup-file=no "$path_getter"`)
 
-    root_dir = readchomp(joinpath(tmp_env, "package_path.txt"))
+        readchomp(joinpath(tmp_env, "package_path.txt"))
+    end
     script = joinpath(root_dir, "benchmark", "benchmarks.jl")
     if !isfile(script)
         @error "Could not find benchmark script at $script. Please specify the `script` manually."
@@ -95,135 +96,139 @@ function _benchmark(
         spec.path = string(absolute(PosixPath(spec.path)))
     end
     spec_str = get_spec_str(spec)
-    old_project = Pkg.project().path
-    tmp_env = mktempdir(; cleanup=false)
-    @info "    Creating temporary environment at $tmp_env."
-    if project_toml !== nothing
-        @info "    Copying $project_toml to environment."
-        cp(project_toml, joinpath(tmp_env, "Project.toml"))
-        chmod(joinpath(tmp_env, "Project.toml"), 0o644)
-    end
-    Pkg.activate(tmp_env; io=devnull)
-    @info "    Adding packages."
-    # Filter out empty strings from extra_pkgs:
-    extra_pkgs = filter(x -> x != "", extra_pkgs)
-    pkgs = ["BenchmarkTools", "JSON3", "Pkg", "TOML", extra_pkgs...]
-    Pkg.add([spec, [PackageSpec(; name=pkg) for pkg in pkgs]...]; io=devnull)
-    Pkg.precompile()
-    Pkg.activate(old_project; io=devnull)
     results_filename = joinpath(output_dir, "results_" * spec_str * ".json")
-    to_exec = quote
-        using BenchmarkTools: @benchmarkable, run, tune!, BenchmarkGroup
-        using JSON3: JSON3
-        using Pkg: Pkg
+    old_project = Pkg.project().path
+    results = mktempdir() do tmp_env
+        @info "    Creating temporary environment at $tmp_env."
+        if project_toml !== nothing
+            @info "    Copying $project_toml to environment."
+            cp(project_toml, joinpath(tmp_env, "Project.toml"))
+            chmod(joinpath(tmp_env, "Project.toml"), 0o644)
+        end
+        Pkg.activate(tmp_env; io=devnull)
+        @info "    Adding packages."
+        # Filter out empty strings from extra_pkgs:
+        extra_pkgs = filter(x -> x != "", extra_pkgs)
+        pkgs = ["BenchmarkTools", "JSON3", "Pkg", "TOML", extra_pkgs...]
+        Pkg.add([spec, [PackageSpec(; name=pkg) for pkg in pkgs]...]; io=devnull)
+        Pkg.precompile()
+        Pkg.activate(old_project; io=devnull)
+        to_exec = quote
+            using BenchmarkTools: @benchmarkable, run, tune!, BenchmarkGroup
+            using JSON3: JSON3
+            using Pkg: Pkg
 
-        cd($cur_dir)
-        # Include benchmark, defining SUITE:
-        @info "    [runner] Loading benchmark script: " * $script * "."
-        cur_project = Pkg.project().path
+            cd($cur_dir)
+            # Include benchmark, defining SUITE:
+            @info "    [runner] Loading benchmark script: " * $script * "."
+            cur_project = Pkg.project().path
 
-        #! format: off
-        const _airspeed_velocity_extra_suite = BenchmarkGroup()
-        _airspeed_velocity_extra_suite["time_to_load"] = @benchmarkable(
-            @eval(using $(Symbol(spec.name)): $(Symbol(spec.name)) as _AirspeedVelocityTestImport),
-            evals=1,
-            samples=1,
-        )
-        const _airspeed_velocity_extra_results = run(_airspeed_velocity_extra_suite)
-        #! format: on
+            #! format: off
+            const _airspeed_velocity_extra_suite = BenchmarkGroup()
+            _airspeed_velocity_extra_suite["time_to_load"] = @benchmarkable(
+                @eval(using $(Symbol(spec.name)): $(Symbol(spec.name)) as _AirspeedVelocityTestImport),
+                evals=1,
+                samples=1,
+            )
+            const _airspeed_velocity_extra_results = run(_airspeed_velocity_extra_suite)
+            #! format: on
 
-        # Safely include, via module:
-        module AirspeedVelocityRunner
-            import $(Symbol(spec.name)): $(Symbol(spec.name)) as _AirspeedVelocityTestImport2
-            import TOML: parsefile as toml_parsefile
-            const PACKAGE_VERSION = let
-                try
-                    project = toml_parsefile(
-                        joinpath(pkgdir(_AirspeedVelocityTestImport2), "Project.toml"),
-                    )
-                    VersionNumber(project["version"])
-                catch
-                    @warn "Failed to create `PACKAGE_VERSION`"
-                    VersionNumber("0.0.0")
+            # Safely include, via module:
+            module AirspeedVelocityRunner
+                import $(Symbol(spec.name)):
+                    $(Symbol(spec.name)) as _AirspeedVelocityTestImport2
+                import TOML: parsefile as toml_parsefile
+                const PACKAGE_VERSION = let
+                    try
+                        project = toml_parsefile(
+                            joinpath(pkgdir(_AirspeedVelocityTestImport2), "Project.toml"),
+                        )
+                        VersionNumber(project["version"])
+                    catch
+                        @warn "Failed to create `PACKAGE_VERSION`"
+                        VersionNumber("0.0.0")
+                    end
                 end
+
+                # Included benchmark script:
+                include($script)
             end
 
-            # Included benchmark script:
-            include($script)
-        end
+            using .AirspeedVelocityRunner: AirspeedVelocityRunner
 
-        using .AirspeedVelocityRunner: AirspeedVelocityRunner
-
-        # Assert that SUITE is defined:
-        if !isdefined(AirspeedVelocityRunner, :SUITE)
-            @error "    [runner] Benchmark script " * $script * " did not define SUITE."
+            # Assert that SUITE is defined:
+            if !isdefined(AirspeedVelocityRunner, :SUITE)
+                @error "    [runner] Benchmark script " * $script * " did not define SUITE."
+            end
+            const SUITE = AirspeedVelocityRunner.SUITE
+            if !(typeof(SUITE) <: BenchmarkGroup)
+                @error "    [runner] Benchmark script " *
+                    $script *
+                    " did not define SUITE as a BenchmarkGroup."
+            end
+            # Assert that `include` did not change environments:
+            if Pkg.project().path != cur_project
+                @error "    [runner] Benchmark script " *
+                    $script *
+                    " changed the active environment. " *
+                    "This is not allowed, as it will " *
+                    "cause the benchmark to produce incorrect results."
+            end
+            if $tune
+                @info "    [runner] Tuning benchmarks."
+                tune!(SUITE)
+            end
+            @info "    [runner] Running benchmarks for " * $spec_str * "."
+            @info "-"^80
+            results = run(SUITE; verbose=true)
+            @info "-"^80
+            @info "    [runner] Finished benchmarks for " * $spec_str * "."
+            # Combine extra results:
+            for (k, v) in _airspeed_velocity_extra_results.data
+                results.data[k] = v
+            end
+            open($results_filename * ".tmp", "w") do io
+                JSON3.write(io, results)
+            end
+            @info "    [runner] Benchmark results saved at " * $results_filename
         end
-        const SUITE = AirspeedVelocityRunner.SUITE
-        if !(typeof(SUITE) <: BenchmarkGroup)
-            @error "    [runner] Benchmark script " *
-                $script *
-                " did not define SUITE as a BenchmarkGroup."
+        runner_filename = joinpath(tmp_env, "runner.jl")
+        open(runner_filename, "w") do io
+            s = @chain to_exec begin
+                string
+                split(_, "\n")
+                _[2:(end - 1)]
+                join(_, "\n")
+            end
+            write(io, s)
         end
-        # Assert that `include` did not change environments:
-        if Pkg.project().path != cur_project
-            @error "    [runner] Benchmark script " *
-                $script *
-                " changed the active environment. " *
-                "This is not allowed, as it will " *
-                "cause the benchmark to produce incorrect results."
+        @info "    Launching benchmark runner."
+        run(`julia --project="$tmp_env" --startup-file=no $exeflags "$runner_filename"`)
+        # Return results from JSON file:
+        @info "    Benchmark runner exited."
+        @info "    Reading results."
+        results = open(results_filename * ".tmp", "r") do io
+            JSON3.read(io, Dict{String,Any})
         end
-        if $tune
-            @info "    [runner] Tuning benchmarks."
-            tune!(SUITE)
+        if nsamples_load_time > 1
+            @info "    Running additional time-to-load tests."
+            load_times = results["data"]["time_to_load"]["times"]
+            exe_string = "start=time_ns(); redirect_stdout(devnull) do; @eval using $(spec.name); end; stop=time_ns(); println(stop-start)"
+            cmd =
+                io -> pipeline(
+                    `julia --project="$tmp_env" --startup-file=no $exeflags -e "$exe_string"`;
+                    stdout=io,
+                )
+            for i in 2:nsamples_load_time
+                @info "    Running time-to-load test $(i)/nsamples_load_time."
+                io = IOBuffer()
+                run(cmd(io))
+                push!(load_times, parse(Float64, String(take!(io))))
+                close(io)
+            end
+            @info "    Done time-to-load tests."
         end
-        @info "    [runner] Running benchmarks for " * $spec_str * "."
-        @info "-"^80
-        results = run(SUITE; verbose=true)
-        @info "-"^80
-        @info "    [runner] Finished benchmarks for " * $spec_str * "."
-        # Combine extra results:
-        for (k, v) in _airspeed_velocity_extra_results.data
-            results.data[k] = v
-        end
-        open($results_filename * ".tmp", "w") do io
-            JSON3.write(io, results)
-        end
-        @info "    [runner] Benchmark results saved at " * $results_filename
-    end
-    runner_filename = joinpath(tmp_env, "runner.jl")
-    open(runner_filename, "w") do io
-        s = @chain to_exec begin
-            string
-            split(_, "\n")
-            _[2:(end - 1)]
-            join(_, "\n")
-        end
-        write(io, s)
-    end
-    @info "    Launching benchmark runner."
-    run(`julia --project="$tmp_env" --startup-file=no $exeflags "$runner_filename"`)
-    # Return results from JSON file:
-    @info "    Benchmark runner exited."
-    @info "    Reading results."
-    results = open(results_filename * ".tmp", "r") do io
-        JSON3.read(io, Dict{String,Any})
-    end
-    if nsamples_load_time > 1
-        @info "    Running additional time-to-load tests."
-        load_times = results["data"]["time_to_load"]["times"]
-        exe_string = "start=time_ns(); redirect_stdout(devnull) do; @eval using $(spec.name); end; stop=time_ns(); println(stop-start)"
-        cmd =
-            io -> pipeline(
-                `julia --project="$tmp_env" --startup-file=no $exeflags -e "$exe_string"`;
-                stdout=io,
-            )
-        for i in 2:nsamples_load_time
-            @info "    Running time-to-load test $(i)/nsamples_load_time."
-            io = IOBuffer()
-            run(cmd(io))
-            push!(load_times, parse(Float64, String(take!(io))))
-        end
-        @info "    Done time-to-load tests."
+        results
     end
     # Write to results file:
     open(results_filename, "w") do io
