@@ -2,7 +2,7 @@ module BenchPkgPlot
 
 using ..PlotUtils: combined_plots
 using ..Utils: load_results
-using PlotlyKaleido: savefig
+using PlotlyKaleido: savefig, start
 using Comonicon
 
 """
@@ -40,6 +40,7 @@ Plot the benchmarks of a package as created with `benchpkg`.
 
     plots = combined_plots(combined_results; npart=npart)
     @info "Saving plots."
+    start()
     if length(plots) == 1
         savefig(
             first(plots),
