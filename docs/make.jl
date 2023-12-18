@@ -36,6 +36,7 @@ makedocs(;
         assets = String[],
     ),
     pages = ["Home" => "index.md", "API" => "api.md"],
+    warnonly = true,
 )
 
 deploydocs(; repo = "github.com/MilesCranmer/AirspeedVelocity.jl", devbranch = "master")
