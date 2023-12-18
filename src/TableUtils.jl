@@ -37,7 +37,7 @@ function create_table(combined_results::OrderedDict; add_ratio_col=true)
     num_revisions = length(combined_results)
     num_cols = 1 + num_revisions
     # Order keys based on first result:
-    all_keys = keys(first(values(combined_results)))
+    all_keys = [keys(first(values(combined_results)))...]
 
     # But, make sure we have all keys:
     for extra_key in union([keys(v) for v in values(combined_results)]...)
@@ -46,7 +46,13 @@ function create_table(combined_results::OrderedDict; add_ratio_col=true)
         end
     end
 
-    headers = String["", (keys(combined_results) .|> string)...]
+    # Always put `time_to_load` at bottom:
+    if in("time_to_load", all_keys)
+        deleteat!(all_keys, findfirst(==("time_to_load"), all_keys))
+        push!(all_keys, "time_to_load")
+    end
+
+    headers = String["", string.(keys(combined_results))...]
 
     # Cutoff headers if needed:
     cutoff = 14
@@ -71,7 +77,7 @@ function create_table(combined_results::OrderedDict; add_ratio_col=true)
 
     if num_revisions == 2 && add_ratio_col
         col = String[]
-        for row in data_columns[1]
+        for row in all_keys
             if all(r -> haskey(r, row), values(combined_results))
                 ratio = (/)([val[row]["median"] for val in values(combined_results)]...)
                 push!(col, @sprintf("%.3g", ratio))
@@ -84,7 +90,7 @@ function create_table(combined_results::OrderedDict; add_ratio_col=true)
         num_cols += 1
     end
 
-    mdata = hcat(all_keys .|> string, data_columns...)
+    mdata = hcat(string.(all_keys), data_columns...)
     # With headers and data, let's make a markdown table
     return markdown_table(; data=mdata, header=headers)
 end
@@ -123,7 +129,7 @@ function markdown_table(; data::AbstractMatrix, header::AbstractVector)
         end
         println(io)
     end
-    return take!(io) |> String
+    return String(take!(io))
 end
 
 end # AirspeedVelocity.TableUtils
