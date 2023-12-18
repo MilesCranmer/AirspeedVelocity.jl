@@ -2,6 +2,7 @@ using AirspeedVelocity
 using OrderedCollections: OrderedDict
 using Pkg
 using Documenter
+using Documenter: Remotes
 
 # First, we copy README.md to index.md,
 # replacing <README> in _index.md with the contents of README.md:
@@ -27,7 +28,7 @@ DocMeta.setdocmeta!(
 makedocs(;
     modules = [AirspeedVelocity],
     authors = "Miles Cranmer <miles.cranmer@gmail.com>",
-    repo = "https://github.com/MilesCranmer/AirspeedVelocity.jl/blob/{commit}{path}#{line}",
+    repo = Remotes.GitHub("MilesCranmer", "AirspeedVelocity.jl"),
     sitename = "AirspeedVelocity.jl",
     format = Documenter.HTML(;
         prettyurls = get(ENV, "CI", "false") == "true",
