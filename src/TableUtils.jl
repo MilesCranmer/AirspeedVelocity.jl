@@ -21,6 +21,9 @@ function format_time(val::Number)
     unit, unit_name = get_reasonable_unit([val])
     @sprintf("%.3g %s", val * unit, unit_name)
 end
+function format_time(::Missing)
+    return ""
+end
 
 """
     create_table(combined_results::OrderedDict; kws...)
@@ -33,48 +36,56 @@ for the comparison, assuming the first revision is one to compare against.
 function create_table(combined_results::OrderedDict; add_ratio_col=true)
     num_revisions = length(combined_results)
     num_cols = 1 + num_revisions
+    # Order keys based on first result:
+    all_keys = keys(first(values(combined_results)))
 
-    headers = [[""]; keys(combined_results) .|> string]
+    # But, make sure we have all keys:
+    for extra_key in union([keys(v) for v in values(combined_results)]...)
+        if !in(extra_key, all_keys)
+            push!(all_keys, extra_key)
+        end
+    end
+
+    headers = String["", (keys(combined_results) .|> string)...]
+
+    # Cutoff headers if needed:
     cutoff = 14
-    headers = [
+    headers = String[
         if length(head) <= cutoff
             head
         else
-            head[1:cutoff] * "..."
+            first(head, cutoff) * "..."
         end for head in headers
     ]
 
-    data = Vector{String}[]
+    data_columns = Vector{String}[]
 
-    # Each benchmark:
-    for (_, result) in combined_results
-        push!(data, keys(result) .|> string)
-        break
-    end
-
-    # Data:
-    for (_, result) in combined_results
-        col = []
-        for row in data[1]
-            val = result[row]
+    for result in values(combined_results)
+        col = String[]
+        for row in all_keys
+            val = get(result, row, missing)
             push!(col, format_time(val))
         end
-        push!(data, col)
+        push!(data_columns, col)
     end
 
     if num_revisions == 2 && add_ratio_col
-        col = []
-        for row in data[1]
-            ratio = (/)([val[row]["median"] for val in values(combined_results)]...)
-            push!(col, @sprintf("%.3g", ratio))
+        col = String[]
+        for row in data_columns[1]
+            if all(r -> haskey(r, row), values(combined_results))
+                ratio = (/)([val[row]["median"] for val in values(combined_results)]...)
+                push!(col, @sprintf("%.3g", ratio))
+            else
+                push!(col, "")
+            end
         end
-        push!(data, col)
+        push!(data_columns, col)
         push!(headers, "t[$(headers[2])]/t[$(headers[3])]")
         num_cols += 1
     end
 
-    mdata = hcat(data...)
-    # With headers and data, let's make a markdown table with PrettyTables:
+    mdata = hcat(all_keys .|> string, data_columns...)
+    # With headers and data, let's make a markdown table
     return markdown_table(; data=mdata, header=headers)
 end
 

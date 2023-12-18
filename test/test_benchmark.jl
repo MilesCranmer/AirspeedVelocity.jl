@@ -148,10 +148,12 @@ end
         "v1" => OrderedDict(
             "bench1" => Dict("median" => 1.2e9, "75" => 1.3e9, "25" => 1.1e9),
             "bench2" => Dict("median" => 0.2e6, "75" => 0.3e6, "25" => 0.1e6),
+            #= We leave out bench3 as a test =#
         ),
         "v2" => OrderedDict(
             "bench1" => Dict("median" => 1.2e10, "75" => 1.3e10, "25" => 1.1e10),
             "bench2" => Dict("median" => 0.2e5, "75" => 0.3e5, "25" => 0.1e5),
+            "bench3" => Dict("median" => 0.2e5, "75" => 0.3e5, "25" => 0.1e5),
         ),
     )
 
@@ -160,6 +162,7 @@ end
     |:-------|:------------:|:----------:|:-----------:|
     | bench1 | 1.2 ± 0.2 s  | 12 ± 2 s   | 0.1         |
     | bench2 | 0.2 ± 0.2 ms | 20 ± 20 μs | 10          |
+    | bench3 |              | 20 ± 20 μs |             |
     """
     @test truth ≈ create_table(combined_results)
 
