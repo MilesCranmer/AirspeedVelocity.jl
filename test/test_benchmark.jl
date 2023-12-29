@@ -193,12 +193,12 @@ end
 end
 
 @testset "Test Manifest.toml being used" begin
-    # Ensure AirspeedVelocity-ManifestTest.jl has its Manifest.toml copied:
+    # Ensure ManifestTest2.jl has its Manifest.toml copied:
     # Test with CLI version:
     @test nothing === benchpkg(
-        "ManifestTest";
+        "ManifestTest2";
         rev="master",
-        path="ManifestTest",
+        path="ManifestTest2",
         use_manifest=true
     )
 end
