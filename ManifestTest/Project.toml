@@ -1,0 +1,7 @@
+name = "ManifestTest"
+uuid = "409a273f-c687-4315-98ad-b68bc7423578"
+authors = ["Zentrik <Zentrik@users.noreply.github.com>"]
+version = "0.1.0"
+
+[deps]
+Example = "7876af07-990d-54b4-ab0e-23690620f79a"
