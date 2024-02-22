@@ -1,11 +1,12 @@
 module TableUtils
 
-using ..Utils: get_reasonable_unit
+using ..Utils:
+    get_reasonable_time_unit, get_reasonable_allocs_unit, get_reasonable_memory_unit
 using OrderedCollections: OrderedDict
 using Printf: @sprintf
 
 function format_time(val::Dict)
-    unit, unit_name = get_reasonable_unit([val["median"]])
+    unit, unit_name = get_reasonable_time_unit([val["median"]])
     if haskey(val, "75")
         @sprintf(
             "%.3g ± %.2g %s",
@@ -18,10 +19,30 @@ function format_time(val::Dict)
     end
 end
 function format_time(val::Number)
-    unit, unit_name = get_reasonable_unit([val])
+    unit, unit_name = get_reasonable_memory_unit([val])
     @sprintf("%.3g %s", val * unit, unit_name)
 end
 function format_time(::Missing)
+    return ""
+end
+
+function format_memory(val::Dict)
+    allocs, memory = get(val, "allocs", nothing), get(val, "memory", nothing)
+    if !isnothing(allocs) && !isnothing(memory)
+        allocs_unit, allocs_unit_name = get_reasonable_allocs_unit(val["allocs"])
+        memory_unit, memory_unit_name = get_reasonable_memory_unit(val["memory"])
+        @sprintf(
+            "%.3g %s allocs: %.3g %s",
+            allocs * allocs_unit,
+            allocs_unit_name,
+            memory * memory_unit,
+            memory_unit_name
+        )
+    else
+        ""
+    end
+end
+function format_memory(::Missing)
     return ""
 end
 
@@ -32,8 +53,17 @@ Create a markdown table of the results loaded from the `load_results` function.
 If there are two results for a given benchmark, will have an additional column
 for the comparison, assuming the first revision is one to compare against.
 
+The `formatter` keyword argument generates the column value. It defaults to 
+`TableUtils.format_time`, which prints the median time ± the interquantile range.
+`TableUtils.format_memory` is also available to print the number of allocations
+and the allocated memory.
 """
-function create_table(combined_results::OrderedDict; add_ratio_col=true)
+function create_table(
+    combined_results::OrderedDict;
+    formatter=format_time,
+    add_ratio_col=true,
+    ratio_col="median",
+)
     num_revisions = length(combined_results)
     num_cols = 1 + num_revisions
     # Order keys based on first result:
@@ -70,7 +100,7 @@ function create_table(combined_results::OrderedDict; add_ratio_col=true)
         col = String[]
         for row in all_keys
             val = get(result, row, missing)
-            push!(col, format_time(val))
+            push!(col, formatter(val))
         end
         push!(data_columns, col)
     end
@@ -79,14 +109,14 @@ function create_table(combined_results::OrderedDict; add_ratio_col=true)
         col = String[]
         for row in all_keys
             if all(r -> haskey(r, row), values(combined_results))
-                ratio = (/)([val[row]["median"] for val in values(combined_results)]...)
+                ratio = (/)([val[row][ratio_col] for val in values(combined_results)]...)
                 push!(col, @sprintf("%.3g", ratio))
             else
                 push!(col, "")
             end
         end
         push!(data_columns, col)
-        push!(headers, "t[$(headers[2])]/t[$(headers[3])]")
+        push!(headers, "$(headers[2])/$(headers[3])")
         num_cols += 1
     end
 
