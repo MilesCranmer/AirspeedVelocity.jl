@@ -42,9 +42,7 @@ Print a table of the benchmarks of a package as created with `benchpkg`.
 
     modes = split(mode, ",")
     for m in modes
-        println(
-            create_table(combined_results; add_ratio_col=ratio, ratio_col=translate_mode(m))
-        )
+        println(create_table(combined_results; add_ratio_col=ratio, key=translate_mode(m)))
     end
 
     return nothing

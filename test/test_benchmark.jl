@@ -206,7 +206,7 @@ end
     @test truth ≈ create_table(
         combined_results;
         formatter=AirspeedVelocity.TableUtils.format_memory,
-        ratio_col="memory",
+        key="memory",
     )
 
     tempdir = mktempdir()
