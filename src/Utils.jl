@@ -15,13 +15,25 @@ function get_spec_str(spec::PackageSpec)
     return string(package_name) * "@" * string(package_rev)
 end
 
-function get_reasonable_unit(quantities::AbstractArray)
-    units = [1e9, 1e6, 1e3, 1, 1.0 / (60 * 60)] ./ 1e9
-    units_names = ["ns", "μs", "ms", "s", "h"]
-    unit_choice = argmin(abs.(log10.(median(quantities) .* units)))
-    unit = units[unit_choice]
-    unit_name = units_names[unit_choice]
+function get_reasonable_unit(value, units)
+    unit_choice = argmin(abs.(log10.(value .* getindex.(units, 1))))
+    unit, unit_name = units[unit_choice]
     return unit, unit_name
+end
+
+function get_reasonable_time_unit(quantities::AbstractArray)
+    units = [(1.0, "ns"), (1e-3, "μs"), (1e-6, "ms"), (1e-9, "s"), (1e-9 / 3600, "h")]
+    return get_reasonable_unit(median(quantities), units)
+end
+
+function get_reasonable_memory_unit(memory)
+    units = [(1.0, "B"), (1 / 1024, "kB"), (1 / 1024^2, "MB"), (1 / 1024^3, "GB")]
+    return get_reasonable_unit(memory, units)
+end
+
+function get_reasonable_allocs_unit(allocs)
+    units = [(1, ""), (1e-3, "k"), (1e-6, "M"), (1e-9, "G")]
+    return get_reasonable_unit(allocs, units)
 end
 
 function _get_script(;
@@ -405,8 +417,14 @@ function benchmark(
     )
 end
 
-function compute_summary_statistics(times)
-    d = Dict("mean" => mean(times), "median" => median(times))
+function compute_summary_statistics(results)
+    times = results["times"]
+    d = Dict(
+        "mean" => mean(times),
+        "median" => median(times),
+        "memory" => get(results, "memory", nothing),
+        "allocs" => get(results, "allocs", nothing),
+    )
     d = if length(times) > 1
         merge(
             d,
@@ -424,7 +442,7 @@ end
 
 function _flatten_results!(d::OrderedDict, results::Dict{String,Any}, prefix)
     if "times" in keys(results)
-        d[prefix] = compute_summary_statistics(results["times"])
+        d[prefix] = compute_summary_statistics(results)
     elseif "data" in keys(results)
         for (key, value) in results["data"]
             next_prefix = if length(prefix) == 0
@@ -437,7 +455,7 @@ function _flatten_results!(d::OrderedDict, results::Dict{String,Any}, prefix)
     else
         @error "Unexpected results format. Expected 'times' or 'data' key in results."
     end
-    return nothing
+    return d
 end
 function flatten_results(results::Dict{String,Any})
     d = OrderedDict{String,Any}()

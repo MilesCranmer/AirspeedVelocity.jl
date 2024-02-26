@@ -146,25 +146,66 @@ end
 @testset "Test table generation" begin
     combined_results = OrderedDict(
         "v1" => OrderedDict(
-            "bench1" => Dict("median" => 1.2e9, "75" => 1.3e9, "25" => 1.1e9),
-            "bench2" => Dict("median" => 0.2e6, "75" => 0.3e6, "25" => 0.1e6),
+            "bench1" => Dict(
+                "median" => 1.2e9,
+                "75" => 1.3e9,
+                "25" => 1.1e9,
+                "memory" => 1e1,
+                "allocs" => 1,
+            ),
+            "bench2" => Dict(
+                "median" => 0.2e6,
+                "75" => 0.3e6,
+                "25" => 0.1e6,
+                "memory" => 1024 / 10,
+                "allocs" => 1e6,
+            ),
             #= We leave out bench3 as a test =#
         ),
         "v2" => OrderedDict(
-            "bench1" => Dict("median" => 1.2e10, "75" => 1.3e10, "25" => 1.1e10),
-            "bench2" => Dict("median" => 0.2e5, "75" => 0.3e5, "25" => 0.1e5),
-            "bench3" => Dict("median" => 0.2e5, "75" => 0.3e5, "25" => 0.1e5),
+            "bench1" => Dict(
+                "median" => 1.2e10,
+                "75" => 1.3e10,
+                "25" => 1.1e10,
+                "memory" => 1024,
+                "allocs" => 2,
+            ),
+            "bench2" => Dict(
+                "median" => 0.2e5,
+                "75" => 0.3e5,
+                "25" => 0.1e5,
+                "memory" => 1024 * 10,
+                "allocs" => 3,
+            ),
+            "bench3" => Dict(
+                "median" => 0.2e5,
+                "75" => 0.3e5,
+                "25" => 0.1e5,
+                "memory" => 1024^2 / 10,
+                "allocs" => 4,
+            ),
         ),
     )
 
     truth = """
-    |        | v1           | v2         | t[v1]/t[v2] |
-    |:-------|:------------:|:----------:|:-----------:|
-    | bench1 | 1.2 ± 0.2 s  | 12 ± 2 s   | 0.1         |
-    | bench2 | 0.2 ± 0.2 ms | 20 ± 20 μs | 10          |
-    | bench3 |              | 20 ± 20 μs |             |
+    |        | v1           | v2         | v1/v2 |
+    |:-------|:------------:|:----------:|:-----:|
+    | bench1 | 1.2 ± 0.2 s  | 12 ± 2 s   | 0.1   |
+    | bench2 | 0.2 ± 0.2 ms | 20 ± 20 μs | 10    |
+    | bench3 |              | 20 ± 20 μs |       |
     """
     @test truth ≈ create_table(combined_results)
+
+    truth = """
+    |        | v1                 | v2                | v1/v2   |
+    |:-------|:------------------:|:-----------------:|:-------:|
+    | bench1 | 1  allocs: 10 B    | 2  allocs: 1 kB   | 0.00977 |
+    | bench2 | 1 M allocs: 0.1 kB | 3  allocs: 10 kB  | 0.01    |
+    | bench3 |                    | 4  allocs: 0.1 MB |         |
+    """
+    @test truth ≈ create_table(
+        combined_results; formatter=AirspeedVelocity.TableUtils.format_memory, key="memory"
+    )
 
     tempdir = mktempdir()
     results_fname = joinpath(tempdir, "results_TestPackage@v1.json")

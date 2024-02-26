@@ -1,6 +1,6 @@
 module PlotUtils
 
-import ..Utils: get_spec_str, get_reasonable_unit
+import ..Utils: get_spec_str, get_reasonable_time_unit
 using Statistics: median
 using JSON3: JSON3
 using PlotlyLight: Plot, Config
@@ -15,7 +15,7 @@ function create_line_plot(data, names, title)
     # Default unit of time is ns. Let's find one of
     # {ns, μs, ms, s} that is most appropriate
     # (i.e., log10(median / unit) should be closest to 0)
-    unit, unit_name = get_reasonable_unit(medians)
+    unit, unit_name = get_reasonable_time_unit(medians)
 
     medians = medians .* unit
 
