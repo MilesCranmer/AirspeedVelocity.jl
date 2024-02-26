@@ -42,25 +42,14 @@ Print a table of the benchmarks of a package as created with `benchpkg`.
 
     modes = split(mode, ",")
     for m in modes
-        if m == "time"
-            println(create_table(combined_results; add_ratio_col=ratio))
-        elseif m == "memory"
-            println(
-                create_table(
-                    combined_results;
-                    formatter=format_memory,
-                    add_ratio_col=ratio,
-                    ratio_col="memory",
-                ),
-            )
-        else
-            cmd_error(
-                "mode '$m' unrecognized. Accepted values are 'time' and/or 'memory' separated by comma.",
-            )
-        end
+        println(
+            create_table(combined_results; add_ratio_col=ratio, ratio_col=translate_mode(m))
+        )
     end
 
     return nothing
 end
+
+translate_mode(s) = s == "time" ? "median" : s
 
 end # AirspeedVelocity.BenchPkgTable

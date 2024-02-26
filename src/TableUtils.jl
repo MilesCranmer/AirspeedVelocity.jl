@@ -46,6 +46,16 @@ function format_memory(::Missing)
     return ""
 end
 
+function default_formatter(key)
+    if key == "memory"
+        return format_memory
+    elseif key == "median"
+        return format_time
+    else
+        return error("Unknown ratio column: $key")
+    end
+end
+
 """
     create_table(combined_results::OrderedDict; kws...)
 
@@ -60,9 +70,9 @@ and the allocated memory.
 """
 function create_table(
     combined_results::OrderedDict;
-    formatter=format_time,
+    key="median",
     add_ratio_col=true,
-    ratio_col="median",
+    formatter=default_formatter(key),
 )
     num_revisions = length(combined_results)
     num_cols = 1 + num_revisions
@@ -109,7 +119,7 @@ function create_table(
         col = String[]
         for row in all_keys
             if all(r -> haskey(r, row), values(combined_results))
-                ratio = (/)([val[row][ratio_col] for val in values(combined_results)]...)
+                ratio = (/)([val[row][key] for val in values(combined_results)]...)
                 push!(col, @sprintf("%.3g", ratio))
             else
                 push!(col, "")
