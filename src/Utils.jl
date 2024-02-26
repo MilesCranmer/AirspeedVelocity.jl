@@ -27,7 +27,7 @@ function get_reasonable_time_unit(quantities::AbstractArray)
 end
 
 function get_reasonable_memory_unit(memory)
-    units = [(1.0, "B"), (1e-3, "kB"), (1e-6, "MB"), (1e-9, "GB")]
+    units = [(1.0, "B"), (1/1024, "kB"), (1/1024^2, "MB"), (1/1024^3, "GB")]
     return get_reasonable_unit(memory, units)
 end
 
