@@ -9,6 +9,7 @@ using Comonicon
                           [-a, --add <arg>] [--tune]
                           [--url <arg>] [--path <arg>]
                           [--bench-on <arg>] [--nsamples-load-time <arg>]
+                          [--use-manifest]
 
 Benchmark a package over a set of revisions.
 
@@ -33,6 +34,7 @@ Benchmark a package over a set of revisions.
 # Flags
 
 - `--tune`: Whether to run benchmarks with tuning (default: false).
+- `--use-manifest`: Whether to use Manifest.toml when benchmarking (default: false)
 
 """
 @main function benchpkg(
@@ -47,6 +49,7 @@ Benchmark a package over a set of revisions.
     path::String="",
     bench_on::String="",
     nsamples_load_time::Int=5,
+    use_manifest::Bool=false
 )
     revs = convert(Vector{String}, split(rev, ","))
     # Filter empty strings:
@@ -65,6 +68,7 @@ Benchmark a package over a set of revisions.
         path=(length(path) > 0 ? path : nothing),
         benchmark_on=(length(bench_on) > 0 ? bench_on : nothing),
         nsamples_load_time=nsamples_load_time,
+        use_manifest
     )
 
     return nothing

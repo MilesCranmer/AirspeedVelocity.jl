@@ -152,6 +152,7 @@ Benchmark a package over a set of revisions.
 # Flags
 
 - `--tune`: Whether to run benchmarks with tuning (default: false).
+- `--use-manifest`: Whether to use Manifest.toml when benchmarking (default: false)
 ```
 
 For plotting, you can use the `benchpkgplot` function:

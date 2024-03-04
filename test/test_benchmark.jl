@@ -116,7 +116,7 @@ end
 
     const SUITE = BenchmarkGroup()
 
-    problems =  [   
+    problems =  [
                     "constant_fix!_with_complex_numbers",
                     "affine_dot_multiply_atom",
                     "affine_hcat_atom",
@@ -234,4 +234,15 @@ end
     | findall/xf-iter  | 10 ± 2 ns |"""
 
     @test truth ≈ s
+end
+
+@testset "Test Manifest.toml being used" begin
+    # Ensure ManifestTest2.jl has its Manifest.toml copied:
+    # Test with CLI version:
+    @test nothing === benchpkg(
+        "ManifestTest2";
+        rev="master",
+        path="ManifestTest2",
+        use_manifest=true
+    )
 end

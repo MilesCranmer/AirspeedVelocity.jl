@@ -41,7 +41,8 @@ function _get_script(;
     benchmark_on::Union{Nothing,String}=nothing,
     url::Union{Nothing,String}=nothing,
     path::Union{Nothing,String}=nothing,
-)::Tuple{String,Union{String,Nothing}}
+    use_manifest::Bool=false
+)::Tuple{String,Union{String,Nothing},Union{String,Nothing}}
     # Create temp env, add package, and get path to benchmark script.
     @info "Downloading package's latest benchmark script, assuming it is in benchmark/benchmarks.jl"
     if benchmark_on !== nothing
@@ -55,8 +56,15 @@ function _get_script(;
             PackageSpec(; name=$package_name, rev=$benchmark_on, url=$url, path=$path);
             io=devnull,
         )
-        using $(Symbol(package_name)): $(Symbol(package_name))
-        root_dir = dirname(dirname(pathof($(Symbol(package_name)))))
+        pkgid = Base.identify_package($(package_name))
+        if isnothing(pkgid)
+            @error "Could not identify package $($(package_name))"
+        end
+        path = Base.locate_package(pkgid)
+        if isnothing(path)
+            @error "Could not locate package $($(package_name)), $pkgid"
+        end
+        root_dir = abspath(path, "..", "..")
         open(joinpath($tmp_env, "package_path.txt"), "w") do io
             write(io, root_dir)
         end
@@ -71,8 +79,9 @@ function _get_script(;
     script = joinpath(root_dir, "benchmark", "benchmarks.jl")
     if !isfile(script)
         @error "Could not find benchmark script at $script. Please specify the `script` manually."
+    else
+        @info "Found benchmark script at $script."
     end
-    @info "Found benchmark script at $script."
     maybe_project_toml = joinpath(root_dir, "benchmark", "Project.toml")
     project_toml = if isfile(maybe_project_toml)
         @info "Found Project.toml at $maybe_project_toml."
@@ -80,8 +89,25 @@ function _get_script(;
     else
         nothing
     end
+    maybe_manifest_toml = joinpath(root_dir, "benchmark", "Manifest.toml")
+    manifest_toml = if use_manifest
+        if isfile(maybe_manifest_toml)
+            @info "Found Manifest.toml at $maybe_manifest_toml."
+            maybe_manifest_toml
+        else
+            maybe_manifest_toml = joinpath(root_dir, "Manifest.toml")
+            if isfile(maybe_manifest_toml)
+                @info "Found Manifest.toml at $maybe_manifest_toml."
+                maybe_manifest_toml
+            else
+                nothing
+            end
+        end
+    else
+        nothing
+    end
 
-    return script, project_toml
+    return script, project_toml, manifest_toml
 end
 
 function _benchmark(
@@ -92,7 +118,8 @@ function _benchmark(
     exeflags::Cmd,
     extra_pkgs::Vector{String},
     project_toml::Union{Nothing,String},
-    nsamples_load_time::Int,
+    manifest_toml::Union{Nothing,String},
+    nsamples_load_time::Int
 )
     cur_dir = pwd()
     # Make sure paths are absolute, otherwise weird
@@ -117,6 +144,13 @@ function _benchmark(
     end
     Pkg.activate(tmp_env; io=devnull)
     @info "    Adding packages."
+    if manifest_toml !== nothing
+        @info "    Copying $manifest_toml to environment."
+        cp(manifest_toml, joinpath(tmp_env, "Manifest.toml"))
+        chmod(joinpath(tmp_env, "Manifest.toml"), 0o644)
+        Pkg.instantiate(; io=devnull)
+        Pkg.pin(all_pkgs=true; io=devnull)
+    end
     # Filter out empty strings from extra_pkgs:
     extra_pkgs = filter(x -> x != "", extra_pkgs)
     pkgs = ["BenchmarkTools", "JSON3", "Pkg", "TOML", extra_pkgs...]
@@ -230,7 +264,7 @@ function _benchmark(
                 stdout=io,
             )
         for i in 2:nsamples_load_time
-            @info "    Running time-to-load test $(i)/nsamples_load_time."
+            @info "    Running time-to-load test $i/$nsamples_load_time."
             io = IOBuffer()
             run(cmd(io))
             push!(load_times, parse(Float64, String(take!(io))))
@@ -268,6 +302,7 @@ The results of the benchmarks are saved to a JSON file named `results_packagenam
 - `path::Union{String,Nothing}=nothing`: Path to the package.
 - `benchmark_on::Union{String,Nothing}=nothing`: If the benchmark script file is to be downloaded, this specifies the revision to use.
 - `nsamples_load_time::Int=5`: Number of samples to take for the time-to-load benchmark.
+- `use_manifest::Bool=false`: Whether to use Manifest.toml when benchmarking (default: false)
 """
 function benchmark(
     package_name::String,
@@ -281,6 +316,7 @@ function benchmark(
     path::Union{String,Nothing}=nothing,
     benchmark_on::Union{String,Nothing}=nothing,
     nsamples_load_time::Int=5,
+    use_manifest::Bool=false
 )
     return benchmark(
         [PackageSpec(; name=package_name, rev=rev, url=url, path=path) for rev in revs];
@@ -291,6 +327,7 @@ function benchmark(
         extra_pkgs=extra_pkgs,
         benchmark_on=benchmark_on,
         nsamples_load_time=nsamples_load_time,
+        use_manifest
     )
 end
 function benchmark(
@@ -305,6 +342,7 @@ function benchmark(
     path::Union{String,Nothing}=nothing,
     benchmark_on::Union{String,Nothing}=nothing,
     nsamples_load_time::Int=5,
+    use_manifest::Bool=false
 )
     return benchmark(
         package_name,
@@ -318,6 +356,7 @@ function benchmark(
         path=path,
         benchmark_on=benchmark_on,
         nsamples_load_time=nsamples_load_time,
+        use_manifest
     )
 end
 
@@ -341,6 +380,7 @@ The results of the benchmarks are saved to a JSON file named `results_packagenam
 - `extra_pkgs::Vector{String}=String[]`: Additional packages to add to the benchmark environment.
 - `benchmark_on::Union{String,Nothing}=nothing`: If the benchmark script file is to be downloaded, this specifies the revision to use.
 - `nsamples_load_time::Int=5`: Number of samples to take for the time-to-load benchmark.
+- `use_manifest::Bool=false`: Whether to use Manifest.toml when benchmarking (default: false)
 """
 function benchmark(
     package_specs::Vector{PackageSpec};
@@ -352,8 +392,10 @@ function benchmark(
     benchmark_on::Union{String,Nothing}=nothing,
     project_toml::Union{String,Nothing}=nothing,
     nsamples_load_time::Int=5,
+    manifest_toml::Union{String,Nothing}=nothing,
+    use_manifest::Bool=false
 )
-    script, project_toml = if script === nothing
+    script, project_toml, manifest_toml = if script === nothing
         package_name = first(package_specs).name
         if !all(p -> p.name == package_name, package_specs)
             @error "All package specifications must have the same package name if you do not specify a `script`."
@@ -364,9 +406,10 @@ function benchmark(
             benchmark_on,
             first(package_specs).url,
             first(package_specs).path,
+            use_manifest
         )
     else
-        (script, project_toml)
+        (script, project_toml, manifest_toml)
     end
     results = Dict{String,Any}()
     for spec in package_specs
@@ -379,6 +422,8 @@ function benchmark(
             extra_pkgs,
             project_toml,
             nsamples_load_time,
+            manifest_toml,
+            use_manifest
         )
     end
     return results
@@ -393,16 +438,19 @@ function benchmark(
     benchmark_on::Union{String,Nothing}=nothing,
     project_toml::Union{String,Nothing}=nothing,
     nsamples_load_time::Int=5,
+    manifest_toml::Union{String,Nothing}=nothing,
+    use_manifest::Bool=false
 )
-    script, project_toml = if script === nothing
+    script, project_toml, manifest_toml = if script === nothing
         _get_script(;
             package_name=package_spec.name,
             benchmark_on,
             package_spec.url,
             package_spec.path,
+            use_manifest
         )
     else
-        (script, project_toml)
+        (script, project_toml, manifest_toml)
     end
     @info "Running benchmarks for " * package_spec.name * "@" * package_spec.rev * ":"
     return _benchmark(
@@ -413,7 +461,8 @@ function benchmark(
         exeflags,
         extra_pkgs,
         project_toml,
-        nsamples_load_time,
+        manifest_toml,
+        nsamples_load_time
     )
 end
 
