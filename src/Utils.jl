@@ -120,7 +120,10 @@ function _benchmark(
     # Filter out empty strings from extra_pkgs:
     extra_pkgs = filter(x -> x != "", extra_pkgs)
     pkgs = ["BenchmarkTools", "JSON3", "Pkg", "TOML", extra_pkgs...]
-    Pkg.add([spec, [PackageSpec(; name=pkg) for pkg in pkgs]...]; io=devnull)
+    # Add extra packages. A "dirty" rev means we want to benchmark the local
+    # version of the package at `path`.
+    Pkg.add([PackageSpec(; name=pkg) for pkg in pkgs]; io=devnull)
+    spec.rev == "dirty" ? Pkg.develop(; path = spec.path, io=devnull) : Pkg.add(spec; io=devnull)
     Pkg.precompile()
     Pkg.activate(old_project; io=devnull)
     results_filename = joinpath(output_dir, "results_" * spec_str * ".json")
@@ -282,6 +285,9 @@ function benchmark(
     benchmark_on::Union{String,Nothing}=nothing,
     nsamples_load_time::Int=5,
 )
+    if "dirty" in revs && isnothing(path)
+        @error "You must specify a `path` when using the `dirty` revision."
+    end
     return benchmark(
         [PackageSpec(; name=package_name, rev=rev, url=url, path=path) for rev in revs];
         output_dir=output_dir,
