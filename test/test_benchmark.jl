@@ -243,7 +243,7 @@ end
     cd(tmp_dir)
     Pkg.generate("TestPackage")
     path = joinpath(tmp_dir, "TestPackage")
-    run(`git -C $path init`)
+    run(`git -C "$path" init`)
     # write benchmarks.jl in the package:
     script = joinpath(path, "bench.jl")
     open(joinpath(script), "w") do io
