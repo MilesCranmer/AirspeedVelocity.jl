@@ -18,7 +18,8 @@ Benchmark a package over a set of revisions.
 
 # Options
 
-- `-r, --rev <arg>`: Revisions to test (delimit by comma).
+- `-r, --rev <arg>`: Revisions to test (delimit by comma). Use `dirty` to
+  benchmark the current state of the package at `path` (and not a git commit).
 - `-o, --output-dir <arg>`: Where to save the JSON results.
 - `-s, --script <arg>`: The benchmark script. Default: `benchmark/benchmarks.jl` downloaded from `stable`.
 - `-e, --exeflags <arg>`: CLI flags for Julia (default: none).

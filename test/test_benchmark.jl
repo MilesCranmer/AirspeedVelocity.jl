@@ -1,6 +1,7 @@
 using AirspeedVelocity
 using OrderedCollections: OrderedDict
 using Test
+using Pkg
 import Base: isapprox
 
 function Base.isapprox(s1::String, s2::String)
@@ -116,7 +117,7 @@ end
 
     const SUITE = BenchmarkGroup()
 
-    problems =  [   
+    problems =  [
                     "constant_fix!_with_complex_numbers",
                     "affine_dot_multiply_atom",
                     "affine_hcat_atom",
@@ -234,4 +235,37 @@ end
     | findall/xf-iter  | 10 ± 2 ns |"""
 
     @test truth ≈ s
+end
+
+@testset "Dirty repo" begin
+    # Create a package with a dirty repo:
+    tmp_dir = mktempdir(; cleanup=false)
+    cd(tmp_dir)
+    Pkg.generate("TestPackage")
+    path = joinpath(tmp_dir, "TestPackage")
+    run(`git -C "$path" init`)
+    # write benchmarks.jl in the package:
+    script = joinpath(path, "bench.jl")
+    open(joinpath(script), "w") do io
+        write(
+            io,
+            """
+            using BenchmarkTools
+            using TestPackage
+            const SUITE = BenchmarkGroup()
+            SUITE["cos"] = @benchmarkable cos(x) setup=(x=rand())
+            """,
+        )
+    end
+    # place to store the results:
+    results_dir = mktempdir(; cleanup=false)
+    # test the dirty repo:
+    benchpkg(
+        "TestPackage";
+        rev="dirty",
+        script=script,
+        path=path,
+        output_dir=results_dir,
+    )
+    @test isfile(joinpath(results_dir, "results_TestPackage@dirty.json"))
 end
