@@ -1,5 +1,7 @@
 module AirspeedVelocity
 
+using REPL: REPL
+
 include("Utils.jl")
 using .Utils: benchmark, load_results
 export benchmark, load_results
