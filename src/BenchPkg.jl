@@ -2,6 +2,7 @@ module BenchPkg
 
 using ..Utils: benchmark
 using Comonicon
+using Comonicon: @main
 
 """
     benchpkg package_name [-r --rev <arg>] [-o, --output-dir <arg>]

@@ -3,6 +3,7 @@ module BenchPkgTable
 using ..TableUtils: create_table, format_memory
 using ..Utils: load_results
 using Comonicon
+using Comonicon: @main
 
 """
     benchpkgtable package_name [-r --rev <arg>] [-i --input-dir <arg>]
