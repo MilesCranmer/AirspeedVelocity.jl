@@ -43,7 +43,15 @@ at the revisions `v0.4.20`, `v0.4.70`, and `master`,
 using the benchmark script `benchmark/benchmarks.jl` as it was defined at `v0.4.20`,
 and then save the JSON results in the current directory.
 
-We can then generate plots of the revisions with:
+We can view the results of the benchmark as a table
+with `benchpkgtable`:
+
+```bash
+benchpkgtable Transducers \
+    --rev=v0.4.20,v0.4.70,master
+```
+
+We can also generate plots of the revisions with:
 
 ```bash
 benchpkgplot Transducers \
