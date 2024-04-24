@@ -5,11 +5,16 @@ using Comonicon
 using Comonicon: @main
 
 """
-    benchpkg package_name [-r --rev <arg>] [-o, --output-dir <arg>]
-                          [-s, --script <arg>] [-e, --exeflags <arg>]
-                          [-a, --add <arg>] [--tune]
-                          [--url <arg>] [--path <arg>]
-                          [--bench-on <arg>] [--nsamples-load-time <arg>]
+    benchpkg package_name [-r --rev <arg>]
+                          [--url <arg>]
+                          [--path <arg>]
+                          [-o, --output-dir <arg>]
+                          [-e, --exeflags <arg>]
+                          [-a, --add <arg>]
+                          [-s, --script <arg>]
+                          [--bench-on <arg>]
+                          [--nsamples-load-time <arg>]
+                          [--tune]
 
 Benchmark a package over a set of revisions.
 
@@ -21,12 +26,12 @@ Benchmark a package over a set of revisions.
 
 - `-r, --rev <arg>`: Revisions to test (delimit by comma). Use `dirty` to
   benchmark the current state of the package at `path` (and not a git commit).
-- `-o, --output-dir <arg>`: Where to save the JSON results.
-- `-s, --script <arg>`: The benchmark script. Default: `benchmark/benchmarks.jl` downloaded from `stable`.
-- `-e, --exeflags <arg>`: CLI flags for Julia (default: none).
-- `-a, --add <arg>`: Extra packages needed (delimit by comma).
 - `--url <arg>`: URL of the package.
 - `--path <arg>`: Path of the package.
+- `-o, --output-dir <arg>`: Where to save the JSON results.
+- `-e, --exeflags <arg>`: CLI flags for Julia (default: none).
+- `-a, --add <arg>`: Extra packages needed (delimit by comma).
+- `-s, --script <arg>`: The benchmark script. Default: `benchmark/benchmarks.jl` downloaded from `stable`.
 - `--bench-on <arg>`: If the script is not set, this specifies the revision at which
   to download `benchmark/benchmarks.jl` from the package.
 - `--nsamples-load-time <arg>`: Number of samples to take when measuring load time of
