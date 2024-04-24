@@ -13,6 +13,7 @@ using Comonicon: @main
                           [-a, --add <arg>]
                           [-s, --script <arg>]
                           [--bench-on <arg>]
+                          [-f, --filter <arg>]
                           [--nsamples-load-time <arg>]
                           [--tune]
 
@@ -34,6 +35,7 @@ Benchmark a package over a set of revisions.
 - `-s, --script <arg>`: The benchmark script. Default: `benchmark/benchmarks.jl` downloaded from `stable`.
 - `--bench-on <arg>`: If the script is not set, this specifies the revision at which
   to download `benchmark/benchmarks.jl` from the package.
+- `-f, --filter <arg>`: Filter the benchmarks to run (delimit by comma).
 - `--nsamples-load-time <arg>`: Number of samples to take when measuring load time of
     the package (default: 5). (This means starting a Julia process for each sample.)
 
@@ -53,13 +55,18 @@ Benchmark a package over a set of revisions.
     url::String="",
     path::String="",
     bench_on::String="",
+    filter::String="",
     nsamples_load_time::Int=5,
 )
     revs = convert(Vector{String}, split(rev, ","))
-    # Filter empty strings:
-    revs = filter(x -> length(x) > 0, revs)
+    Base.filter!(x -> length(x) > 0, revs)
+
+    filter = convert(Vector{String}, split(filter, ","))
+    Base.filter!(x -> length(x) > 0, filter)
+
     @assert length(revs) > 0 "No revisions specified."
     @assert nsamples_load_time > 0 "nsamples_load_time must be positive."
+
     benchmark(
         package_name,
         revs;
@@ -71,6 +78,7 @@ Benchmark a package over a set of revisions.
         url=(length(url) > 0 ? url : nothing),
         path=(length(path) > 0 ? path : nothing),
         benchmark_on=(length(bench_on) > 0 ? bench_on : nothing),
+        filter_benchmarks=filter,
         nsamples_load_time=nsamples_load_time,
     )
 

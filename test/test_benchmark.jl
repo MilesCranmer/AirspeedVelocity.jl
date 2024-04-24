@@ -260,12 +260,6 @@ end
     # place to store the results:
     results_dir = mktempdir(; cleanup=false)
     # test the dirty repo:
-    benchpkg(
-        "TestPackage";
-        rev="dirty",
-        script=script,
-        path=path,
-        output_dir=results_dir,
-    )
+    benchpkg("TestPackage"; rev="dirty", script=script, path=path, output_dir=results_dir)
     @test isfile(joinpath(results_dir, "results_TestPackage@dirty.json"))
 end

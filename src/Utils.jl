@@ -91,6 +91,7 @@ function _benchmark(
     tune::Bool,
     exeflags::Cmd,
     extra_pkgs::Vector{String},
+    filter_benchmarks::Vector{String},
     project_toml::Union{Nothing,String},
     nsamples_load_time::Int,
 )
@@ -123,7 +124,11 @@ function _benchmark(
     # Add extra packages. A "dirty" rev means we want to benchmark the local
     # version of the package at `path`.
     Pkg.add([PackageSpec(; name=pkg) for pkg in pkgs]; io=devnull)
-    spec.rev == "dirty" ? Pkg.develop(; path = spec.path, io=devnull) : Pkg.add(spec; io=devnull)
+    if spec.rev == "dirty"
+        Pkg.develop(; path=spec.path, io=devnull)
+    else
+        Pkg.add(spec; io=devnull)
+    end
     Pkg.precompile()
     Pkg.activate(old_project; io=devnull)
     results_filename = joinpath(output_dir, "results_" * spec_str * ".json")
@@ -139,11 +144,13 @@ function _benchmark(
 
         #! format: off
         const _airspeed_velocity_extra_suite = BenchmarkGroup()
-        _airspeed_velocity_extra_suite["time_to_load"] = @benchmarkable(
-            @eval(using $(Symbol(spec.name)): $(Symbol(spec.name)) as _AirspeedVelocityTestImport),
-            evals=1,
-            samples=1,
-        )
+        if isempty($filter_benchmarks) || any(x -> contains(x, "time_to_load"), $filter_benchmarks)
+            _airspeed_velocity_extra_suite["time_to_load"] = @benchmarkable(
+                @eval(using $(Symbol(spec.name)): $(Symbol(spec.name)) as _AirspeedVelocityTestImport),
+                evals=1,
+                samples=1,
+            )
+        end
         const _airspeed_velocity_extra_results = run(_airspeed_velocity_extra_suite)
         #! format: on
 
@@ -173,8 +180,9 @@ function _benchmark(
         if !isdefined(AirspeedVelocityRunner, :SUITE)
             @error "    [runner] Benchmark script " * $script * " did not define SUITE."
         end
-        const SUITE = AirspeedVelocityRunner.SUITE
-        if !(typeof(SUITE) <: BenchmarkGroup)
+        const filtered_suite = AirspeedVelocityRunner.SUITE
+
+        if !(typeof(filtered_suite) <: BenchmarkGroup)
             @error "    [runner] Benchmark script " *
                 $script *
                 " did not define SUITE as a BenchmarkGroup."
@@ -187,13 +195,33 @@ function _benchmark(
                 "This is not allowed, as it will " *
                 "cause the benchmark to produce incorrect results."
         end
+
+        # Recursively filter the suite to `filter_benchmarks`:
+        function filter_suite!(f, suite, prefix="")
+            filter!(suite.data) do (k, v)
+                name = prefix * "/" * string(k)
+                if v isa BenchmarkGroup
+                    filter_suite!(f, v, name)
+                else
+                    f(name)
+                end
+            end
+            return !isempty(suite.data)
+        end
+
+        if !isempty($filter_benchmarks)
+            filter_suite!(
+                name -> any(x -> contains(name, x), $filter_benchmarks), filtered_suite
+            )
+        end
+
         if $tune
             @info "    [runner] Tuning benchmarks."
-            tune!(SUITE)
+            tune!(filtered_suite)
         end
         @info "    [runner] Running benchmarks for " * $spec_str * "."
         @info "-"^80
-        results = run(SUITE; verbose=true)
+        results = run(filtered_suite; verbose=true)
         @info "-"^80
         @info "    [runner] Finished benchmarks for " * $spec_str * "."
         # Combine extra results:
@@ -270,6 +298,7 @@ The results of the benchmarks are saved to a JSON file named `results_packagenam
 - `url::Union{String,Nothing}=nothing`: URL of the package.
 - `path::Union{String,Nothing}=nothing`: Path to the package.
 - `benchmark_on::Union{String,Nothing}=nothing`: If the benchmark script file is to be downloaded, this specifies the revision to use.
+- `filter_benchmarks::Vector{String}=String[]`: Filter the benchmarks to run (default: all).
 - `nsamples_load_time::Int=5`: Number of samples to take for the time-to-load benchmark.
 """
 function benchmark(
@@ -283,6 +312,7 @@ function benchmark(
     url::Union{String,Nothing}=nothing,
     path::Union{String,Nothing}=nothing,
     benchmark_on::Union{String,Nothing}=nothing,
+    filter_benchmarks::Vector{String}=String[],
     nsamples_load_time::Int=5,
 )
     if "dirty" in revs && isnothing(path)
@@ -296,6 +326,7 @@ function benchmark(
         exeflags=exeflags,
         extra_pkgs=extra_pkgs,
         benchmark_on=benchmark_on,
+        filter_benchmarks=filter_benchmarks,
         nsamples_load_time=nsamples_load_time,
     )
 end
@@ -310,6 +341,7 @@ function benchmark(
     url::Union{String,Nothing}=nothing,
     path::Union{String,Nothing}=nothing,
     benchmark_on::Union{String,Nothing}=nothing,
+    filter_benchmarks::Vector{String}=String[],
     nsamples_load_time::Int=5,
 )
     return benchmark(
@@ -323,6 +355,7 @@ function benchmark(
         url=url,
         path=path,
         benchmark_on=benchmark_on,
+        filter_benchmarks=filter_benchmarks,
         nsamples_load_time=nsamples_load_time,
     )
 end
@@ -346,6 +379,7 @@ The results of the benchmarks are saved to a JSON file named `results_packagenam
 - `exeflags::Cmd=```: Additional execution flags for running the benchmark script (default: empty).
 - `extra_pkgs::Vector{String}=String[]`: Additional packages to add to the benchmark environment.
 - `benchmark_on::Union{String,Nothing}=nothing`: If the benchmark script file is to be downloaded, this specifies the revision to use.
+- `filter_benchmarks::Vector{String}=String[]`: Filter the benchmarks to run (default: all).
 - `nsamples_load_time::Int=5`: Number of samples to take for the time-to-load benchmark.
 """
 function benchmark(
@@ -355,6 +389,7 @@ function benchmark(
     tune::Bool=false,
     exeflags::Cmd=``,
     extra_pkgs=String[],
+    filter_benchmarks::Vector{String}=String[],
     benchmark_on::Union{String,Nothing}=nothing,
     project_toml::Union{String,Nothing}=nothing,
     nsamples_load_time::Int=5,
@@ -383,6 +418,7 @@ function benchmark(
             tune,
             exeflags,
             extra_pkgs,
+            filter_benchmarks,
             project_toml,
             nsamples_load_time,
         )
@@ -396,6 +432,7 @@ function benchmark(
     tune::Bool=false,
     exeflags::Cmd=``,
     extra_pkgs=String[],
+    filter_benchmarks::Vector{String}=String[],
     benchmark_on::Union{String,Nothing}=nothing,
     project_toml::Union{String,Nothing}=nothing,
     nsamples_load_time::Int=5,
@@ -418,6 +455,7 @@ function benchmark(
         tune,
         exeflags,
         extra_pkgs,
+        filter_benchmarks,
         project_toml,
         nsamples_load_time,
     )

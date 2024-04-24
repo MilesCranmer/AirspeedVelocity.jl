@@ -131,11 +131,17 @@ For running benchmarks, you can use the `benchpkg` command, which is
 built into the `~/.julia/bin` folder:
 
 ```markdown
-    benchpkg package_name [-r --rev <arg>] [-o, --output-dir <arg>]
-                          [-s, --script <arg>] [-e, --exeflags <arg>]
-                          [-a, --add <arg>] [--tune]
-                          [--url <arg>] [--path <arg>]
-                          [--bench-on <arg>] [--nsamples-load-time <arg>]
+    benchpkg package_name [-r --rev <arg>]
+                          [--url <arg>]
+                          [--path <arg>]
+                          [-o, --output-dir <arg>]
+                          [-e, --exeflags <arg>]
+                          [-a, --add <arg>]
+                          [-s, --script <arg>]
+                          [--bench-on <arg>]
+                          [-f, --filter <arg>]
+                          [--nsamples-load-time <arg>]
+                          [--tune]
 
 Benchmark a package over a set of revisions.
 
@@ -145,43 +151,23 @@ Benchmark a package over a set of revisions.
 
 # Options
 
-- `-r, --rev <arg>`: Revisions to test (delimit by comma).
-- `-o, --output-dir <arg>`: Where to save the JSON results.
-- `-s, --script <arg>`: The benchmark script. Default: `benchmark/benchmarks.jl` downloaded from `stable`.
-- `-e, --exeflags <arg>`: CLI flags for Julia (default: none).
-- `-a, --add <arg>`: Extra packages needed (delimit by comma).
+- `-r, --rev <arg>`: Revisions to test (delimit by comma). Use `dirty` to
+  benchmark the current state of the package at `path` (and not a git commit).
 - `--url <arg>`: URL of the package.
 - `--path <arg>`: Path of the package.
+- `-o, --output-dir <arg>`: Where to save the JSON results.
+- `-e, --exeflags <arg>`: CLI flags for Julia (default: none).
+- `-a, --add <arg>`: Extra packages needed (delimit by comma).
+- `-s, --script <arg>`: The benchmark script. Default: `benchmark/benchmarks.jl` downloaded from `stable`.
 - `--bench-on <arg>`: If the script is not set, this specifies the revision at which
   to download `benchmark/benchmarks.jl` from the package.
+- `-f, --filter <arg>`: Filter the benchmarks to run (delimit by comma).
 - `--nsamples-load-time <arg>`: Number of samples to take when measuring load time of
     the package (default: 5). (This means starting a Julia process for each sample.)
 
 # Flags
 
-- `--tune`: Whether to run benchmarks with tuning (default: false).
-```
-
-For plotting, you can use the `benchpkgplot` function:
-
-```markdown
-    benchpkgplot package_name [-r --rev <arg>] [-i --input-dir <arg>]
-                              [-o --output-dir <arg>] [-n --npart <arg>]
-                              [--format <arg>]
-
-Plot the benchmarks of a package as created with `benchpkg`.
-
-# Arguments
-
-- `package_name`: Name of the package.
-
-# Options
-
-- `-r, --rev <arg>`: Revisions to test (delimit by comma).
-- `-i, --input-dir <arg>`: Where the JSON results were saved (default: ".").
-- `-o, --output-dir <arg>`: Where to save the plots results (default: ".").
-- `-n, --npart <arg>`: Max number of plots per page (default: 10).
-- `--format <arg>`: File type to save the plots as (default: "png").
+- `--tune`: Whether to run benchmarks with tuning (default: false). 
 ```
 
 You can also just generate a table:
@@ -205,6 +191,28 @@ Print a table of the benchmarks of a package as created with `benchpkg`.
 
 - `--ratio`: Whether to include the ratio (default: false). Only applies when
     comparing two revisions.
+```
+
+For plotting, you can use the `benchpkgplot` function:
+
+```markdown
+    benchpkgplot package_name [-r --rev <arg>] [-i --input-dir <arg>]
+                              [-o --output-dir <arg>] [-n --npart <arg>]
+                              [--format <arg>]
+
+Plot the benchmarks of a package as created with `benchpkg`.
+
+# Arguments
+
+- `package_name`: Name of the package.
+
+# Options
+
+- `-r, --rev <arg>`: Revisions to test (delimit by comma).
+- `-i, --input-dir <arg>`: Where the JSON results were saved (default: ".").
+- `-o, --output-dir <arg>`: Where to save the plots results (default: ".").
+- `-n, --npart <arg>`: Max number of plots per page (default: 10).
+- `--format <arg>`: File type to save the plots as (default: "png").
 ```
 
 If you prefer to use the Julia API, you can use the `benchmark` function for generating data.
