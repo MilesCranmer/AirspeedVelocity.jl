@@ -302,7 +302,7 @@ The results of the benchmarks are saved to a JSON file named `results_packagenam
 - `nsamples_load_time::Int=5`: Number of samples to take for the time-to-load benchmark.
 """
 function benchmark(
-    package_name::String,
+    package_name::Union{String,Nothing},
     revs::Vector{String};
     output_dir::String=".",
     script::Union{String,Nothing}=nothing,
@@ -331,7 +331,7 @@ function benchmark(
     )
 end
 function benchmark(
-    package_name::String,
+    package_name::Union{String,Nothing},
     rev::String;
     output_dir::String=".",
     script::Union{String,Nothing}=nothing,

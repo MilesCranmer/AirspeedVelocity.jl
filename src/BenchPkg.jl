@@ -5,7 +5,7 @@ using Comonicon
 using Comonicon: @main
 
 """
-    benchpkg package_name [-r --rev <arg>]
+  benchpkg [package_name] [-r --rev <arg>]
                           [--url <arg>]
                           [--path <arg>]
                           [-o, --output-dir <arg>]
@@ -21,12 +21,13 @@ Benchmark a package over a set of revisions.
 
 # Arguments
 
-- `package_name`: Name of the package.
+- `package_name`: Name of the package. If not given, will be inferred.
 
 # Options
 
 - `-r, --rev <arg>`: Revisions to test (delimit by comma). Use `dirty` to
   benchmark the current state of the package at `path` (and not a git commit).
+  If not given, will be inferred based on context.
 - `--url <arg>`: URL of the package.
 - `--path <arg>`: Path of the package.
 - `-o, --output-dir <arg>`: Where to save the JSON results.
@@ -45,8 +46,8 @@ Benchmark a package over a set of revisions.
 
 """
 @main function benchpkg(
-    package_name::String;
-    rev::String,
+    package_name::String="";
+    rev::String="",
     output_dir::String=".",
     script::String="",
     exeflags::String="",
