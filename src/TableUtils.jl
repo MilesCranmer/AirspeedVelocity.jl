@@ -47,12 +47,14 @@ function format_memory(::Missing)
 end
 
 function default_formatter(key)
+    if key ∉ ("median", "memory")
+        error("Unknown ratio column: $key")
+    end
+
     if key == "memory"
         return format_memory
-    elseif key == "median"
+    else # if key == "median"
         return format_time
-    else
-        return error("Unknown ratio column: $key")
     end
 end
 

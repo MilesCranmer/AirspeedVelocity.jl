@@ -7,6 +7,7 @@ using FilePathsBase: isabspath, absolute, PosixPath
 using OrderedCollections: OrderedDict
 using Statistics: mean, median, quantile, std
 using Chain: @chain
+using DispatchDoctor: @unstable
 
 function get_spec_str(spec::PackageSpec)
     package_name = spec.name
@@ -32,7 +33,7 @@ function get_reasonable_memory_unit(memory)
 end
 
 function get_reasonable_allocs_unit(allocs)
-    units = [(1, ""), (1e-3, "k"), (1e-6, "M"), (1e-9, "G")]
+    units = [(1.0, ""), (1e-3, "k"), (1e-6, "M"), (1e-9, "G")]
     return get_reasonable_unit(allocs, units)
 end
 
@@ -123,7 +124,11 @@ function _benchmark(
     # Add extra packages. A "dirty" rev means we want to benchmark the local
     # version of the package at `path`.
     Pkg.add([PackageSpec(; name=pkg) for pkg in pkgs]; io=devnull)
-    spec.rev == "dirty" ? Pkg.develop(; path = spec.path, io=devnull) : Pkg.add(spec; io=devnull)
+    if spec.rev == "dirty"
+        Pkg.develop(; path=spec.path, io=devnull)
+    else
+        Pkg.add(spec; io=devnull)
+    end
     Pkg.precompile()
     Pkg.activate(old_project; io=devnull)
     results_filename = joinpath(output_dir, "results_" * spec_str * ".json")
@@ -423,7 +428,7 @@ function benchmark(
     )
 end
 
-function compute_summary_statistics(results)
+@unstable function compute_summary_statistics(results)
     times = results["times"]
     d = Dict(
         "mean" => mean(times),
