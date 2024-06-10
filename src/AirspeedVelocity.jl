@@ -1,6 +1,6 @@
 module AirspeedVelocity
 
-using DispatchDoctor: @stable, @unstable, register_macro!, DontPropagateMacro
+using DispatchDoctor: @stable, @unstable
 using REPL: REPL
 
 @stable default_mode = "disable" begin
@@ -12,6 +12,10 @@ using REPL: REPL
     using .PlotUtils: combined_plots
     export combined_plots
 
+    include("TableUtils.jl")
+    import .TableUtils: create_table
+    export create_table
+
     @unstable include("BenchPkg.jl")
     import .BenchPkg: benchpkg
     export benchpkg
@@ -19,10 +23,6 @@ using REPL: REPL
     @unstable include("BenchPkgPlot.jl")
     import .BenchPkgPlot: benchpkgplot
     export benchpkgplot
-
-    include("TableUtils.jl")
-    import .TableUtils: create_table
-    export create_table
 
     @unstable include("BenchPkgTable.jl")
     import .BenchPkgTable: benchpkgtable
