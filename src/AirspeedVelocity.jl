@@ -3,7 +3,7 @@ module AirspeedVelocity
 using DispatchDoctor: @stable, @unstable
 using REPL: REPL
 
-@stable default_mode = "disable" begin
+@stable default_mode = "disable" default_union_limit = 2 begin
     include("Utils.jl")
     using .Utils: benchmark, load_results
     export benchmark, load_results
