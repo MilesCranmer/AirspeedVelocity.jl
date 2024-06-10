@@ -147,7 +147,6 @@ function markdown_table(; data::AbstractMatrix, header::AbstractVector)
     end
     # GitHub-style markdown table:
     io = IOBuffer()
-    # println(io, "| $(join(header, " | ")) |")
     print(io, "|")
     for (i, head) in enumerate(header)
         print(io, " $(head) " * " "^(col_widths[i] - length(head)) * "|")
@@ -164,7 +163,6 @@ function markdown_table(; data::AbstractMatrix, header::AbstractVector)
 
     println(io)
     for row in eachrow(data)
-        # println(io, "| $(join(row, " | ")) |")
         print(io, "|")
         for (i, val) in enumerate(row)
             print(io, " $(val) " * " "^(col_widths[i] - length(string(val))) * "|")

@@ -61,8 +61,8 @@ Benchmark a package over a set of revisions.
     revs = convert(Vector{String}, split(rev, ","))
     Base.filter!(x -> length(x) > 0, revs)
 
-    filter = convert(Vector{String}, split(filter, ","))
-    Base.filter!(x -> length(x) > 0, filter)
+    filtered = convert(Vector{String}, split(filter, ","))
+    Base.filter!(x -> length(x) > 0, filtered)
 
     @assert length(revs) > 0 "No revisions specified."
     @assert nsamples_load_time > 0 "nsamples_load_time must be positive."
@@ -78,7 +78,7 @@ Benchmark a package over a set of revisions.
         url=(length(url) > 0 ? url : nothing),
         path=(length(path) > 0 ? path : nothing),
         benchmark_on=(length(bench_on) > 0 ? bench_on : nothing),
-        filter_benchmarks=filter,
+        filter_benchmarks=filtered,
         nsamples_load_time=nsamples_load_time,
     )
 
