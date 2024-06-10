@@ -2,6 +2,7 @@ using AirspeedVelocity
 using OrderedCollections: OrderedDict
 using Test
 using Pkg
+using JSON3: JSON3
 import Base: isapprox
 
 function Base.isapprox(s1::String, s2::String)
@@ -237,7 +238,7 @@ end
     @test truth ≈ s
 end
 
-@testset "Dirty repo" begin
+@testset "Dirty repo with filter" begin
     # Create a package with a dirty repo:
     tmp_dir = mktempdir(; cleanup=false)
     cd(tmp_dir)
@@ -254,6 +255,7 @@ end
             using TestPackage
             const SUITE = BenchmarkGroup()
             SUITE["cos"] = @benchmarkable cos(x) setup=(x=rand())
+            SUITE["sin"] = @benchmarkable sin(x) setup=(x=rand())
             """,
         )
     end
@@ -266,6 +268,11 @@ end
         script=script,
         path=path,
         output_dir=results_dir,
+        filter="cos",
     )
     @test isfile(joinpath(results_dir, "results_TestPackage@dirty.json"))
+    # check that only the cos benchmark was run:
+    results = JSON3.read(joinpath(results_dir, "results_TestPackage@dirty.json"))
+    @test length(keys(results["data"])) == 1
+    @test "cos" in keys(results["data"])
 end

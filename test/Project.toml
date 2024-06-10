@@ -1,0 +1,6 @@
+[deps]
+JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+OrderedCollections = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+Preferences = "21216c6a-2e73-6563-6e65-726566657250"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
