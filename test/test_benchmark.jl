@@ -2,6 +2,7 @@ using AirspeedVelocity
 using OrderedCollections: OrderedDict
 using Test
 using Pkg
+using JSON3: JSON3
 import Base: isapprox
 
 function Base.isapprox(s1::String, s2::String)
@@ -271,7 +272,7 @@ end
     )
     @test isfile(joinpath(results_dir, "results_TestPackage@dirty.json"))
     # check that only the cos benchmark was run:
-    results = JSON.parsefile(joinpath(results_dir, "results_TestPackage@dirty.json"))
+    results = JSON3.read(joinpath(results_dir, "results_TestPackage@dirty.json"))
     @test length(keys(results["data"])) == 1
     @test "cos" in keys(results["data"])
 end
