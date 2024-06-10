@@ -249,7 +249,7 @@ function _benchmark(
     results = open(results_filename * ".tmp", "r") do io
         JSON3.read(io, Dict{String,Any})
     end
-    if nsamples_load_time > 1
+    if nsamples_load_time > 1 && haskey(results["data"], "time_to_load")
         @info "    Running additional time-to-load tests."
         load_times = results["data"]["time_to_load"]["times"]
         exe_string = "start=time_ns(); redirect_stdout(devnull) do; @eval using $(spec.name); end; stop=time_ns(); println(stop-start)"
