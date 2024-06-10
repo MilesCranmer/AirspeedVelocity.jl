@@ -6,6 +6,7 @@ using JSON3: JSON3
 using FilePathsBase: isabspath, absolute, PosixPath
 using OrderedCollections: OrderedDict
 using Statistics: mean, median, quantile, std
+using DispatchDoctor: @unstable
 
 function get_spec_str(spec::PackageSpec)
     package_name = spec.name
@@ -31,7 +32,7 @@ function get_reasonable_memory_unit(memory)
 end
 
 function get_reasonable_allocs_unit(allocs)
-    units = [(1, ""), (1e-3, "k"), (1e-6, "M"), (1e-9, "G")]
+    units = [(1.0, ""), (1e-3, "k"), (1e-6, "M"), (1e-9, "G")]
     return get_reasonable_unit(allocs, units)
 end
 
@@ -458,7 +459,7 @@ function benchmark(
     )
 end
 
-function compute_summary_statistics(results)
+@unstable function compute_summary_statistics(results)
     times = results["times"]
     d = Dict(
         "mean" => mean(times),
