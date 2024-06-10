@@ -5,7 +5,6 @@ version = "0.5.2"
 
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
-Chain = "8be319e6-bccf-4806-a6f7-6fae938471bc"
 Comonicon = "863f3e99-da2a-4334-8734-de3dacbe5542"
 FilePathsBase = "48062228-2e41-5def-b9a4-89aafe57970f"
 JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
@@ -20,7 +19,6 @@ TestItems = "1c621080-faea-4a02-84b6-bbd5e436b8fe"
 
 [compat]
 BenchmarkTools = "1"
-Chain = "0.4, 0.5"
 Comonicon = "1"
 FilePathsBase = "0.9"
 JSON3 = "1"

@@ -6,7 +6,6 @@ using JSON3: JSON3
 using FilePathsBase: isabspath, absolute, PosixPath
 using OrderedCollections: OrderedDict
 using Statistics: mean, median, quantile, std
-using Chain: @chain
 
 function get_spec_str(spec::PackageSpec)
     package_name = spec.name
@@ -235,13 +234,11 @@ function _benchmark(
     end
     runner_filename = joinpath(tmp_env, "runner.jl")
     open(runner_filename, "w") do io
-        s = @chain to_exec begin
-            string
-            split(_, "\n")
-            _[2:(end - 1)]
-            join(_, "\n")
-        end
-        write(io, s)
+        s = string(to_exec)
+        s2 = split(s, "\n")
+        s3 = s2[2:(end - 1)]
+        s4 = join(s3, "\n")
+        write(io, s4)
     end
     @info "    Launching benchmark runner."
     run(`julia --project="$tmp_env" --startup-file=no $exeflags "$runner_filename"`)
