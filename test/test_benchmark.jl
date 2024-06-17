@@ -1,17 +1,11 @@
-using AirspeedVelocity
-using OrderedCollections: OrderedDict
-using Test
-using Pkg
-using JSON3: JSON3
-import Base: isapprox
+using TestItems: @testitem
 
-function Base.isapprox(s1::String, s2::String)
-    return replace(s1, r"\s+" => "") == replace(s2, r"\s+" => "")
-end
+@testitem "Test run benchmarking" begin
+    using AirspeedVelocity
 
-@testset "Test run benchmarking" begin
-    tmp = mktempdir(; cleanup=false)
-    script = joinpath(tmp, "bench.jl")
+    script_dir = mktempdir()
+    output_dir = mktempdir()
+    script = joinpath(script_dir, "bench.jl")
     open(script, "w") do io
         write(
             io,
@@ -43,7 +37,7 @@ end
         )
     end
 
-    results = benchmark("SymbolicRegression", ["v0.15.3", "v0.16.2"]; script=script)
+    results = benchmark("SymbolicRegression", ["v0.15.3", "v0.16.2"]; script=script, output_dir=output_dir)
     @test length(results) == 2
     @test "SymbolicRegression@v0.15.3" in keys(results)
     @test "SymbolicRegression@v0.16.2" in keys(results)
@@ -54,9 +48,19 @@ end
         results["SymbolicRegression@v0.16.2"]["data"]["eval_tree_array"]["data"]["eval_10"]["times"],
     ) == 100
 
-    # Ensure Transducers.jl has its Project.toml copied:
-    tmp2 = mktempdir(; cleanup=false)
-    script = joinpath(tmp2, "bench.jl")
+    # Create plots:
+    combined_results = load_results("SymbolicRegression", ["v0.15.3", "v0.16.2"]; input_dir=output_dir)
+    plots = combined_plots(combined_results; npart=1)
+    @test length(plots) == 3
+    plots = combined_plots(combined_results; npart=2)
+    @test length(plots) == 2
+end
+
+@testitem "Ensure Transducers.jl has its Project.toml copied" begin
+    using AirspeedVelocity
+
+    tmpdir = mktempdir()
+    script = joinpath(tmpdir, "bench.jl")
     open(script, "w") do io
         write(io, """
             using BenchmarkTools
@@ -71,30 +75,26 @@ end
     end
 
     # Test with CLI version:
-    results_dir = mktempdir(; cleanup=false)
+    output_dir = mktempdir()
     benchpkg(
         "Transducers";
         rev="v0.4.50,v0.4.70",
         script=script,
         tune=true,
-        output_dir=string(results_dir),
+        output_dir=output_dir,
     )
-    @test isfile(joinpath(results_dir, "results_Transducers@v0.4.50.json"))
-    @test isfile(joinpath(results_dir, "results_Transducers@v0.4.70.json"))
+    @test isfile(joinpath(output_dir, "results_Transducers@v0.4.50.json"))
+    @test isfile(joinpath(output_dir, "results_Transducers@v0.4.70.json"))
 end
 
-@testset "Test plot results" begin
-    # Create plots:
-    combined_results = load_results("SymbolicRegression", ["v0.15.3", "v0.16.2"])
-    plots = combined_plots(combined_results; npart=1)
-    @test length(plots) == 3
-    plots = combined_plots(combined_results; npart=2)
-    @test length(plots) == 2
-end
+@testitem "Test getting script" begin
+    using AirspeedVelocity
 
-@testset "Test getting script" begin
+    include("utils.jl")
+
+    tmpdir = mktempdir()
     script_path, project_toml = AirspeedVelocity.Utils._get_script(;
-        package_name="Convex", benchmark_on="v0.13.1"
+        package_name="Convex", benchmark_on="v0.13.1",
     )
 
     script_downloaded = open(script_path, "r") do io
@@ -145,7 +145,10 @@ end
     @test script_downloaded ≈ truth
 end
 
-@testset "Test table generation" begin
+@testitem "Test table generation" begin
+    using AirspeedVelocity
+    using OrderedCollections: OrderedDict
+
     combined_results = OrderedDict(
         "v1" => OrderedDict(
             "bench1" => Dict(
@@ -209,8 +212,8 @@ end
         combined_results; formatter=AirspeedVelocity.TableUtils.format_memory, key="memory"
     )
 
-    tempdir = mktempdir()
-    results_fname = joinpath(tempdir, "results_TestPackage@v1.json")
+    tmpdir = mktempdir()
+    results_fname = joinpath(tmpdir, "results_TestPackage@v1.json")
 
     open(results_fname, "w") do io
         write(
@@ -222,7 +225,7 @@ end
     original_stdout = stdout
 
     (rd, wr) = redirect_stdout()
-    benchpkgtable("TestPackage"; rev="v1", input_dir=tempdir)
+    benchpkgtable("TestPackage"; rev="v1", input_dir=tmpdir)
     redirect_stdout(original_stdout)
 
     close(wr)
@@ -238,12 +241,16 @@ end
     @test truth ≈ s
 end
 
-@testset "Dirty repo with filter" begin
+@testitem "Dirty repo with filter" begin
+    using AirspeedVelocity
+    using Pkg
+    using JSON3
+
     # Create a package with a dirty repo:
-    tmp_dir = mktempdir(; cleanup=false)
-    cd(tmp_dir)
+    tmpdir = mktempdir()
+    cd(tmpdir)
     Pkg.generate("TestPackage")
-    path = joinpath(tmp_dir, "TestPackage")
+    path = joinpath(tmpdir, "TestPackage")
     run(`git -C "$path" init`)
     # write benchmarks.jl in the package:
     script = joinpath(path, "bench.jl")

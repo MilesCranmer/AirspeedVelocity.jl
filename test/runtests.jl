@@ -10,6 +10,7 @@ set_preferences!(
 
 using AirspeedVelocity
 
-@testset "AirspeedVelocity.jl" begin
-    include("test_benchmark.jl")
-end
+include("test_benchmark.jl")
+
+using TestItemRunner
+@run_package_tests
