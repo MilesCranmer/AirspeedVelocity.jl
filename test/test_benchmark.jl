@@ -37,7 +37,9 @@ using TestItems: @testitem
         )
     end
 
-    results = benchmark("SymbolicRegression", ["v0.15.3", "v0.16.2"]; script=script, output_dir=output_dir)
+    results = benchmark(
+        "SymbolicRegression", ["v0.15.3", "v0.16.2"]; script=script, output_dir=output_dir
+    )
     @test length(results) == 2
     @test "SymbolicRegression@v0.15.3" in keys(results)
     @test "SymbolicRegression@v0.16.2" in keys(results)
@@ -49,7 +51,9 @@ using TestItems: @testitem
     ) == 100
 
     # Create plots:
-    combined_results = load_results("SymbolicRegression", ["v0.15.3", "v0.16.2"]; input_dir=output_dir)
+    combined_results = load_results(
+        "SymbolicRegression", ["v0.15.3", "v0.16.2"]; input_dir=output_dir
+    )
     plots = combined_plots(combined_results; npart=1)
     @test length(plots) == 3
     plots = combined_plots(combined_results; npart=2)
@@ -94,7 +98,7 @@ end
 
     tmpdir = mktempdir()
     script_path, project_toml = AirspeedVelocity.Utils._get_script(;
-        package_name="Convex", benchmark_on="v0.13.1",
+        package_name="Convex", benchmark_on="v0.13.1"
     )
 
     script_downloaded = open(script_path, "r") do io
