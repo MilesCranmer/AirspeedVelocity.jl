@@ -30,7 +30,21 @@ This will install two executables at `~/.julia/bin` - make sure to have it on yo
 
 ## Examples
 
-You may then use the CLI to generate benchmarks for any package with, e.g.,
+You may use the CLI to generate benchmarks for any package with, e.g.,
+
+```bash
+benchpkg
+```
+
+This will benchmark the package defined in the current directory
+at the current dirty state, against the default branch (i.e., `main` or `master`),
+over all benchmarks defined in `benchmark/benchmarks.jl`. It will then print
+a markdown table of the results while also saving the JSON results to the current directory.
+
+
+You can configure all options with the CLI flags. For example, to benchmark
+the registered package `Transducers.jl` at the revisions `v0.4.20`, `v0.4.70`, and `master`,
+you can use:
 
 ```bash
 benchpkg Transducers \
@@ -38,13 +52,10 @@ benchpkg Transducers \
     --bench-on=v0.4.20
 ```
 
-which will benchmark `Transducers.jl`,
-at the revisions `v0.4.20`, `v0.4.70`, and `master`,
-using the benchmark script `benchmark/benchmarks.jl` as it was defined at `v0.4.20`,
+This will further use the benchmark script `benchmark/benchmarks.jl` as it was defined at `v0.4.20`,
 and then save the JSON results in the current directory.
 
-We can view the results of the benchmark as a table
-with `benchpkgtable`:
+We can explicitly view the results of the benchmark as a table with `benchpkgtable`:
 
 ```bash
 benchpkgtable Transducers \
@@ -131,31 +142,35 @@ For running benchmarks, you can use the `benchpkg` command, which is
 built into the `~/.julia/bin` folder:
 
 ```markdown
-    benchpkg package_name [-r --rev <arg>]
-                          [--url <arg>]
-                          [--path <arg>]
-                          [-o, --output-dir <arg>]
-                          [-e, --exeflags <arg>]
-                          [-a, --add <arg>]
-                          [-s, --script <arg>]
-                          [--bench-on <arg>]
-                          [-f, --filter <arg>]
-                          [--nsamples-load-time <arg>]
-                          [--tune]
+    benchpkg [package_name] [-r --rev <arg>]
+                            [--url <arg>]
+                            [--path <arg>]
+                            [-o, --output-dir <arg>]
+                            [-e, --exeflags <arg>]
+                            [-a, --add <arg>]
+                            [-s, --script <arg>]
+                            [--bench-on <arg>]
+                            [-f, --filter <arg>]
+                            [--nsamples-load-time <arg>]
+                            [--tune]
+                            [--dont-print]
 
 Benchmark a package over a set of revisions.
 
 # Arguments
 
-- `package_name`: Name of the package.
+- `package_name`: Name of the package. If not given, the package is assumed to be
+  the current directory.
 
 # Options
 
 - `-r, --rev <arg>`: Revisions to test (delimit by comma). Use `dirty` to
   benchmark the current state of the package at `path` (and not a git commit).
+  The default is `{DEFAULT},dirty`, which will attempt to find the default branch
+  of the package.
 - `--url <arg>`: URL of the package.
-- `--path <arg>`: Path of the package.
-- `-o, --output-dir <arg>`: Where to save the JSON results.
+- `--path <arg>`: Path of the package. The default is `.` if other arguments are not given.
+- `-o, --output-dir <arg>`: Where to save the JSON results. The default is `.`.
 - `-e, --exeflags <arg>`: CLI flags for Julia (default: none).
 - `-a, --add <arg>`: Extra packages needed (delimit by comma).
 - `-s, --script <arg>`: The benchmark script. Default: `benchmark/benchmarks.jl` downloaded from `stable`.
@@ -164,17 +179,22 @@ Benchmark a package over a set of revisions.
 - `-f, --filter <arg>`: Filter the benchmarks to run (delimit by comma).
 - `--nsamples-load-time <arg>`: Number of samples to take when measuring load time of
     the package (default: 5). (This means starting a Julia process for each sample.)
+- `--dont-print`: Don't print the table.
 
 # Flags
 
-- `--tune`: Whether to run benchmarks with tuning (default: false). 
+- `--tune`: Whether to run benchmarks with tuning (default: false).
 ```
 
 You can also just generate a table:
 
 ```markdown
-    benchpkgtable package_name [-r --rev <arg>] [-i --input-dir <arg>]
-                               [--ratio]
+    benchpkgtable [package_name] [-r --rev <arg>]
+                                 [-i --input-dir <arg>]
+                                 [--ratio]
+                                 [--mode <arg>]
+                                 [--url <arg>]
+                                 [--path <arg>]
 
 Print a table of the benchmarks of a package as created with `benchpkg`.
 
@@ -185,19 +205,29 @@ Print a table of the benchmarks of a package as created with `benchpkg`.
 # Options
 
 - `-r, --rev <arg>`: Revisions to test (delimit by comma).
+  The default is `{DEFAULT},dirty`, which will attempt to find the default branch
+  of the package.
 - `-i, --input-dir <arg>`: Where the JSON results were saved (default: ".").
+- `--url <arg>`: URL of the package. Only used to get the package name.
+- `--path <arg>`: Path of the package. The default is `.` if other arguments are not given.
+   Only used to get the package name.
 
 # Flags
 
 - `--ratio`: Whether to include the ratio (default: false). Only applies when
     comparing two revisions.
+- `--mode`: Table mode(s). Valid values are "time" (default), to print the
+    benchmark time, or "memory", to print the allocation and memory usage.
+    Both options can be passed, if delimited by comma.
 ```
 
 For plotting, you can use the `benchpkgplot` function:
 
 ```markdown
-    benchpkgplot package_name [-r --rev <arg>] [-i --input-dir <arg>]
-                              [-o --output-dir <arg>] [-n --npart <arg>]
+    benchpkgplot package_name [-r --rev <arg>]
+                              [-i --input-dir <arg>]
+                              [-o --output-dir <arg>]
+                              [-n --npart <arg>]
                               [--format <arg>]
 
 Plot the benchmarks of a package as created with `benchpkg`.
