@@ -29,7 +29,8 @@ Benchmark a package over a set of revisions.
 
 - `-r, --rev <arg>`: Revisions to test (delimit by comma). Use `dirty` to
   benchmark the current state of the package at `path` (and not a git commit).
-  The default is `dirty,{DEFAULT}`.
+  The default is `{DEFAULT},dirty`, which will attempt to find the default branch
+  of the package.
 - `--url <arg>`: URL of the package.
 - `--path <arg>`: Path of the package. The default is `.` if other arguments are not given.
 - `-o, --output-dir <arg>`: Where to save the JSON results. The default is `.`.
@@ -50,7 +51,7 @@ Benchmark a package over a set of revisions.
 """
 @main function benchpkg(
     package_name::String="";
-    rev::String="dirty,{DEFAULT}",
+    rev::String="{DEFAULT},dirty",
     output_dir::String=".",
     script::String="",
     exeflags::String="",
