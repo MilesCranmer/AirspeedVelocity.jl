@@ -2,6 +2,7 @@ module Utils
 
 using Pkg: PackageSpec
 using Pkg: Pkg
+using TOML: parsefile
 using JSON3: JSON3
 using FilePathsBase: isabspath, absolute, PosixPath
 using OrderedCollections: OrderedDict
@@ -47,7 +48,7 @@ function _get_script(;
     if benchmark_on !== nothing
         @info "Downloading from $benchmark_on."
     end
-    tmp_env = mktempdir(; cleanup=false)
+    tmp_env = mktempdir()
     to_exec = quote
         ENV["JULIA_PKG_PRECOMPILE_AUTO"] = 0
         using Pkg
@@ -109,7 +110,7 @@ function _benchmark(
     end
     spec_str = get_spec_str(spec)
     old_project = Pkg.project().path
-    tmp_env = mktempdir(; cleanup=false)
+    tmp_env = mktempdir()
     @info "    Creating temporary environment at $tmp_env."
     if project_toml !== nothing
         @info "    Copying $project_toml to environment."
@@ -554,6 +555,28 @@ end
 function load_results(package_name::String, revs::Vector{String}; input_dir::String=".")
     specs = [PackageSpec(; name=package_name, rev=rev) for rev in revs]
     return load_results(specs; input_dir=input_dir)
+end
+
+"""
+Fill in the package name, URL, and path based on the context.
+"""
+function get_package_name_defaults(package_name::String, url::String, path::String)
+    if url != ""
+        path != "" && error("You cannot specify both a URL and a path.")
+        package_name == "" && error("You must specify a package name if passing the URL.")
+    end
+
+    if package_name == "" && url == "" && path == ""
+        path = "."
+    end
+
+    if path != ""
+        toml_path = joinpath(path, "Project.toml")
+        toml = parsefile(toml_path)
+        package_name = toml["name"]
+    end
+
+    return (package_name, url, path)
 end
 
 end # module AirspeedVelocity.Utils

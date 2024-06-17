@@ -287,3 +287,36 @@ end
     @test length(keys(results["data"])) == 1
     @test "cos" in keys(results["data"])
 end
+
+@testitem "Fill in defaults" begin
+    import AirspeedVelocity as ASV
+
+    pkg_defaults = ASV.Utils.get_package_name_defaults
+
+    # Create a temporary directory with a Project.toml
+    tmpdir = mktempdir()
+    toml_path = joinpath(tmpdir, "Project.toml")
+    toml_content = """
+    name = "TestPackage"
+    """
+    write(toml_path, toml_content)
+
+    # Should fill in from file:
+    @test pkg_defaults("", "", tmpdir) == ("TestPackage", "", tmpdir)
+
+    # URL and package name
+    @test pkg_defaults("TestPackage", "https://github.com/user/repo", "") ==
+        ("TestPackage", "https://github.com/user/repo", "")
+
+    # No arguments
+    cd(tmpdir) do
+        @test pkg_defaults("", "", "") == ("TestPackage", "", ".")
+    end
+
+    # Package name, no arguments = leave untouched
+    @test pkg_defaults("TestPackage", "", "") == ("TestPackage", "", "")
+
+    # Error cases
+    @test_throws ErrorException pkg_defaults("", "https://github.com/user/repo", "")
+    @test_throws ErrorException pkg_defaults("", "https://github.com/user/repo", ".")
+end

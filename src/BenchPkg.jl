@@ -1,35 +1,37 @@
 module BenchPkg
 
-using ..Utils: benchmark
+using ..Utils: benchmark, get_package_name_defaults
 using Comonicon
 using Comonicon: @main
 
 """
-    benchpkg package_name [-r --rev <arg>]
-                          [--url <arg>]
-                          [--path <arg>]
-                          [-o, --output-dir <arg>]
-                          [-e, --exeflags <arg>]
-                          [-a, --add <arg>]
-                          [-s, --script <arg>]
-                          [--bench-on <arg>]
-                          [-f, --filter <arg>]
-                          [--nsamples-load-time <arg>]
-                          [--tune]
+    benchpkg [package_name] [-r --rev <arg>]
+                            [--url <arg>]
+                            [--path <arg>]
+                            [-o, --output-dir <arg>]
+                            [-e, --exeflags <arg>]
+                            [-a, --add <arg>]
+                            [-s, --script <arg>]
+                            [--bench-on <arg>]
+                            [-f, --filter <arg>]
+                            [--nsamples-load-time <arg>]
+                            [--tune]
 
 Benchmark a package over a set of revisions.
 
 # Arguments
 
-- `package_name`: Name of the package.
+- `package_name`: Name of the package. If not given, the package is assumed to be
+  the current directory.
 
 # Options
 
 - `-r, --rev <arg>`: Revisions to test (delimit by comma). Use `dirty` to
   benchmark the current state of the package at `path` (and not a git commit).
+  The default is `dirty,{DEFAULT}`.
 - `--url <arg>`: URL of the package.
-- `--path <arg>`: Path of the package.
-- `-o, --output-dir <arg>`: Where to save the JSON results.
+- `--path <arg>`: Path of the package. The default is `.` if other arguments are not given.
+- `-o, --output-dir <arg>`: Where to save the JSON results. The default is `.`.
 - `-e, --exeflags <arg>`: CLI flags for Julia (default: none).
 - `-a, --add <arg>`: Extra packages needed (delimit by comma).
 - `-s, --script <arg>`: The benchmark script. Default: `benchmark/benchmarks.jl` downloaded from `stable`.
@@ -45,8 +47,8 @@ Benchmark a package over a set of revisions.
 
 """
 @main function benchpkg(
-    package_name::String;
-    rev::String,
+    package_name::String="";
+    rev::String="dirty,{DEFAULT}",
     output_dir::String=".",
     script::String="",
     exeflags::String="",
@@ -66,6 +68,8 @@ Benchmark a package over a set of revisions.
 
     @assert length(revs) > 0 "No revisions specified."
     @assert nsamples_load_time > 0 "nsamples_load_time must be positive."
+
+    package_name, url, path = get_package_name_defaults(package_name, url, path)
 
     benchmark(
         package_name,
