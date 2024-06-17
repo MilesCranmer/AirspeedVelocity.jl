@@ -18,7 +18,12 @@ Print a table of the benchmarks of a package as created with `benchpkg`.
 # Options
 
 - `-r, --rev <arg>`: Revisions to test (delimit by comma).
+  The default is `{DEFAULT},dirty`, which will attempt to find the default branch
+  of the package.
 - `-i, --input-dir <arg>`: Where the JSON results were saved (default: ".").
+- `--url <arg>`: URL of the package. Only used to get the package name.
+- `--path <arg>`: Path of the package. The default is `.` if other arguments are not given.
+   Only used to get the package name.
 
 # Flags
 
