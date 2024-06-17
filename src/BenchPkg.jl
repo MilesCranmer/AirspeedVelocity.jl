@@ -1,6 +1,7 @@
 module BenchPkg
 
-using ..Utils: benchmark, get_package_name_defaults
+using ..TableUtils: create_table, format_memory
+using ..Utils: benchmark, get_package_name_defaults, parse_rev, load_results
 using Comonicon
 using Comonicon: @main
 
@@ -40,6 +41,7 @@ Benchmark a package over a set of revisions.
 - `-f, --filter <arg>`: Filter the benchmarks to run (delimit by comma).
 - `--nsamples-load-time <arg>`: Number of samples to take when measuring load time of
     the package (default: 5). (This means starting a Julia process for each sample.)
+- `--dont-print`: Don't print the table.
 
 # Flags
 
@@ -59,9 +61,10 @@ Benchmark a package over a set of revisions.
     bench_on::String="",
     filter::String="",
     nsamples_load_time::Int=5,
+    dont_print::Bool=false,
 )
     revs = convert(Vector{String}, split(rev, ","))
-    Base.filter!(x -> length(x) > 0, revs)
+    Base.filter!(!isempty, revs)
 
     filtered = convert(Vector{String}, split(filter, ","))
     Base.filter!(x -> length(x) > 0, filtered)
@@ -70,6 +73,14 @@ Benchmark a package over a set of revisions.
     @assert nsamples_load_time > 0 "nsamples_load_time must be positive."
 
     package_name, url, path = get_package_name_defaults(package_name, url, path)
+
+    if path != ""
+        revs = map(Base.Fix2(parse_rev, path), revs)
+    else
+        if any(==("{DEFAULT}"), revs)
+            error("You must explicitly set `--revs` for this set of options.")
+        end
+    end
 
     benchmark(
         package_name,
@@ -85,6 +96,13 @@ Benchmark a package over a set of revisions.
         filter_benchmarks=filtered,
         nsamples_load_time=nsamples_load_time,
     )
+
+    if !dont_print
+        combined_results = load_results(package_name, revs; input_dir=output_dir)
+        println(
+            create_table(combined_results; add_ratio_col=length(revs) == 2, key="median")
+        )
+    end
 
     return nothing
 end

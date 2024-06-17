@@ -304,9 +304,7 @@ end
 end
 
 @testitem "Fill in defaults" begin
-    import AirspeedVelocity as ASV
-
-    pkg_defaults = ASV.Utils.get_package_name_defaults
+    import AirspeedVelocity.Utils: get_package_name_defaults as pkg_defaults
 
     # Create a temporary directory with a Project.toml
     tmpdir = mktempdir()
@@ -334,4 +332,20 @@ end
     # Error cases
     @test_throws ErrorException pkg_defaults("", "https://github.com/user/repo", "")
     @test_throws ErrorException pkg_defaults("", "https://github.com/user/repo", ".")
+end
+
+@testitem "Test parse_rev" begin
+    using AirspeedVelocity.Utils: parse_rev
+
+    # Setup a temporary directory and initialize a git repository
+    tmpdir = mktempdir()
+    cd(tmpdir)
+    run(`git clone --depth 1 https://github.com/MilesCranmer/AirspeedVelocity.jl .`)
+
+    # Test the parse_rev function
+    default_branch = parse_rev("{DEFAULT}", tmpdir)
+    @test default_branch == "master"
+
+    other_rev = parse_rev("my-rev", tmpdir)
+    @test other_rev == "my-rev"
 end

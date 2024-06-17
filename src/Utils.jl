@@ -579,4 +579,22 @@ function get_package_name_defaults(package_name::String, url::String, path::Stri
     return (package_name, url, path)
 end
 
+"""
+Fill in the default branch if needed.
+"""
+function parse_rev(rev::String, path::String)
+    if rev != "{DEFAULT}"
+        return rev
+    end
+    cmd = `git remote show origin`
+    # Execute the command and capture the output
+    output = read(cmd, String)
+    # Parse the output to find the default branch
+    default_branch_line = match(r"HEAD branch: (\w+)", output)
+    default_branch_line === nothing && error(
+        "Default branch not found in the remote repository information:\n\n```\n$output\n```",
+    )
+    return String(default_branch_line.captures[1])
+end
+
 end # module AirspeedVelocity.Utils
