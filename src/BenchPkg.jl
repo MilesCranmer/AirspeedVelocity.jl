@@ -17,6 +17,7 @@ using Comonicon: @main
                             [-f, --filter <arg>]
                             [--nsamples-load-time <arg>]
                             [--tune]
+                            [--dont-print]
 
 Benchmark a package over a set of revisions.
 

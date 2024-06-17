@@ -6,8 +6,12 @@ using Comonicon
 using Comonicon: @main
 
 """
-    benchpkgtable package_name [-r --rev <arg>] [-i --input-dir <arg>]
-                               [--ratio] [--mode <arg>]
+    benchpkgtable [package_name] [-r --rev <arg>]
+                                 [-i --input-dir <arg>]
+                                 [--ratio]
+                                 [--mode <arg>]
+                                 [--url <arg>]
+                                 [--path <arg>]
 
 Print a table of the benchmarks of a package as created with `benchpkg`.
 
