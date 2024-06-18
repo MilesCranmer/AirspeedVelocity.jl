@@ -1,7 +1,7 @@
 name = "AirspeedVelocity"
 uuid = "1c8270ee-6884-45cc-9545-60fa71ec23e4"
 authors = ["Miles Cranmer <miles.cranmer@gmail.com>"]
-version = "0.5.3"
+version = "0.6.0"
 
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
@@ -16,6 +16,7 @@ PlotlyLight = "ca7969ec-10b3-423e-8d99-40f33abb42bf"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 REPL = "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
 
 [compat]
 BenchmarkTools = "1"
@@ -24,7 +25,10 @@ DispatchDoctor = "0.4"
 FilePathsBase = "0.9"
 JSON3 = "1"
 OrderedCollections = "1"
+Pkg = "1"
 PlotlyKaleido = "2"
 PlotlyLight = "0.6"
 REPL = "1"
+Statistics = "1"
+TOML = "1"
 julia = "1.8"
