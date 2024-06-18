@@ -594,7 +594,7 @@ function parse_rev(rev::String, path::String)
     default_branch_line === nothing && error(
         "Default branch not found in the remote repository information:\n\n```\n$output\n```",
     )
-    return String(default_branch_line.captures[1])
+    return String(default_branch_line.captures[1])::String
 end
 
 end # module AirspeedVelocity.Utils
