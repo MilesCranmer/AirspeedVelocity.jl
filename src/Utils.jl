@@ -573,7 +573,7 @@ function get_package_name_defaults(package_name::String, url::String, path::Stri
     if path != ""
         toml_path = joinpath(path, "Project.toml")
         toml = parsefile(toml_path)
-        package_name = toml["name"]
+        package_name = toml["name"]::String
     end
 
     return (package_name, url, path)
