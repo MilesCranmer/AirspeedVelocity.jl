@@ -18,6 +18,9 @@ This package allows you to:
 This package also freezes the benchmark script at a particular revision,
 so there is no worry about the old history overwriting the benchmark.
 
+https://github.com/MilesCranmer/AirspeedVelocity.jl/assets/7593028/f27b04ef-8491-4f49-a312-4df0fae00598
+
+
 ## Installation
 
 You can install the CLI with:
