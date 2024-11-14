@@ -349,3 +349,48 @@ end
     other_rev = parse_rev("my-rev", tmpdir)
     @test other_rev == "my-rev"
 end
+
+@testitem "Specifying Julia Version" begin
+    using AirspeedVelocity
+
+    script_dir = mktempdir()
+    output_dir = mktempdir()
+    script_path = joinpath(script_dir, "bench.jl")
+
+    function make_script(ver)
+        body = """
+            using BenchmarkTools
+            using SymbolicRegression
+            using Pkg.Types: VersionSpec
+
+            const SUITE = BenchmarkGroup()
+            SUITE["eval_tree_array"] = begin
+                b = BenchmarkGroup()
+                options = Options(; binary_operators=[+, -, *], unary_operators=[cos])
+                x, y = Node(; feature=1), Node(; feature=2)
+                tree = x + cos(3.2f0 * y)
+
+                X = randn(Float32, 2, 10)
+                f() = eval_tree_array(tree, X, options)
+                b["eval_10"] = @benchmarkable f() evals=1 samples=100
+            end
+        """
+        body *= isempty(ver) ? "" : "@assert VERSION in VersionSpec(\"$ver\")"
+        open(script_path, "w") do io
+            write(io, body)
+        end
+        return nothing
+    end
+
+    for ver in ("", "1.11.1", "1.10")
+        make_script(ver)
+
+        results = benchmark(
+            "SymbolicRegression",
+            "v0.15.3";
+            script=script_path,
+            output_dir=output_dir,
+            julia_version=ver,
+        )
+    end
+end

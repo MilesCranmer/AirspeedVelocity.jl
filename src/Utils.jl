@@ -95,6 +95,7 @@ function _benchmark(
     filter_benchmarks::Vector{String},
     project_toml::Union{Nothing,String},
     nsamples_load_time::Int,
+    julia_version::Cmd,
 )
     cur_dir = pwd()
     # Make sure paths are absolute, otherwise weird
@@ -243,7 +244,10 @@ function _benchmark(
         write(io, s4)
     end
     @info "    Launching benchmark runner."
-    run(`julia --project="$tmp_env" --startup-file=no $exeflags "$runner_filename"`)
+    @info "    using Julia command: julia $julia_version"
+    run(
+        `julia $julia_version --project="$tmp_env" --startup-file=no $exeflags "$runner_filename"`,
+    )
     # Return results from JSON file:
     @info "    Benchmark runner exited."
     @info "    Reading results."
@@ -299,6 +303,7 @@ The results of the benchmarks are saved to a JSON file named `results_packagenam
 - `benchmark_on::Union{String,Nothing}=nothing`: If the benchmark script file is to be downloaded, this specifies the revision to use.
 - `filter_benchmarks::Vector{String}=String[]`: Filter the benchmarks to run (default: all).
 - `nsamples_load_time::Int=5`: Number of samples to take for the time-to-load benchmark.
+- `julia_version::String=""`: Julia version to use during benchmarks (default: local Julia default).
 """
 function benchmark(
     package_name::String,
@@ -313,6 +318,7 @@ function benchmark(
     benchmark_on::Union{String,Nothing}=nothing,
     filter_benchmarks::Vector{String}=String[],
     nsamples_load_time::Int=5,
+    julia_version::String="",
 )
     if "dirty" in revs && isnothing(path)
         @error "You must specify a `path` when using the `dirty` revision."
@@ -327,6 +333,7 @@ function benchmark(
         benchmark_on=benchmark_on,
         filter_benchmarks=filter_benchmarks,
         nsamples_load_time=nsamples_load_time,
+        julia_version=julia_version,
     )
 end
 function benchmark(
@@ -342,6 +349,7 @@ function benchmark(
     benchmark_on::Union{String,Nothing}=nothing,
     filter_benchmarks::Vector{String}=String[],
     nsamples_load_time::Int=5,
+    julia_version::String="",
 )
     return benchmark(
         package_name,
@@ -356,6 +364,7 @@ function benchmark(
         benchmark_on=benchmark_on,
         filter_benchmarks=filter_benchmarks,
         nsamples_load_time=nsamples_load_time,
+        julia_version=julia_version,
     )
 end
 
@@ -392,6 +401,7 @@ function benchmark(
     benchmark_on::Union{String,Nothing}=nothing,
     project_toml::Union{String,Nothing}=nothing,
     nsamples_load_time::Int=5,
+    julia_version::String="",
 )
     script, project_toml = if script === nothing
         package_name = first(package_specs).name
@@ -420,6 +430,7 @@ function benchmark(
             filter_benchmarks,
             project_toml,
             nsamples_load_time,
+            julia_version,
         )
     end
     return results
@@ -435,6 +446,7 @@ function benchmark(
     benchmark_on::Union{String,Nothing}=nothing,
     project_toml::Union{String,Nothing}=nothing,
     nsamples_load_time::Int=5,
+    julia_version::String="",
 )
     script, project_toml = if script === nothing
         _get_script(;
@@ -446,6 +458,7 @@ function benchmark(
     else
         (script, project_toml)
     end
+    julia_version = parse_julia_version(julia_version)
     @info "Running benchmarks for " * package_spec.name * "@" * package_spec.rev * ":"
     return _benchmark(
         package_spec;
@@ -457,6 +470,7 @@ function benchmark(
         filter_benchmarks,
         project_toml,
         nsamples_load_time,
+        julia_version,
     )
 end
 
@@ -595,6 +609,27 @@ function parse_rev(rev::String, path::String)
         "Default branch not found in the remote repository information:\n\n```\n$output\n```",
     )
     return String(default_branch_line.captures[1])::String
+end
+
+"""
+Parses the Julia version into `juliaup` format and checks if `juliaup` is installed.
+"""
+function parse_julia_version(ver::String)
+    if isempty(ver)
+        return ``
+    else
+        # check if juliaup exists
+        try
+            run(`juliaup --version`)
+        catch
+            throw(
+                ArgumentError(
+                    "juliaup not installed, cannot specify a particular Julia version to use.",
+                ),
+            )
+        end
+        return occursin("+", ver) ? ver : `+$ver`
+    end
 end
 
 end # module AirspeedVelocity.Utils
