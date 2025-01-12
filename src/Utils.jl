@@ -85,6 +85,14 @@ function _get_script(;
     return script, project_toml
 end
 
+function parse_package_spec(specifier::AbstractString)
+    return only(
+        Pkg.REPLMode.parse_package(
+            [Pkg.REPLMode.QString(specifier, false)], nothing; add_or_dev=true
+        ),
+    )
+end
+
 function _benchmark(
     spec::PackageSpec;
     output_dir::String,
@@ -124,7 +132,7 @@ function _benchmark(
     pkgs = ["BenchmarkTools", "JSON3", "Pkg", "TOML", extra_pkgs...]
     # Add extra packages. A "dirty" rev means we want to benchmark the local
     # version of the package at `path`.
-    Pkg.add([PackageSpec(; name=pkg) for pkg in pkgs]; io=devnull)
+    Pkg.add([parse_package_spec(pkg) for pkg in pkgs]; io=devnull)
     if spec.rev == "dirty"
         Pkg.develop(; path=spec.path, io=devnull)
     else
@@ -486,6 +494,14 @@ end
 function _flatten_results!(d::OrderedDict, results::Dict{String,Any}, prefix)
     if "times" in keys(results)
         d[prefix] = compute_summary_statistics(results)
+    elseif "samples" in keys(results) # This branch allows for Chairmarks.jl compatibility
+        samples = results["samples"]
+        results′ = Dict(
+            "times" => 1e9getindex.(samples, "time"),
+            "memory" => mean(getindex.(samples, "bytes")),
+            "allocs" => mean(getindex.(samples, "allocs")),
+        )
+        d[prefix] = compute_summary_statistics(results′)
     elseif "data" in keys(results)
         for (key, value) in results["data"]
             next_prefix = if length(prefix) == 0
