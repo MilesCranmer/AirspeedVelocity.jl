@@ -494,14 +494,6 @@ end
 function _flatten_results!(d::OrderedDict, results::Dict{String,Any}, prefix)
     if "times" in keys(results)
         d[prefix] = compute_summary_statistics(results)
-    elseif "samples" in keys(results) # This branch allows for Chairmarks.jl compatibility
-        samples = results["samples"]
-        results′ = Dict(
-            "times" => 1e9getindex.(samples, "time"),
-            "memory" => mean(getindex.(samples, "bytes")),
-            "allocs" => mean(getindex.(samples, "allocs")),
-        )
-        d[prefix] = compute_summary_statistics(results′)
     elseif "data" in keys(results)
         for (key, value) in results["data"]
             next_prefix = if length(prefix) == 0
