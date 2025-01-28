@@ -349,3 +349,15 @@ end
     other_rev = parse_rev("my-rev", tmpdir)
     @test other_rev == "my-rev"
 end
+
+@testitem "default_branch()" begin
+    @test AirspeedVelocity.Utils.default_branch() == "master"
+    run(pipeline(ignorestatus(`git branch master`), stderr=devnull)) # On CI, this branch might not actually exist.
+    run(`git branch trunk`)
+    @test AirspeedVelocity.Utils.default_branch() == "master" # This requires internet access
+    run(`git branch -d trunk`)
+    @test AirspeedVelocity.Utils.default_branch() == "master"
+    @test AirspeedVelocity.Utils.parse_rev("{DEFAULT}", "unused") == "master"
+    @test AirspeedVelocity.Utils.parse_rev("lh/guess-default-branch", "unused") ==
+        "lh/guess-default-branch"
+end
