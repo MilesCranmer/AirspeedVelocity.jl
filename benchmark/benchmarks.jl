@@ -1,6 +1,5 @@
 # This "benchmark" is only a demo; it is not a real benchmark.
 using BenchmarkTools
-using AirspeedVelocity
 
 const SUITE = BenchmarkGroup()
 

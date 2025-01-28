@@ -26,7 +26,7 @@ https://github.com/MilesCranmer/AirspeedVelocity.jl/assets/7593028/f27b04ef-8491
 You can install the CLI with:
 
 ```bash
-julia -e 'using Pkg; Pkg.add("AirspeedVelocity"); Pkg.build("AirspeedVelocity")'
+julia -e 'using Pkg; Pkg.activate(temp=true); Pkg.add("AirspeedVelocity")'
 ```
 
 This will install two executables at `~/.julia/bin` - make sure to have it on your `PATH`.
