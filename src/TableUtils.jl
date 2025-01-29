@@ -5,9 +5,27 @@ using ..Utils:
 using OrderedCollections: OrderedDict
 using Printf: @sprintf
 
+#! format: off
+### Compatibility stuff for old Julia annotated strings
+using StyledStrings: StyledStrings, @styled_str, annotatedstring
+@static if VERSION >= v"1.11.0-"
+    @eval begin
+        const AnnotatedIOBuffer = Base.AnnotatedIOBuffer
+        const AnnotatedString = Base.AnnotatedString
+    end
+else
+    @eval begin
+        const AnnotatedIOBuffer = StyledStrings.AnnotatedStrings.AnnotatedIOBuffer
+        const AnnotatedString = StyledStrings.AnnotatedStrings.AnnotatedString
+    end
+end
+dump_buffer(buffer::IOBuffer) = String(take!(buffer))
+dump_buffer(buffer::AnnotatedIOBuffer) = AnnotatedString(dump_buffer(buffer.io), buffer.annotations)
+#! format: on
+
 function format_time(val::Dict)
     unit, unit_name = get_reasonable_time_unit([val["median"]])
-    if haskey(val, "75")
+    str = if haskey(val, "75")
         @sprintf(
             "%.3g ± %.2g %s",
             val["median"] * unit,
@@ -17,13 +35,17 @@ function format_time(val::Dict)
     else
         @sprintf("%.3g %s", val["median"] * unit, unit_name)
     end
+    return annotatedstring(str)
 end
+
 function format_time(val::Number)
     unit, unit_name = get_reasonable_memory_unit([val])
-    @sprintf("%.3g %s", val * unit, unit_name)
+    str = @sprintf("%.3g %s", val * unit, unit_name)
+    return annotatedstring(str)
 end
+
 function format_time(::Missing)
-    return ""
+    styled""
 end
 
 function format_memory(val::Dict)
@@ -31,19 +53,38 @@ function format_memory(val::Dict)
     if !isnothing(allocs) && !isnothing(memory)
         allocs_unit, allocs_unit_name = get_reasonable_allocs_unit(val["allocs"])
         memory_unit, memory_unit_name = get_reasonable_memory_unit(val["memory"])
-        @sprintf(
+        str = @sprintf(
             "%.3g %s allocs: %.3g %s",
             allocs * allocs_unit,
             allocs_unit_name,
             memory * memory_unit,
             memory_unit_name
         )
+        annotatedstring(str)
     else
-        ""
+        styled""
     end
 end
+
 function format_memory(::Missing)
-    return ""
+    styled""
+end
+
+function format_ratio(ratio::Float64)
+    str = @sprintf("%.3g", ratio)
+    if isnan(ratio) || ratio == 1.0
+        annotatedstring(str)
+    elseif ratio < 1.0
+        # Green for speedup (ratio < 1 means first version is faster)
+        styled"{green:$str}"
+    else
+        # Red for slowdown
+        styled"{red:$str}"
+    end
+end
+
+function format_ratio(::Missing)
+    styled""
 end
 
 function default_formatter(key)
@@ -106,25 +147,25 @@ function create_table(
         end for head in headers
     ]
 
-    data_columns = Vector{String}[]
+    data_columns = Vector{AnnotatedString}[]
 
     for result in values(combined_results)
-        col = String[]
+        col = AnnotatedString[]
         for row in all_keys
             val = get(result, row, missing)
-            push!(col, formatter(val))
+            push!(col, annotatedstring(formatter(val)))
         end
         push!(data_columns, col)
     end
 
     if num_revisions == 2 && add_ratio_col
-        col = String[]
+        col = AnnotatedString[]
         for row in all_keys
             if all(r -> haskey(r, row), values(combined_results))
                 ratio = (/)([val[row][key] for val in values(combined_results)]...)
-                push!(col, @sprintf("%.3g", ratio))
+                push!(col, annotatedstring(format_ratio(ratio)))
             else
-                push!(col, "")
+                push!(col, styled"")
             end
         end
         push!(data_columns, col)
@@ -146,10 +187,10 @@ function markdown_table(; data::AbstractMatrix, header::AbstractVector)
         end
     end
     # GitHub-style markdown table:
-    io = IOBuffer()
+    io = AnnotatedIOBuffer()
     print(io, "|")
     for (i, head) in enumerate(header)
-        print(io, " $(head) " * " "^(col_widths[i] - length(head)) * "|")
+        print(io, " ", head, " "^(1 + col_widths[i] - length(head)), "|")
     end
     println(io)
 
@@ -165,11 +206,11 @@ function markdown_table(; data::AbstractMatrix, header::AbstractVector)
     for row in eachrow(data)
         print(io, "|")
         for (i, val) in enumerate(row)
-            print(io, " $(val) " * " "^(col_widths[i] - length(string(val))) * "|")
+            print(io, " ", val, " "^(1 + col_widths[i] - length(string(val))), "|")
         end
         println(io)
     end
-    return String(take!(io))
+    return dump_buffer(io)
 end
 
 end # AirspeedVelocity.TableUtils
