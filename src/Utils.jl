@@ -85,6 +85,14 @@ function _get_script(;
     return script, project_toml
 end
 
+function parse_package_spec(specifier::AbstractString)
+    return only(
+        Pkg.REPLMode.parse_package(
+            [Pkg.REPLMode.QString(specifier, false)], nothing; add_or_dev=true
+        ),
+    )
+end
+
 function _benchmark(
     spec::PackageSpec;
     output_dir::String,
@@ -124,7 +132,7 @@ function _benchmark(
     pkgs = ["BenchmarkTools", "JSON3", "Pkg", "TOML", extra_pkgs...]
     # Add extra packages. A "dirty" rev means we want to benchmark the local
     # version of the package at `path`.
-    Pkg.add([PackageSpec(; name=pkg) for pkg in pkgs]; io=devnull)
+    Pkg.add([parse_package_spec(pkg) for pkg in pkgs]; io=devnull)
     if spec.rev == "dirty"
         Pkg.develop(; path=spec.path, io=devnull)
     else
@@ -622,10 +630,10 @@ function throw_default_branch_error(branches, cmd_succeeded)
     end
     return error(
         """
-      Unable to determine the default branch locally ($branch_detail).
-      Also unnable to determine the default branch by querying the remote ($remote_detail).
-      You can typically bypass this error by specifying the version manually (i.e. pass `-rev=...` to the CLI)
-      """,
+        Unable to determine the default branch locally ($branch_detail).
+        Also unnable to determine the default branch by querying the remote ($remote_detail).
+        You can typically bypass this error by specifying the version manually (i.e. pass `-rev=...` to the CLI)
+        """,
     )
 end
 
