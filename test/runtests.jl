@@ -349,3 +349,37 @@ end
     other_rev = parse_rev("my-rev", tmpdir)
     @test other_rev == "my-rev"
 end
+
+@testset "parse_package_spec" begin
+    using Pkg
+    using AirspeedVelocity.Utils: parse_package_spec
+    @test parse_package_spec("Example") == Pkg.PackageSpec(; name="Example")
+    @test parse_package_spec("https://github.com/User/Package.jl") ==
+        Pkg.PackageSpec(; url="https://github.com/User/Package.jl")
+    @test parse_package_spec(
+        "https://github.com/User/Package.jl#deadbeef12341234deadbeef12341234deadbeef"
+    ) == Pkg.PackageSpec(;
+        url="https://github.com/User/Package.jl",
+        rev="deadbeef12341234deadbeef12341234deadbeef",
+    )
+    @test parse_package_spec("https://github.com/User/Package.jl#v1.0.0") ==
+        Pkg.PackageSpec(; url="https://github.com/User/Package.jl", rev="v1.0.0")
+    @test parse_package_spec("https://github.com/User/Package.jl@v1.0.0") ==
+        Pkg.PackageSpec(; url="https://github.com/User/Package.jl", version="v1.0.0")
+    @test parse_package_spec(joinpath(Base.homedir())) ==
+        Pkg.PackageSpec(; path=joinpath(Base.homedir()))
+    @test parse_package_spec("Package@v1.0.0") ==
+        Pkg.PackageSpec(; name="Package", version="v1.0.0")
+end
+
+@testitem "default_branch()" begin
+    @test AirspeedVelocity.Utils.default_branch() == "master"
+    run(pipeline(ignorestatus(`git branch master`); stderr=devnull)) # On CI, this branch might not actually exist.
+    run(`git branch trunk`)
+    @test AirspeedVelocity.Utils.default_branch() == "master" # This requires internet access
+    run(`git branch -d trunk`)
+    @test AirspeedVelocity.Utils.default_branch() == "master"
+    @test AirspeedVelocity.Utils.parse_rev("{DEFAULT}", "unused") == "master"
+    @test AirspeedVelocity.Utils.parse_rev("lh/guess-default-branch", "unused") ==
+        "lh/guess-default-branch"
+end
