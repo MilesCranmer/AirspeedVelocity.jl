@@ -86,6 +86,14 @@ function _get_script(;
     return script, project_toml
 end
 
+function parse_package_spec(specifier::AbstractString)
+    return only(
+        Pkg.REPLMode.parse_package(
+            [Pkg.REPLMode.QString(specifier, false)], nothing; add_or_dev=true
+        ),
+    )
+end
+
 function _benchmark(
     spec::PackageSpec;
     output_dir::String,
@@ -125,7 +133,7 @@ function _benchmark(
     pkgs = ["BenchmarkTools", "JSON3", "Pkg", "TOML", extra_pkgs...]
     # Add extra packages. A "dirty" rev means we want to benchmark the local
     # version of the package at `path`.
-    Pkg.add([PackageSpec(; name=pkg) for pkg in pkgs]; io=devnull)
+    Pkg.add([parse_package_spec(pkg) for pkg in pkgs]; io=devnull)
     if spec.rev == "dirty"
         Pkg.develop(; path=spec.path, io=devnull)
     else
@@ -583,19 +591,51 @@ end
 """
 Fill in the default branch if needed.
 """
-function parse_rev(rev::String, path::String)
-    if rev != "{DEFAULT}"
-        return rev
-    end
+parse_rev(rev::String, path::String) = rev == "{DEFAULT}" ? default_branch() : rev
+
+const DEFAULT_BRANCH_NAMES = [
+    "main", "master", "trunk", "dev", "devel", "develop", "default"
+]
+function default_branch()
+    # See if we can determine the default branch locally:
+    default_branches = [
+        line for line in eachline(`git branch --format="%(refname:short)"`) if
+        line ∈ DEFAULT_BRANCH_NAMES
+    ]
+    length(default_branches) == 1 && return only(default_branches)
+
+    # If not, try to get it from the remote:
     cmd = `git remote show origin`
     # Execute the command and capture the output
-    output = read(cmd, String)
+    output = try
+        read(cmd, String)
+    catch
+        throw_default_branch_error(default_branches, false)
+    end
     # Parse the output to find the default branch
     default_branch_line = match(r"HEAD branch: (\w+)", output)
-    default_branch_line === nothing && error(
-        "Default branch not found in the remote repository information:\n\n```\n$output\n```",
-    )
+    default_branch_line === nothing && throw_default_branch_error(default_branches, true)
     return String(default_branch_line.captures[1])::String
+end
+
+function throw_default_branch_error(branches, cmd_succeeded)
+    branch_detail = if isempty(branches)
+        "none of $(join(DEFAULT_BRANCH_NAMES, ", ")) found"
+    else
+        "couldn't decide which of $(join(branches, ", ")) is the default"
+    end
+    remote_detail = if cmd_succeeded
+        "the result of `git remote show origin` didn't specify the a HEAD branch"
+    else
+        "`git remote show origin` failed"
+    end
+    return error(
+        """
+        Unable to determine the default branch locally ($branch_detail).
+        Also unnable to determine the default branch by querying the remote ($remote_detail).
+        You can typically bypass this error by specifying the version manually (i.e. pass `-rev=...` to the CLI)
+        """,
+    )
 end
 
 end # module AirspeedVelocity.Utils
