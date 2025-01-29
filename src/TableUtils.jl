@@ -7,7 +7,7 @@ using Printf: @sprintf
 
 #! format: off
 ### Compatibility stuff for old Julia annotated strings
-using StyledStrings: StyledStrings, @styled_str, annotatedstring
+using StyledStrings: StyledStrings, @styled_str, annotatedstring, SimpleColor, Face, withfaces
 @static if VERSION >= v"1.11.0-"
     @eval begin
         const AnnotatedIOBuffer = Base.AnnotatedIOBuffer
@@ -72,15 +72,29 @@ end
 
 function format_ratio(ratio::Float64)
     str = @sprintf("%.3g", ratio)
-    if isnan(ratio) || ratio == 1.0
-        annotatedstring(str)
-    elseif ratio < 1.0
-        # Green for speedup (ratio < 1 means first version is faster)
-        styled"{green:$str}"
-    else
-        # Red for slowdown
-        styled"{red:$str}"
+    isnan(ratio) && return annotatedstring(str)
+
+    color = if ratio <= 0.1  # Bright green
+        SimpleColor(0, 255, 0)
+    elseif ratio <= 0.5  # Green gradient
+        t = (ratio - 0.1) / 0.4
+        SimpleColor(0, round(Int, 255 - 127 * t), 0)
+    elseif ratio < 1.0  # Dark green to black
+        t = (ratio - 0.5) / 0.5
+        SimpleColor(0, round(Int, 128 * (1 - t)), 0)
+    elseif ratio == 1.0  # Black
+        SimpleColor(0, 0, 0)
+    elseif ratio <= 2.0  # Black to yellow
+        t = (ratio - 1.0) / 1.0
+        SimpleColor(round(Int, 255 * t), round(Int, 255 * t), 0)
+    elseif ratio <= 10.0  # Yellow to red
+        t = (ratio - 2.0) / 8.0
+        SimpleColor(255, round(Int, 255 * (1 - t)), 0)
+    else  # Bright red
+        SimpleColor(255, 0, 0)
     end
+
+    styled"{$(Face(foreground=color)):$str}"
 end
 
 function format_ratio(::Missing)
