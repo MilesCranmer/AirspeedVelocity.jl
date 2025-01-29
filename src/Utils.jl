@@ -630,10 +630,10 @@ function throw_default_branch_error(branches, cmd_succeeded)
     end
     return error(
         """
-      Unable to determine the default branch locally ($branch_detail).
-      Also unnable to determine the default branch by querying the remote ($remote_detail).
-      You can typically bypass this error by specifying the version manually (i.e. pass `-rev=...` to the CLI)
-      """,
+        Unable to determine the default branch locally ($branch_detail).
+        Also unnable to determine the default branch by querying the remote ($remote_detail).
+        You can typically bypass this error by specifying the version manually (i.e. pass `-rev=...` to the CLI)
+        """,
     )
 end
 
