@@ -26,7 +26,7 @@ https://github.com/MilesCranmer/AirspeedVelocity.jl/assets/7593028/f27b04ef-8491
 You can install the CLI with:
 
 ```bash
-julia -e 'using Pkg; Pkg.add("AirspeedVelocity"); Pkg.build("AirspeedVelocity")'
+julia -e 'using Pkg; Pkg.activate(temp=true); Pkg.add("AirspeedVelocity")'
 ```
 
 This will install two executables at `~/.julia/bin` - make sure to have it on your `PATH`.
@@ -77,7 +77,7 @@ benchpkgplot Transducers \
 which will generate a pdf file for each set of 5 plots,
 showing the change with each revision:
 
-<img width="877" alt="Screenshot 2023-04-03 at 10 36 16 AM" src="https://user-images.githubusercontent.com/7593028/229543368-14b1da88-8315-437b-b38f-fff143f26e3a.png">
+![runtime_at_versions](https://user-images.githubusercontent.com/7593028/229543368-14b1da88-8315-437b-b38f-fff143f26e3a.png)
 
 You can also provide a custom benchmark.
 For example, let's say you have a file `script.jl`, defining
