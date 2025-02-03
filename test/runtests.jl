@@ -212,7 +212,7 @@ end
     )
 
     truth = """
-    |        | v1           | v2         | v1/v2 |
+    |        | v1           | v2         | v1 / v2 |
     |:-------|:------------:|:----------:|:-----:|
     | bench1 | 1.2 ± 0.2 s  | 12 ± 2 s   | 0.1   |
     | bench2 | 0.2 ± 0.2 ms | 20 ± 20 μs | 10    |
@@ -221,7 +221,7 @@ end
     @test truth ≈ create_table(combined_results)
 
     truth = """
-    |        | v1                 | v2                | v1/v2   |
+    |        | v1                 | v2                | v1 / v2   |
     |:-------|:------------------:|:-----------------:|:-------:|
     | bench1 | 1  allocs: 10 B    | 2  allocs: 1 kB   | 0.00977 |
     | bench2 | 1 M allocs: 0.1 kB | 3  allocs: 10 kB  | 0.01    |
