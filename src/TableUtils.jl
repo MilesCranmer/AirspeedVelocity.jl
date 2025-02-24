@@ -121,14 +121,14 @@ function create_table(
         col = String[]
         for row in all_keys
             if all(r -> haskey(r, row), values(combined_results))
-                ratio = (/)([val[row][key] for val in values(combined_results)]...)
+                ratio = (/)(reverse!([val[row][key] for val in values(combined_results)])...)
                 push!(col, @sprintf("%.3g", ratio))
             else
                 push!(col, "")
             end
         end
         push!(data_columns, col)
-        push!(headers, "$(headers[2]) / $(headers[3])")
+        push!(headers, "$(headers[3]) / $(headers[2])")
         num_cols += 1
     end
 
