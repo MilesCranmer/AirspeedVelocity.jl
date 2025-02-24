@@ -9,7 +9,7 @@ using Comonicon: @main
 """
     benchpkgplot package_name [-r --rev <arg>] [-i --input-dir <arg>]
                               [-o --output-dir <arg>] [-n --npart <arg>]
-                              [--format <arg>]
+                              [--format <arg>] [--timeout <arg>]
 
 Plot the benchmarks of a package as created with `benchpkg`.
 
@@ -24,6 +24,7 @@ Plot the benchmarks of a package as created with `benchpkg`.
 - `-o, --output-dir <arg>`: Where to save the plots results (default: ".").
 - `-n, --npart <arg>`: Max number of plots per page (default: 10).
 - `--format <arg>`: File type to save the plots as (default: "png").
+- `--timeout <arg>`: Timeout for the PlotlyKaleido.start() method (default: 30 seconds).
 """
 @main function benchpkgplot(
     package_name::String;
@@ -32,6 +33,7 @@ Plot the benchmarks of a package as created with `benchpkg`.
     output_dir::String=".",
     npart::Int=10,
     format::String="png",
+    timeout::Int=30,
 )
     revs = convert(Vector{String}, split(rev, ","))
     # Filter empty strings:
@@ -41,7 +43,7 @@ Plot the benchmarks of a package as created with `benchpkg`.
 
     plots = combined_plots(combined_results; npart=npart)
     @info "Saving plots."
-    start()
+    start(timeout=timeout)
     if length(plots) == 1
         savefig(
             first(plots),
