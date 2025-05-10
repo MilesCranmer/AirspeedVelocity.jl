@@ -119,13 +119,37 @@ function create_table(
 
     if num_revisions == 2 && add_ratio_col
         col = String[]
-        for row in all_keys
-            if all(r -> haskey(r, row), values(combined_results))
-                ratio = (/)([val[row][key] for val in values(combined_results)]...)
-                push!(col, @sprintf("%.3g", ratio))
-            else
+        results = collect(values(combined_results))
+
+        for benchmark_name in all_keys
+            if !all(haskey(r, benchmark_name) for r in results)
                 push!(col, "")
+                continue
             end
+
+            stats = [r[benchmark_name] for r in results]
+
+            if !all(haskey(s, key) for s in stats)
+                push!(col, "")
+                continue
+            end
+
+            vals = [s[key] for s in stats]
+
+            @assert length(vals) == 2
+            ratio = vals[1] / vals[2]
+            ratio_err = if all(haskey(s, "25") && haskey(s, "75") for s in stats)
+                errs = [max(0.0, s["75"] - s["25"]) for s in stats]
+                abs(ratio) * sqrt((errs[1] / vals[1])^2 + (errs[2] / vals[2])^2)
+            else
+                NaN
+            end
+            string_ratio = join((
+                isfinite(ratio) ? @sprintf("%.3g", ratio) : "",
+                isfinite(ratio_err) ? @sprintf(" ± %.2g", ratio_err) : "",
+            ))
+
+            push!(col, string_ratio)
         end
         push!(data_columns, col)
         push!(headers, "$(headers[2]) / $(headers[3])")
