@@ -168,6 +168,8 @@ end
     using AirspeedVelocity
     using OrderedCollections: OrderedDict
 
+    include("utils.jl")
+
     combined_results = OrderedDict(
         "v1" => OrderedDict(
             "bench1" => Dict(
@@ -212,11 +214,11 @@ end
     )
 
     truth = """
-    |        | v1           | v2         | v1 / v2 |
-    |:-------|:------------:|:----------:|:-------:|
-    | bench1 | 1.2 ± 0.2 s  | 12 ± 2 s   | 0.1     |
-    | bench2 | 0.2 ± 0.2 ms | 20 ± 20 μs | 10      |
-    | bench3 |              | 20 ± 20 μs |         |
+    |        | v1           | v2         | v1 / v2     |
+    |:-------|:------------:|:----------:|:-----------:|
+    | bench1 | 1.2 ± 0.2 s  | 12 ± 2 s   | 0.1 ± 0.024 |
+    | bench2 | 0.2 ± 0.2 ms | 20 ± 20 μs | 10 ± 14     |
+    | bench3 |              | 20 ± 20 μs |             |
     """
     @test truth ≈ create_table(combined_results)
 
