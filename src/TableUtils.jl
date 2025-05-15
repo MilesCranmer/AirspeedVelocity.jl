@@ -139,16 +139,35 @@ function create_table(
             @assert length(vals) == 2
             ratio = vals[1] / vals[2]
 
-            compute_ratio_err = all(haskey(s, "25") && haskey(s, "75") for s in stats) && key == "median"
+            compute_ratio_err = (
+                all(haskey(s, "25") && haskey(s, "75") for s in stats) && key == "median"
+            )
             ratio_err = if compute_ratio_err
                 errs = [max(0.0, s["75"] - s["25"]) for s in stats]
                 abs(ratio) * sqrt((errs[1] / vals[1])^2 + (errs[2] / vals[2])^2)
             else
                 NaN
             end
+
+            status = :neutral
+            if isfinite(ratio) && isfinite(ratio_err)
+                if ratio + ratio_err < 0.8
+                    status = :slowdown
+                elseif ratio - ratio_err > 1.2
+                    status = :speedup
+                end
+            elseif isfinite(ratio)
+                if ratio < 0.5
+                    status = :speedup
+                elseif ratio > 1.5
+                    status = :slowdown
+                end
+            end
+
             string_ratio = join((
                 isfinite(ratio) ? @sprintf("%.3g", ratio) : "",
                 isfinite(ratio_err) ? @sprintf(" ± %.2g", ratio_err) : "",
+                (; speedup=" 🚀", neutral="", slowdown=" 🐢")[status],
             ))
 
             push!(col, string_ratio)
