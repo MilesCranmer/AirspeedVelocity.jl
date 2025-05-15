@@ -125,20 +125,38 @@ function _benchmark(
         @info "    Copying $project_toml to environment."
         cp(project_toml, joinpath(tmp_env, "Project.toml"))
         chmod(joinpath(tmp_env, "Project.toml"), 0o644)
+
+        modified = false
+        project = Pkg.TOML.parse(open(joinpath(tmp_env, "Project.toml")))
+        sources = get(project, "sources", nothing)
+        if sources !== nothing
+            # If the package we are looking at has an [sources] entry
+            # we must remove since we will use explicit version later.
+            if haskey(sources, spec.name)
+                delete!(sources, spec.name)
+                modified = true
+            end
+        end
+        if modified
+            open(joinpath(tmp_env, "Project.toml"), "w") do io
+                Pkg.TOML.print(io, project)
+            end
+        end
     end
     Pkg.activate(tmp_env; io=devnull)
     @info "    Adding packages."
-    # Filter out empty strings from extra_pkgs:
-    extra_pkgs = filter(x -> x != "", extra_pkgs)
-    pkgs = ["BenchmarkTools", "JSON3", "Pkg", "TOML", extra_pkgs...]
-    # Add extra packages. A "dirty" rev means we want to benchmark the local
+    # "dirty" rev means we want to benchmark the local
     # version of the package at `path`.
-    Pkg.add([parse_package_spec(pkg) for pkg in pkgs]; io=devnull)
     if spec.rev == "dirty"
         Pkg.develop(; path=spec.path, io=devnull)
     else
         Pkg.add(spec; io=devnull)
     end
+    # Filter out empty strings from extra_pkgs:
+    extra_pkgs = filter(x -> x != "", extra_pkgs)
+    pkgs = ["BenchmarkTools", "JSON3", "Pkg", "TOML", extra_pkgs...]
+    # Add extra packages
+    Pkg.add([parse_package_spec(pkg) for pkg in pkgs]; io=devnull)
     Pkg.precompile()
     Pkg.activate(old_project; io=devnull)
     results_filename = joinpath(output_dir, "results_" * spec_str * ".json")
