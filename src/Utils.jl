@@ -125,6 +125,23 @@ function _benchmark(
         @info "    Copying $project_toml to environment."
         cp(project_toml, joinpath(tmp_env, "Project.toml"))
         chmod(joinpath(tmp_env, "Project.toml"), 0o644)
+
+        modified = false
+        project = Pkg.TOML.parse(open(joinpath(tmp_env, "Project.toml")))
+        sources = get(project, "sources", nothing)
+        if sources !== nothing
+            # If the package we are looking at has an [sources] entry
+            # we must remove since we will use explicit version later.
+            if haskey(sources, spec.name)
+                delete!(sources, spec.name)
+                modified = true
+            end
+        end
+        if modified
+            open(joinpath(tmp_env, "Project.toml"), "w") do io
+                Pkg.TOML.print(io, project)
+            end
+        end
     end
     Pkg.activate(tmp_env; io=devnull)
     @info "    Adding packages."
