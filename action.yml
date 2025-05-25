@@ -52,30 +52,40 @@ runs:
     - id: flags
       shell: bash
       run: |
-        # Build argument list for benchpkg / benchpkgplot / benchpkgtable
-        f=()
+        # Build separate argument lists:
+        #   bench_args -> for `benchpkg`
+        #   table_args -> for `benchpkgtable` and `benchpkgplot`
+        bench_args=()
+        table_args=()
 
         # --rev : default to <default_branch>,<PR_SHA> when caller did not override
         if [[ -n "${{ inputs.rev }}" ]]; then
-          f+=("--rev=${{ inputs.rev }}")
+          bench_args+=("--rev=${{ inputs.rev }}")
+          table_args+=("--rev=${{ inputs.rev }}")
         else
-          f+=("--rev=${{ github.event.repository.default_branch }},${{ github.event.pull_request.head.sha }}")
+          revs="${{ github.event.repository.default_branch }},${{ github.event.pull_request.head.sha }}"
+          bench_args+=("--rev=${revs}")
+          table_args+=("--rev=${revs}")
         fi
 
         # --bench-on : default to the repository default branch unless caller overrides
         if [[ -n "${{ inputs.bench-on }}" ]]; then
-          f+=("--bench-on=${{ inputs.bench-on }}")
+          bench_args+=("--bench-on=${{ inputs.bench-on }}")
         else
-          f+=("--bench-on=${{ github.event.repository.default_branch }}")
+          branch="${{ github.event.repository.default_branch }}"
+          bench_args+=("--bench-on=${branch}")
         fi
 
-        [[ -n "${{ inputs.script }}"   ]] && f+=("--script=${{ inputs.script }}")
-        [[ -n "${{ inputs.filter }}"   ]] && f+=("--filter=${{ inputs.filter }}")
-        [[ -n "${{ inputs.exeflags }}" ]] && f+=("--exeflags='${{ inputs.exeflags }}'")
-        [[ -n "${{ inputs.extra-pkgs }}" ]] && f+=("--add=${{ inputs.extra-pkgs }}")
-        [[ "${{ inputs.tune }}" == 'true' ]] && f+=("--tune")
+        # Options that apply **only** to benchpkg
+        [[ -n "${{ inputs.script }}"       ]] && bench_args+=("--script=${{ inputs.script }}")
+        [[ -n "${{ inputs.filter }}"       ]] && bench_args+=("--filter=${{ inputs.filter }}")
+        [[ -n "${{ inputs.exeflags }}"     ]] && bench_args+=("--exeflags='${{ inputs.exeflags }}'")
+        [[ -n "${{ inputs.extra-pkgs }}"   ]] && bench_args+=("--add=${{ inputs.extra-pkgs }}")
+        [[ "${{ inputs.tune }}" == 'true'  ]] && bench_args+=("--tune")
 
-        echo "args=${f[*]}" >> "$GITHUB_OUTPUT"
+        # Export as composite-action outputs
+        echo "bench_args=${bench_args[*]}" >> "$GITHUB_OUTPUT"
+        echo "table_args=${table_args[*]}" >> "$GITHUB_OUTPUT"
 
     # Run benchmarks
     - name: Run benchmarks
@@ -85,7 +95,7 @@ runs:
         benchpkg "${{ steps.pkg.outputs.package_name }}" \
           --url="${{ github.event.repository.clone_url }}" \
           --output-dir=results/ \
-          ${{ steps.flags.outputs.args }}
+          ${{ steps.flags.outputs.bench_args }}
 
     # Optional plots
     - if: ${{ inputs.enable-plots == 'true' }}
@@ -98,7 +108,7 @@ runs:
           --output-dir=plots/ \
           --format=png \
           --npart=10 \
-          ${{ steps.flags.outputs.args }}
+          ${{ steps.flags.outputs.table_args }}
 
     - if: ${{ inputs.enable-plots == 'true' }}
       uses: actions/upload-artifact@v4
@@ -121,7 +131,7 @@ runs:
               --input-dir=results/ \
               --mode=$m \
               --ratio \
-              ${{ steps.flags.outputs.args }}
+              ${{ steps.flags.outputs.table_args }}
             echo ""
             echo "</details>"
             echo ""
