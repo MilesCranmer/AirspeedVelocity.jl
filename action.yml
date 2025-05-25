@@ -46,7 +46,8 @@ runs:
     - id: pkg
       shell: bash
       run: |
-        echo "package_name=$(grep '^name' Project.toml | sed 's/^name = \"\(.*\)\"/\\1/')" >> "$GITHUB_OUTPUT"
+        pkg=$(awk -F' *= *' '/^name *=/ {gsub(/"/,"",$2); print $2; exit}' Project.toml)
+        echo "package_name=$pkg" >> "$GITHUB_OUTPUT"
 
     # Assemble optional flags
     - id: flags
@@ -59,7 +60,7 @@ runs:
         if [[ -n "${{ inputs.rev }}" ]]; then
           f+=("--rev=${{ inputs.rev }}")
         else
-          f+=("--rev=${{ github.event.repository.default_branch }},${{ github.event.pull_request.head_sha }}")
+          f+=("--rev=${{ github.event.repository.default_branch }},${{ github.event.pull_request.head.sha }}")
         fi
 
         # --bench-on : default to the repository default branch unless caller overrides
