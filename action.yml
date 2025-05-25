@@ -23,33 +23,34 @@ runs:
       with:
         ref: ${{ github.event.pull_request.head.sha }}
 
-    - uses: julia-actions/setup-julia@v2
+    - name: Setup Julia
+      uses: julia-actions/setup-julia@v2
       with:
         version: ${{ inputs.julia-version }}
 
-    - uses: julia-actions/cache@v2
+    - name: Cache Julia packages
+      uses: julia-actions/cache@v2
 
-    # Install + build AirspeedVelocity
-    - name: Build AirspeedVelocity
+    - name: Install and build AirspeedVelocity
       shell: bash
       run: |
         export JULIA_NUM_THREADS=2
         # Lightweight build step, as sometimes the runner runs out of memory:
         julia -e 'ENV["JULIA_PKG_PRECOMPILE_AUTO"]=0; using Pkg; pkg"add AirspeedVelocity@${{ inputs.asv-version }}"'
 
-    - run: echo "$HOME/.julia/bin" >> "$GITHUB_PATH"
+    - name: Add ~/.julia/bin to PATH
+      run: echo "$HOME/.julia/bin" >> "$GITHUB_PATH"
       shell: bash
-      name: Add ~/.julia/bin to PATH
 
-    # Package name from Project.toml
-    - id: pkg
+    - name: Get package name
+      id: pkg
       shell: bash
       run: |
         pkg=$(awk -F' *= *' '/^name *=/ {gsub(/"/,"",$2); print $2; exit}' Project.toml)
         echo "package_name=$pkg" >> "$GITHUB_OUTPUT"
 
-    # Assemble optional flags
-    - id: flags
+    - name: Assemble benchpkg flags
+      id: flags
       shell: bash
       run: |
         # Build separate argument lists:
@@ -98,9 +99,9 @@ runs:
           ${{ steps.flags.outputs.bench_args }}
 
     # Optional plots
-    - if: ${{ inputs.enable-plots == 'true' }}
+    - name: Generate plots
+      if: ${{ inputs.enable-plots == 'true' }}
       shell: bash
-      name: Generate plots
       run: |
         mkdir -p plots
         benchpkgplot "${{ steps.pkg.outputs.package_name }}" \
@@ -110,15 +111,17 @@ runs:
           --npart=10 \
           ${{ steps.flags.outputs.table_args }}
 
-    - if: ${{ inputs.enable-plots == 'true' }}
+    - name: Upload plots
+      if: ${{ inputs.enable-plots == 'true' }}
       uses: actions/upload-artifact@v4
-      with: { name: benchmark-plots, path: plots }
+      with:
+        name: benchmark-plots
+        path: plots
 
-    # Build markdown
-    - name: Create markdown body
+    - name: Create comment body
       shell: bash
       run: |
-        echo "### Benchmark Results (Julia ${{ inputs.julia-version }})" > body.md
+        echo "### Benchmark Results (Julia v${{ inputs.julia-version }})" > body.md
         echo "" >> body.md
 
         # One independent <details> block per requested mode
@@ -144,15 +147,16 @@ runs:
           } >> body.md
         fi
 
-    # Comment update
-    - uses: peter-evans/find-comment@v3
+    - name: Find comment
+      uses: peter-evans/find-comment@v3
       id: find
       with:
         issue-number: ${{ github.event.pull_request.number }}
         comment-author: 'github-actions[bot]'
         body-includes: "Benchmark Results (Julia ${{ inputs.julia-version }})"
 
-    - uses: peter-evans/create-or-update-comment@v4
+    - name: Create or update comment
+      uses: peter-evans/create-or-update-comment@v4
       with:
         comment-id: ${{ steps.find.outputs.comment-id }}
         issue-number: ${{ github.event.pull_request.number }}
