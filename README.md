@@ -26,7 +26,7 @@ https://github.com/MilesCranmer/AirspeedVelocity.jl/assets/7593028/f27b04ef-8491
   - [Using in CI](#using-in-ci)
     - [Copy-and-paste GitHub Action](#copy-and-paste-githubaction)
     - [Multiple Julia versions](#multiple-julia-versions)
-    - [CLI Parameters](#cli-parameters)
+    - [CI Parameters](#ci-parameters)
   - [Further examples](#further-examples)
   - [CLI Reference](#cli-reference)
     - [`benchpkg`](#benchpkg)
@@ -97,7 +97,7 @@ steps:
 
 Each matrix leg writes its own comment.
 
-### CLI Parameters
+### CI Parameters
 
 | Input           | Default          | What it does                               |
 |-----------------|------------------|--------------------------------------------|
