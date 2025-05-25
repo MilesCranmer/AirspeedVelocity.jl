@@ -13,20 +13,33 @@ This package allows you to:
 - Generate benchmarks directly from the terminal with an easy-to-use CLI.
 - Compare many commits/tags/branches at once.
 - Plot those benchmarks, automatically flattening your benchmark suite into a list of plots with generated titles.
-- Run as a GitHub action to create benchmark comparisons for every submitted PR (in a bot comment).
+- Run in CI with a one‑line GitHub Action that comments benchmark results on every PR.
   
 This package also freezes the benchmark script at a particular revision,
 so there is no worry about the old history overwriting the benchmark.
 
 https://github.com/MilesCranmer/AirspeedVelocity.jl/assets/7593028/f27b04ef-8491-4f49-a312-4df0fae00598
 
+- [AirspeedVelocity.jl](#airspeedvelocityjl)
+  - [Installation](#installation)
+  - [Examples](#examples)
+  - [Using in CI](#using-in-ci)
+    - [One‑liner GitHub Action](#oneliner-githubaction)
+    - [Multiple Julia versions](#multiple-julia-versions)
+    - [Key inputs](#key-inputs)
+  - [Further examples](#further-examples)
+  - [CLI Reference](#cli-reference)
+    - [`benchpkg`](#benchpkg)
+    - [`benchpkgtable`](#benchpkgtable)
+    - [`benchpkgplot`](#benchpkgplot)
+  - [Related packages](#related-packages)
 
 ## Installation
 
 You can install the CLI with:
 
 ```bash
-julia -e 'using Pkg; Pkg.activate(temp=true); Pkg.add("AirspeedVelocity")'
+julia -e 'using Pkg; Pkg.activate(temp=true); Pkg.add("AirspeedVelocity"); Pkg.build("AirspeedVelocity")'
 ```
 
 This will install two executables at `~/.julia/bin` - make sure to have it on your `PATH`.
@@ -41,8 +54,67 @@ benchpkg
 
 This will benchmark the package defined in the current directory
 at the current dirty state, against the default branch (i.e., `main` or `master`),
-over all benchmarks defined in `benchmark/benchmarks.jl`. It will then print
-a markdown table of the results while also saving the JSON results to the current directory.
+over all benchmarks defined in `benchmark/benchmarks.jl` using BenchmarkTools.jl.
+You should have a `const SUITE = BenchmarkGroup()` defined in this file, which you have added benchmarks to.
+
+This will then print a markdown table of the results while also saving the JSON results to the current directory.
+
+See the [further examples](#further-examples) for more details.
+
+## Using in CI
+
+### One‑liner GitHub Action
+
+Add `.github/workflows/benchmark.yml` to your package:
+
+```yaml
+name: Benchmark this PR
+on:
+  pull_request_target:
+    branches: [ master ]  # change to your default branch
+permissions:
+  pull-requests: write    # action needs to post a comment
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: MilesCranmer/AirspeedVelocity.jl@action-v1
+        with:
+          julia-version: '1'
+```
+
+The workflow runs AirspeedVelocity, then posts a comment titled  
+**Benchmark Results (Julia \<version\>)** with separate, collapsible tables for
+runtime and memory.  
+
+### Multiple Julia versions
+
+```yaml
+strategy:
+  matrix:
+    julia: ['1', '1.10']
+
+steps:
+  - uses: MilesCranmer/AirspeedVelocity.jl@action-v1
+    with:
+      julia-version: ${{ matrix.julia }}
+```
+
+Each matrix leg writes its own comment, so results never overwrite each other.
+
+### Key inputs
+
+| Input           | Default          | What it does                               |
+|-----------------|------------------|--------------------------------------------|
+| `julia-version` | `"1"`            | Julia version to install                   |
+| `tune`          | `"false"`        | `--tune` to tune benchmarks first          |
+| `mode`          | `"time,memory"`  | Which tables to generate (`time`, `memory`)|
+| `enable-plots`  | `"false"`        | Upload PNG plots as artifact               |
+| `filter`        | `""`             | `--filter` list for `benchpkg`             |
+| `exeflags`      | `""`             | `--exeflags` for Julia runner              |
+
+## Further examples
 
 
 You can configure all options with the CLI flags. For example, to benchmark
@@ -128,18 +200,9 @@ benchpkgplot SymbolicRegression \
     -o plots/
 ```
 
-## Using in CI
+## CLI Reference
 
-You can use this package in GitHub actions to benchmark every PR submitted to your package,
-by copying the example: [`.github/workflows/benchmark_pr.yml`](https://github.com/MilesCranmer/AirspeedVelocity.jl/blob/master/.github/workflows/benchmark_pr.yml).
-
-Every time a PR is submitted to your package, this workflow will run
-and generate plots of the performance of the PR against the default branch,
-as well as a markdown table, showing whether the PR improves or worsens performance:
-
-![regression_example](https://user-images.githubusercontent.com/7593028/230768154-beb001e0-d115-4aaa-bd22-89376c1f7556.jpg)
-
-## Usage
+### `benchpkg`
 
 For running benchmarks, you can use the `benchpkg` command, which is
 built into the `~/.julia/bin` folder:
@@ -160,12 +223,12 @@ built into the `~/.julia/bin` folder:
 
 Benchmark a package over a set of revisions.
 
-# Arguments
+#### Arguments
 
 - `package_name`: Name of the package. If not given, the package is assumed to be
   the current directory.
 
-# Options
+#### Options
 
 - `-r, --rev <arg>`: Revisions to test (delimit by comma). Use `dirty` to
   benchmark the current state of the package at `path` (and not a git commit).
@@ -184,12 +247,14 @@ Benchmark a package over a set of revisions.
     the package (default: 5). (This means starting a Julia process for each sample.)
 - `--dont-print`: Don't print the table.
 
-# Flags
+#### Flags
 
 - `--tune`: Whether to run benchmarks with tuning (default: false).
 ```
 
-You can also just generate a table:
+### `benchpkgtable`
+
+You can also just generate a table from stored JSON results:
 
 ```markdown
     benchpkgtable [package_name] [-r --rev <arg>]
@@ -201,11 +266,11 @@ You can also just generate a table:
 
 Print a table of the benchmarks of a package as created with `benchpkg`.
 
-# Arguments
+#### Arguments
 
 - `package_name`: Name of the package.
 
-# Options
+#### Options
 
 - `-r, --rev <arg>`: Revisions to test (delimit by comma).
   The default is `{DEFAULT},dirty`, which will attempt to find the default branch
@@ -215,7 +280,7 @@ Print a table of the benchmarks of a package as created with `benchpkg`.
 - `--path <arg>`: Path of the package. The default is `.` if other arguments are not given.
    Only used to get the package name.
 
-# Flags
+#### Flags
 
 - `--ratio`: Whether to include the ratio (default: false). Only applies when
     comparing two revisions.
@@ -223,6 +288,8 @@ Print a table of the benchmarks of a package as created with `benchpkg`.
     benchmark time, or "memory", to print the allocation and memory usage.
     Both options can be passed, if delimited by comma.
 ```
+
+### `benchpkgplot`
 
 For plotting, you can use the `benchpkgplot` function:
 
@@ -235,11 +302,11 @@ For plotting, you can use the `benchpkgplot` function:
 
 Plot the benchmarks of a package as created with `benchpkg`.
 
-# Arguments
+#### Arguments
 
 - `package_name`: Name of the package.
 
-# Options
+#### Options
 
 - `-r, --rev <arg>`: Revisions to test (delimit by comma).
 - `-i, --input-dir <arg>`: Where the JSON results were saved (default: ".").

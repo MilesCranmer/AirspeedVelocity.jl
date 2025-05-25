@@ -1,0 +1,164 @@
+name: 'Benchmark PR with AirspeedVelocity'
+description: 'Compare PR performance (time/memory) against the default branch and comment results'
+author: 'Miles Cranmer'
+branding: { icon: activity, color: purple }
+
+inputs:
+  asv-version:   { default: '0.6',          description: 'AirspeedVelocity version' }
+  julia-version: { default: '1',            description: 'Julia version' }
+  mode:          { default: 'time,memory',  description: 'Comma-separated list of modes for benchpkgtable (e.g. time,memory)' }
+  enable-plots:  { default: 'false',        description: 'Generate & upload plots' }
+  tune:          { default: 'false',        description: 'Pass --tune to benchpkg' }
+  script:        { default: '',             description: 'Custom benchmark script path' }
+  rev:           { default: '',             description: '--rev list for benchpkg' }
+  bench-on:      { default: '',             description: '--bench-on commit to freeze script' }
+  filter:        { default: '',             description: '--filter list for benchpkg' }
+  exeflags:      { default: '',             description: '--exeflags for Julia' }
+  extra-pkgs:    { default: '',             description: '--add extra packages (comma-sep)' }
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+
+    - name: Setup Julia
+      uses: julia-actions/setup-julia@v2
+      with:
+        version: ${{ inputs.julia-version }}
+
+    - name: Cache Julia packages
+      uses: julia-actions/cache@v2
+
+    - name: Install and build AirspeedVelocity
+      shell: bash
+      run: |
+        export JULIA_NUM_THREADS=2
+        # Lightweight build step, as sometimes the runner runs out of memory:
+        julia -e 'ENV["JULIA_PKG_PRECOMPILE_AUTO"]=0; using Pkg; pkg"add AirspeedVelocity@${{ inputs.asv-version }}"'
+
+    - name: Add ~/.julia/bin to PATH
+      run: echo "$HOME/.julia/bin" >> "$GITHUB_PATH"
+      shell: bash
+
+    - name: Get package name
+      id: pkg
+      shell: bash
+      run: |
+        pkg=$(awk -F' *= *' '/^name *=/ {gsub(/"/,"",$2); print $2; exit}' Project.toml)
+        echo "package_name=$pkg" >> "$GITHUB_OUTPUT"
+
+    - name: Assemble benchpkg flags
+      id: flags
+      shell: bash
+      run: |
+        # Build separate argument lists:
+        #   bench_args -> for `benchpkg`
+        #   table_args -> for `benchpkgtable` and `benchpkgplot`
+        bench_args=()
+        table_args=()
+
+        # --rev : default to <default_branch>,<PR_SHA> when caller did not override
+        if [[ -n "${{ inputs.rev }}" ]]; then
+          bench_args+=("--rev=${{ inputs.rev }}")
+          table_args+=("--rev=${{ inputs.rev }}")
+        else
+          revs="${{ github.event.repository.default_branch }},${{ github.event.pull_request.head.sha }}"
+          bench_args+=("--rev=${revs}")
+          table_args+=("--rev=${revs}")
+        fi
+
+        # --bench-on : default to the repository default branch unless caller overrides
+        if [[ -n "${{ inputs.bench-on }}" ]]; then
+          bench_args+=("--bench-on=${{ inputs.bench-on }}")
+        else
+          branch="${{ github.event.repository.default_branch }}"
+          bench_args+=("--bench-on=${branch}")
+        fi
+
+        # Options that apply **only** to benchpkg
+        [[ -n "${{ inputs.script }}"       ]] && bench_args+=("--script=${{ inputs.script }}")
+        [[ -n "${{ inputs.filter }}"       ]] && bench_args+=("--filter=${{ inputs.filter }}")
+        [[ -n "${{ inputs.exeflags }}"     ]] && bench_args+=("--exeflags='${{ inputs.exeflags }}'")
+        [[ -n "${{ inputs.extra-pkgs }}"   ]] && bench_args+=("--add=${{ inputs.extra-pkgs }}")
+        [[ "${{ inputs.tune }}" == 'true'  ]] && bench_args+=("--tune")
+
+        # Export as composite-action outputs
+        echo "bench_args=${bench_args[*]}" >> "$GITHUB_OUTPUT"
+        echo "table_args=${table_args[*]}" >> "$GITHUB_OUTPUT"
+
+    # Run benchmarks
+    - name: Run benchmarks
+      shell: bash
+      run: |
+        mkdir results
+        benchpkg "${{ steps.pkg.outputs.package_name }}" \
+          --url="${{ github.event.repository.clone_url }}" \
+          --output-dir=results/ \
+          ${{ steps.flags.outputs.bench_args }}
+
+    # Optional plots
+    - name: Generate plots
+      if: ${{ inputs.enable-plots == 'true' }}
+      shell: bash
+      run: |
+        mkdir -p plots
+        benchpkgplot "${{ steps.pkg.outputs.package_name }}" \
+          --input-dir=results/ \
+          --output-dir=plots/ \
+          --format=png \
+          --npart=10 \
+          ${{ steps.flags.outputs.table_args }}
+
+    - name: Upload plots
+      if: ${{ inputs.enable-plots == 'true' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-plots
+        path: plots
+
+    - name: Create comment body
+      shell: bash
+      run: |
+        echo "## Benchmark Results (Julia v${{ inputs.julia-version }})" > body.md
+        echo "" >> body.md
+
+        # One independent <details> block per requested mode
+        IFS=',' read -ra MODES <<< "${{ inputs.mode }}"
+        for m in "${MODES[@]}"; do
+          {
+            echo "<details><summary>${m^} benchmarks</summary>"
+            echo ""
+            benchpkgtable "${{ steps.pkg.outputs.package_name }}" \
+              --input-dir=results/ \
+              --mode=$m \
+              --ratio \
+              ${{ steps.flags.outputs.table_args }}
+            echo ""
+            echo "</details>"
+            echo ""
+          } >> body.md
+        done
+
+        if [[ "${{ inputs.enable-plots }}" == 'true' ]]; then
+          {
+            echo 'A plot of the benchmark results has been uploaded as an artifact at ${{ steps.artifact-upload-step.outputs.artifact-url }}.'
+          } >> body.md
+        fi
+
+    - name: Find comment
+      uses: peter-evans/find-comment@v3
+      id: find
+      with:
+        issue-number: ${{ github.event.pull_request.number }}
+        comment-author: 'github-actions[bot]'
+        body-includes: "Benchmark Results (Julia ${{ inputs.julia-version }})"
+
+    - name: Create or update comment
+      uses: peter-evans/create-or-update-comment@v4
+      with:
+        comment-id: ${{ steps.find.outputs.comment-id }}
+        issue-number: ${{ github.event.pull_request.number }}
+        body-path: body.md
+        edit-mode: replace
