@@ -121,7 +121,7 @@ runs:
     - name: Create comment body
       shell: bash
       run: |
-        echo "### Benchmark Results (Julia v${{ inputs.julia-version }})" > body.md
+        echo "## Benchmark Results (Julia v${{ inputs.julia-version }})" > body.md
         echo "" >> body.md
 
         # One independent <details> block per requested mode
