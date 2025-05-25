@@ -139,7 +139,8 @@ function create_table(
             @assert length(vals) == 2
             ratio = vals[1] / vals[2]
 
-            compute_ratio_err = all(haskey(s, "25") && haskey(s, "75") for s in stats) && key == "median"
+            compute_ratio_err =
+                all(haskey(s, "25") && haskey(s, "75") for s in stats) && key == "median"
             ratio_err = if compute_ratio_err
                 errs = [max(0.0, s["75"] - s["25"]) for s in stats]
                 abs(ratio) * sqrt((errs[1] / vals[1])^2 + (errs[2] / vals[2])^2)
