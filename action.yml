@@ -36,7 +36,6 @@ runs:
         export JULIA_NUM_THREADS=2
         # Lightweight build step, as sometimes the runner runs out of memory:
         julia -e 'ENV["JULIA_PKG_PRECOMPILE_AUTO"]=0; using Pkg; pkg"add AirspeedVelocity@${{ inputs.asv-version }}"'
-        julia -e 'ENV["JULIA_PKG_PRECOMPILE_AUTO"]=0; import Pkg; Pkg.build("AirspeedVelocity")'
 
     - run: echo "$HOME/.julia/bin" >> "$GITHUB_PATH"
       shell: bash
