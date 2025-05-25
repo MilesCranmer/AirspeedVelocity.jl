@@ -154,7 +154,7 @@ runs:
       with:
         issue-number: ${{ github.event.pull_request.number }}
         comment-author: 'github-actions[bot]'
-        body-includes: "Benchmark Results (Julia ${{ inputs.julia-version }})"
+        body-includes: "Benchmark Results (Julia v${{ inputs.julia-version }})"
 
     - name: Create or update comment
       uses: peter-evans/create-or-update-comment@v4
