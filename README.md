@@ -24,9 +24,9 @@ https://github.com/MilesCranmer/AirspeedVelocity.jl/assets/7593028/f27b04ef-8491
   - [Installation](#installation)
   - [Examples](#examples)
   - [Using in CI](#using-in-ci)
-    - [One‑liner GitHub Action](#oneliner-githubaction)
+    - [Copy-and-paste GitHub Action](#copy-and-paste-githubaction)
     - [Multiple Julia versions](#multiple-julia-versions)
-    - [Key inputs](#key-inputs)
+    - [CLI Parameters](#cli-parameters)
   - [Further examples](#further-examples)
   - [CLI Reference](#cli-reference)
     - [`benchpkg`](#benchpkg)
@@ -52,10 +52,7 @@ You may use the CLI to generate benchmarks for any package with, e.g.,
 benchpkg
 ```
 
-This will benchmark the package defined in the current directory
-at the current dirty state, against the default branch (i.e., `main` or `master`),
-over all benchmarks defined in `benchmark/benchmarks.jl` using BenchmarkTools.jl.
-You should have a `const SUITE = BenchmarkGroup()` defined in this file, which you have added benchmarks to.
+This will benchmark the package defined in the current directory at the current dirty state, against the default branch (i.e., `main` or `master`), over all benchmarks defined in `benchmark/benchmarks.jl` using BenchmarkTools.jl. You should have a `const SUITE = BenchmarkGroup()` defined in this file, which you have added benchmarks to.
 
 This will then print a markdown table of the results while also saving the JSON results to the current directory.
 
@@ -63,7 +60,7 @@ See the [further examples](#further-examples) for more details.
 
 ## Using in CI
 
-### One‑liner GitHub Action
+### Copy-and-paste GitHub Action
 
 Add `.github/workflows/benchmark.yml` to your package:
 
@@ -84,10 +81,7 @@ jobs:
           julia-version: '1'
 ```
 
-The workflow runs AirspeedVelocity, then posts a comment titled  
-**Benchmark Results (Julia \<version\>)** with separate, collapsible tables for
-runtime and memory.  
-
+The workflow runs AirspeedVelocity, then posts a comment titled **Benchmark Results (Julia v1)** with separate, collapsible tables for runtime and memory.  
 ### Multiple Julia versions
 
 ```yaml
@@ -101,9 +95,9 @@ steps:
       julia-version: ${{ matrix.julia }}
 ```
 
-Each matrix leg writes its own comment, so results never overwrite each other.
+Each matrix leg writes its own comment.
 
-### Key inputs
+### CLI Parameters
 
 | Input           | Default          | What it does                               |
 |-----------------|------------------|--------------------------------------------|
