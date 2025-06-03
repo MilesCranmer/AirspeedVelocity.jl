@@ -15,6 +15,7 @@ inputs:
   filter:        { default: '',             description: '--filter list for benchpkg' }
   exeflags:      { default: '',             description: '--exeflags for Julia' }
   extra-pkgs:    { default: '',             description: '--add extra packages (comma-sep)' }
+  job-summary:   { default: 'false',        description: 'Output to job summary instead of PR comment' }
 
 runs:
   using: composite
@@ -148,7 +149,13 @@ runs:
           } >> body.md
         fi
 
+    - name: Write to job summary
+      if: ${{ inputs.job-summary == 'true' }}
+      shell: bash
+      run: cat body.md >> "$GITHUB_STEP_SUMMARY"
+
     - name: Find comment
+      if: ${{ inputs.job-summary != 'true' }}
       uses: peter-evans/find-comment@v3
       id: find
       with:
@@ -157,6 +164,7 @@ runs:
         body-includes: "Benchmark Results (Julia v${{ inputs.julia-version }})"
 
     - name: Create or update comment
+      if: ${{ inputs.job-summary != 'true' }}
       uses: peter-evans/create-or-update-comment@v4
       with:
         comment-id: ${{ steps.find.outputs.comment-id }}

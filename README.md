@@ -24,7 +24,8 @@ https://github.com/MilesCranmer/AirspeedVelocity.jl/assets/7593028/f27b04ef-8491
   - [Installation](#installation)
   - [Examples](#examples)
   - [Using in CI](#using-in-ci)
-    - [Copy-and-paste GitHub Action](#copy-and-paste-githubaction)
+    - [Option 1: PR Comments](#option-1-pr-comments)
+    - [Option 2: Job Summary](#option-2-job-summary)
     - [Multiple Julia versions](#multiple-julia-versions)
     - [CI Parameters](#ci-parameters)
   - [Further examples](#further-examples)
@@ -60,7 +61,11 @@ See the [further examples](#further-examples) for more details.
 
 ## Using in CI
 
-### Copy-and-paste GitHub Action
+AirspeedVelocity.jl provides two ways to display benchmark results in GitHub Actions:
+
+### Option 1: PR Comments
+
+Posts benchmark results as comments on pull requests.
 
 Add `.github/workflows/benchmark.yml` to your package:
 
@@ -70,7 +75,7 @@ on:
   pull_request_target:
     branches: [ master ]  # change to your default branch
 permissions:
-  pull-requests: write    # action needs to post a comment
+  pull-requests: write    # needed to post comments
 
 jobs:
   bench:
@@ -81,7 +86,29 @@ jobs:
           julia-version: '1'
 ```
 
-The workflow runs AirspeedVelocity, then posts a comment titled **Benchmark Results (Julia v1)** with separate, collapsible tables for runtime and memory.  
+### Option 2: Job Summary
+
+Displays benchmark results in the GitHub Actions job summary (visible in the Actions tab).
+
+```yaml
+name: Benchmark this PR
+on:
+  pull_request:             # no need for pull_request_target
+    branches: [ master ]
+# no permissions needed
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: MilesCranmer/AirspeedVelocity.jl@action-v1
+        with:
+          julia-version: '1'
+          job-summary: 'true'
+```
+
+Both workflows run AirspeedVelocity and display results with separate, collapsible tables for runtime and memory.
+
 ### Multiple Julia versions
 
 ```yaml
@@ -95,13 +122,14 @@ steps:
       julia-version: ${{ matrix.julia }}
 ```
 
-Each matrix leg writes its own comment.
+Each matrix leg writes its own comment (Option 1) or section in the job summary (Option 2).
 
 ### CI Parameters
 
 | Input           | Default          | What it does                               |
 |-----------------|------------------|--------------------------------------------|
 | `julia-version` | `"1"`            | Julia version to install                   |
+| `job-summary`   | `"false"`        | Output to job summary instead of PR comment |
 | `tune`          | `"false"`        | `--tune` to tune benchmarks first          |
 | `mode`          | `"time,memory"`  | Which tables to generate (`time`, `memory`)|
 | `enable-plots`  | `"false"`        | Upload PNG plots as artifact               |
