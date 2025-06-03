@@ -1,11 +1,8 @@
 name: Benchmark a pull request
 
 on:
-  pull_request_target:          # keeps the write token for forked PRs
+  pull_request:          # keeps the write token for forked PRs
     branches: [ master ]        # change if your default branch differs
-
-permissions:
-  pull-requests: write
 
 jobs:
   bench:
@@ -21,3 +18,4 @@ jobs:
         uses: ./                  # uses action.yml at the repo root
         with:
           julia-version: ${{ matrix.julia-version }}
+          job-summary: 'true'
