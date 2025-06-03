@@ -23,17 +23,24 @@ runs:
     - uses: actions/checkout@v4
       with:
         ref: ${{ github.event.pull_request.head.sha }}
+        persist-credentials: false  # Just for security considerations
 
     - name: Setup Julia
       uses: julia-actions/setup-julia@v2
+      env:
+        GITHUB_TOKEN: ""
       with:
         version: ${{ inputs.julia-version }}
 
     - name: Cache Julia packages
       uses: julia-actions/cache@v2
+      env:
+        GITHUB_TOKEN: ""
 
     - name: Install and build AirspeedVelocity
       shell: bash
+      env:
+        GITHUB_TOKEN: ""
       run: |
         export JULIA_NUM_THREADS=2
         # Lightweight build step, as sometimes the runner runs out of memory:
@@ -43,10 +50,14 @@ runs:
     - name: Add ~/.julia/bin to PATH
       run: echo "$HOME/.julia/bin" >> "$GITHUB_PATH"
       shell: bash
+      env:
+        GITHUB_TOKEN: ""
 
     - name: Get package name
       id: pkg
       shell: bash
+      env:
+        GITHUB_TOKEN: ""
       run: |
         pkg=$(awk -F' *= *' '/^name *=/ {gsub(/"/,"",$2); print $2; exit}' Project.toml)
         echo "package_name=$pkg" >> "$GITHUB_OUTPUT"
@@ -54,6 +65,8 @@ runs:
     - name: Assemble benchpkg flags
       id: flags
       shell: bash
+      env:
+        GITHUB_TOKEN: ""
       run: |
         # Build separate argument lists:
         #   bench_args -> for `benchpkg`
@@ -93,6 +106,8 @@ runs:
     # Run benchmarks
     - name: Run benchmarks
       shell: bash
+      env:
+        GITHUB_TOKEN: ""
       run: |
         mkdir results
         benchpkg "${{ steps.pkg.outputs.package_name }}" \
@@ -104,6 +119,8 @@ runs:
     - name: Generate plots
       if: ${{ inputs.enable-plots == 'true' }}
       shell: bash
+      env:
+        GITHUB_TOKEN: ""
       run: |
         mkdir -p plots
         benchpkgplot "${{ steps.pkg.outputs.package_name }}" \
@@ -122,6 +139,8 @@ runs:
 
     - name: Create comment body
       shell: bash
+      env:
+        GITHUB_TOKEN: ""
       run: |
         echo "## Benchmark Results (Julia v${{ inputs.julia-version }})" > body.md
         echo "" >> body.md
@@ -152,6 +171,8 @@ runs:
     - name: Write to job summary
       if: ${{ inputs.job-summary == 'true' }}
       shell: bash
+      env:
+        GITHUB_TOKEN: ""
       run: cat body.md >> "$GITHUB_STEP_SUMMARY"
 
     - name: Find comment

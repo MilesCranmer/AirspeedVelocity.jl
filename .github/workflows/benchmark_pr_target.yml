@@ -1,0 +1,24 @@
+name: Benchmark PR with Comments
+
+on:
+  pull_request_target:
+    branches: [ master ]        # change if your default branch differs
+
+permissions:
+  pull-requests: write          # needed to post comments
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        julia-version: ["1", "1.10"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Run AirspeedVelocity composite action (local path)
+        uses: ./                  # uses action.yml at the repo root
+        with:
+          julia-version: ${{ matrix.julia-version }} 
+          job-summary: 'false'
