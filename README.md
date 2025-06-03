@@ -126,15 +126,20 @@ Each matrix leg writes its own comment (Option 1) or section in the job summary 
 
 ### CI Parameters
 
-| Input           | Default          | What it does                               |
-|-----------------|------------------|--------------------------------------------|
-| `julia-version` | `"1"`            | Julia version to install                   |
+| Input           | Default          | What it does                                |
+|-----------------|------------------|---------------------------------------------|
+| `asv-version`   | `"0.6"`          | AirspeedVelocity version to install         |
+| `julia-version` | `"1"`            | Julia version to install                    |
 | `job-summary`   | `"false"`        | Output to job summary instead of PR comment |
-| `tune`          | `"false"`        | `--tune` to tune benchmarks first          |
-| `mode`          | `"time,memory"`  | Which tables to generate (`time`, `memory`)|
-| `enable-plots`  | `"false"`        | Upload PNG plots as artifact               |
-| `filter`        | `""`             | `--filter` list for `benchpkg`             |
-| `exeflags`      | `""`             | `--exeflags` for Julia runner              |
+| `tune`          | `"false"`        | `--tune` to tune benchmarks first           |
+| `mode`          | `"time,memory"`  | Which tables to generate (`time`, `memory`) |
+| `enable-plots`  | `"false"`        | Upload PNG plots as artifact                |
+| `script`        | `""`             | Custom benchmark script path                |
+| `rev`           | `""`             | `--rev` list for benchpkg (comma-separated) |
+| `bench-on`      | `""`             | `--bench-on` commit to freeze script        |
+| `filter`        | `""`             | `--filter` list for `benchpkg`              |
+| `exeflags`      | `""`             | `--exeflags` for Julia runner               |
+| `extra-pkgs`    | `""`             | `--add` extra packages (comma-separated)    |
 
 ## Further examples
 
