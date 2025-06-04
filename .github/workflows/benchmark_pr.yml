@@ -11,9 +11,6 @@ jobs:
       matrix:
         julia-version: ["1", "1.10"]
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
       - name: Run AirspeedVelocity composite action (local path)
         uses: ./                  # uses action.yml at the repo root
         with:
