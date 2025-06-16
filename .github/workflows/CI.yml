@@ -38,7 +38,7 @@ jobs:
           julia --color=yes --threads=auto --check-bounds=yes --depwarn=yes --code-coverage=user --project=. -e 'using Pkg; Pkg.test(coverage=true)'
           julia --color=yes --project=. coverage.jl
         shell: bash
-      - uses: codecov/codecov-action@v4
+      - uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: lcov.info
