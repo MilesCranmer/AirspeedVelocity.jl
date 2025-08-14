@@ -344,10 +344,12 @@ function benchmark(
     if "dirty" in revs && isnothing(path)
         @error "You must specify a `path` when using the `dirty` revision."
     end
+    maybefile(path::AbstractString) = (isfile(path) ? path : nothing)
     return benchmark(
         [PackageSpec(; name=package_name, rev=rev, url=url, path=path) for rev in revs];
         output_dir=output_dir,
         script=script,
+        project_toml = (isnothing(script) ? nothing : maybefile(joinpath(dirname(script), "Project.toml"))),
         tune=tune,
         exeflags=exeflags,
         extra_pkgs=extra_pkgs,
