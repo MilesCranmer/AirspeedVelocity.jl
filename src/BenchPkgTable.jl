@@ -3,7 +3,7 @@ module BenchPkgTable
 using ..TableUtils: create_table, format_memory
 using ..Utils: get_package_name_defaults, parse_rev, load_results
 using Comonicon
-using Comonicon: @main
+import Comonicon
 
 """
     benchpkgtable [package_name] [-r --rev <arg>]
@@ -37,7 +37,7 @@ Print a table of the benchmarks of a package as created with `benchpkg`.
     benchmark time, or "memory", to print the allocation and memory usage.
     Both options can be passed, if delimited by comma.
 """
-@main function benchpkgtable(
+Comonicon.@main function benchpkgtable(
     package_name::String="";
     rev::String="dirty,{DEFAULT}",
     input_dir::String=".",
