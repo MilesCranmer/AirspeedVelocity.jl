@@ -4,7 +4,6 @@ using ..PlotUtils: combined_plots
 using ..Utils: load_results
 using PlotlyKaleido: savefig, start
 using Comonicon
-import Comonicon
 
 """
     benchpkgplot package_name [-r --rev <arg>] [-i --input-dir <arg>]

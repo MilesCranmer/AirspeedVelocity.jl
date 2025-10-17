@@ -3,7 +3,6 @@ module BenchPkg
 using ..TableUtils: create_table, format_memory
 using ..Utils: benchmark, get_package_name_defaults, parse_rev, load_results
 using Comonicon
-import Comonicon
 
 """
     benchpkg [package_name] [-r --rev <arg>]
