@@ -87,6 +87,14 @@ function _get_script(;
 end
 
 function parse_package_spec(specifier::AbstractString)
+    if occursin("://", specifier) && occursin('@', specifier) && !occursin("#", specifier)
+        base, version = rsplit(specifier, '@'; limit=2)
+        if !isempty(base) && !isempty(version)
+            if tryparse(VersionNumber, version) !== nothing
+                return Pkg.PackageSpec(; url=String(base), version=String(version))
+            end
+        end
+    end
     return only(
         Pkg.REPLMode.parse_package(
             [Pkg.REPLMode.QString(specifier, false)], nothing; add_or_dev=true
@@ -172,7 +180,8 @@ function _benchmark(
 
         #! format: off
         const _airspeed_velocity_extra_suite = BenchmarkGroup()
-        if isempty($filter_benchmarks) || any(x -> contains(x, "time_to_load"), $filter_benchmarks)
+        if isempty($filter_benchmarks) ||
+           any(x -> occursin("time_to_load", x), $filter_benchmarks)
             _airspeed_velocity_extra_suite["time_to_load"] = @benchmarkable(
                 @eval(using $(Symbol(spec.name)): $(Symbol(spec.name)) as _AirspeedVelocityTestImport),
                 evals=1,
@@ -239,7 +248,7 @@ function _benchmark(
 
         if !isempty($filter_benchmarks)
             filter_suite!(
-                name -> any(x -> contains(name, x), $filter_benchmarks), filtered_suite
+                name -> any(x -> occursin(x, name), $filter_benchmarks), filtered_suite
             )
         end
 
