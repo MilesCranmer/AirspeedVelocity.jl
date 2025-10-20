@@ -4,7 +4,6 @@ using ..PlotUtils: combined_plots
 using ..Utils: load_results
 using PlotlyKaleido: savefig, start
 using Comonicon
-using Comonicon: @main
 
 """
     benchpkgplot package_name [-r --rev <arg>] [-i --input-dir <arg>]
@@ -25,7 +24,7 @@ Plot the benchmarks of a package as created with `benchpkg`.
 - `-n, --npart <arg>`: Max number of plots per page (default: 10).
 - `--format <arg>`: File type to save the plots as (default: "png").
 """
-@main function benchpkgplot(
+Comonicon.@main function benchpkgplot(
     package_name::String;
     rev::String,
     input_dir::String=".",

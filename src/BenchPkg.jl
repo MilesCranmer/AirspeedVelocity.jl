@@ -3,7 +3,6 @@ module BenchPkg
 using ..TableUtils: create_table, format_memory
 using ..Utils: benchmark, get_package_name_defaults, parse_rev, load_results
 using Comonicon
-using Comonicon: @main
 
 """
     benchpkg [package_name] [-r --rev <arg>]
@@ -50,7 +49,7 @@ Benchmark a package over a set of revisions.
 - `--tune`: Whether to run benchmarks with tuning (default: false).
 
 """
-@main function benchpkg(
+Comonicon.@main function benchpkg(
     package_name::String="";
     rev::String="{DEFAULT},dirty",
     output_dir::String=".",
