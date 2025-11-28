@@ -134,7 +134,7 @@ runs:
       if: ${{ inputs.enable-plots == 'true' }}
       uses: actions/upload-artifact@v4
       with:
-        name: benchmark-plots
+        name: benchmark-plots-${{ inputs.julia-version }}
         path: plots
 
     - name: Create comment body
