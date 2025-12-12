@@ -158,6 +158,7 @@ function _benchmark(
     if spec.rev == "dirty"
         Pkg.develop(; path=spec.path, io=devnull)
     else
+        dev_source_pkgs(spec.path)
         Pkg.add(spec; io=devnull)
     end
     # Filter out empty strings from extra_pkgs:
@@ -309,6 +310,29 @@ function _benchmark(
     end
     @info "    Finished."
     return results
+end
+
+function dev_source_pkgs(path)
+    project_toml = joinpath(path, "Project.toml")
+    sources = get(parsefile(project_toml), "sources", nothing)
+
+    sourceargs = if !isnothing(sources)
+        for (pkg, dict) in sources
+            spec = if haskey(dict, "path")
+                relpath = get(dict, "path", nothing)
+                subdir = get(dict, "subdir", nothing)
+                PackageSpec(; path = "$path/$relpath", subdir)
+            else
+                url = get(dict, "url", nothing)
+                rev = get(dict, "rev", nothing)
+                subdir = get(dict, "subdir", nothing)
+                PackageSpec(; url, rev, subdir)
+            end
+            Pkg.develop(spec)
+        end
+    else
+        nothing
+    end
 end
 
 """
