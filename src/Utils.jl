@@ -316,7 +316,7 @@ function dev_source_pkgs(path)
     project_toml = joinpath(path, "Project.toml")
     sources = get(parsefile(project_toml), "sources", nothing)
 
-    sourceargs = if !isnothing(sources)
+    if !isnothing(sources)
         for (pkg, dict) in sources
             spec = if haskey(dict, "path")
                 relpath = get(dict, "path", nothing)
