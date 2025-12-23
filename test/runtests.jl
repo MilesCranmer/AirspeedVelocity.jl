@@ -385,3 +385,48 @@ end
     @test AirspeedVelocity.Utils.parse_rev("lh/guess-default-branch", "unused") ==
         "lh/guess-default-branch"
 end
+
+@testitem "dev sources" begin
+    using AirspeedVelocity
+
+    tmpdir = mktempdir()
+    cd(tmpdir)
+    Pkg.generate("TestPackage")
+    cd("TestPackage")
+    Pkg.activate(".")
+
+    Pkg.generate("Source1")
+    Pkg.generate("Source2")
+    Pkg.develop(path = "Source1")
+    Pkg.develop(path = "Source2")
+
+    path = joinpath(tmpdir, "TestPackage")
+    run(`git -C "$path" init`)
+    run(`git add .`)
+    run(`git commit -m "initial"`)
+    script = joinpath(path, "bench.jl")
+
+    open(joinpath(script), "w") do io
+        write(
+            io,
+            """
+            using BenchmarkTools
+            using TestPackage
+            const SUITE = BenchmarkGroup()
+            SUITE["cos"] = @benchmarkable cos(x) setup=(x=rand())
+            SUITE["sin"] = @benchmarkable sin(x) setup=(x=rand())
+            """,
+        )
+    end
+
+    results_dir = mktempdir(; cleanup=false)
+    benchpkg(
+        "TestPackage";
+        rev="main",
+        script=script,
+        path=path,
+        output_dir=results_dir,
+    )
+
+    @test isfile(joinpath(results_dir, "results_TestPackage@main.json"))
+end
