@@ -328,7 +328,12 @@ function dev_source_pkgs(path)
                 subdir = get(dict, "subdir", nothing)
                 PackageSpec(; url, rev, subdir)
             end
-            Pkg.develop(spec)
+
+            if isnothing(spec.rev)
+                Pkg.develop(spec)
+            else
+                Pkg.add(spec)
+            end
         end
     else
         nothing

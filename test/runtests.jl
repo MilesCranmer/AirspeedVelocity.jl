@@ -396,9 +396,8 @@ end
     Pkg.activate(".")
 
     Pkg.generate("Source1")
-    Pkg.generate("Source2")
     Pkg.develop(path = "Source1")
-    Pkg.develop(path = "Source2")
+    Pkg.add(url = "https://github.com/vyudu/AirspeedVelocity.jl", rev = "master")
 
     path = joinpath(tmpdir, "TestPackage")
     run(`git -C "$path" init`)
