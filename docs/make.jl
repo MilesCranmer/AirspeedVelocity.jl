@@ -22,7 +22,7 @@ function video(line)
     ```"""
 end
 
-readme = open("docs/src/index.md", "w") do io
+open("docs/src/index.md", "w") do io
     for line in eachline("docs/src/_index.md")
         if occursin(r"<README>", line)
             for rline in eachline("README.md")
