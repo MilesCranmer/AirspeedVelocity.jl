@@ -158,7 +158,9 @@ function _benchmark(
     if spec.rev == "dirty"
         Pkg.develop(; path=spec.path, io=devnull)
     else
-        dev_source_pkgs(spec.path)
+        if !isnothing(spec.path)
+            dev_source_pkgs(spec.path)
+        end
         Pkg.add(spec; io=devnull)
     end
     # Filter out empty strings from extra_pkgs:

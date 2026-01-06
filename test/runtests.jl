@@ -388,6 +388,7 @@ end
 
 @testitem "dev sources" begin
     using AirspeedVelocity
+    using Pkg
 
     tmpdir = mktempdir()
     cd(tmpdir)
