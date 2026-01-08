@@ -155,12 +155,10 @@ function _benchmark(
     @info "    Adding packages."
     # "dirty" rev means we want to benchmark the local
     # version of the package at `path`.
-    @show spec
     if spec.rev == "dirty"
         Pkg.develop(; path=spec.path, io=devnull)
     else
         if !isnothing(spec.path)
-            @show "ok"
             dev_source_pkgs(spec.path)
         end
         Pkg.add(spec; io=devnull)
@@ -319,7 +317,6 @@ end
 function dev_source_pkgs(path)
     project_toml = joinpath(path, "Project.toml")
     sources = get(parsefile(project_toml), "sources", nothing)
-    @show sources
 
     if !isnothing(sources)
         for (pkg, dict) in sources
@@ -334,7 +331,6 @@ function dev_source_pkgs(path)
                 PackageSpec(; url, rev, subdir)
             end
 
-            @show spec.rev
             if isnothing(spec.rev)
                 Pkg.develop(spec)
             else
