@@ -111,13 +111,25 @@ runs:
     - name: Run benchmarks
       shell: bash
       env:
-        GITHUB_TOKEN: ""
+        GITHUB_TOKEN: ${{ github.token }}
+        JULIA_PKG_USE_CLI_GIT: "true"
       run: |
+        # Configure git to use GITHUB_TOKEN for authentication (needed for private repos)
+        # Use a temporary config file instead of --global to avoid polluting the global
+        # git config on self-hosted runners (which persists across workflow runs)
+        GIT_CONFIG_TEMP="${RUNNER_TEMP}/.gitconfig-asv-$$"
+        echo "[http \"https://github.com/\"]" > "$GIT_CONFIG_TEMP"
+        echo "  extraheader = AUTHORIZATION: basic $(echo -n x-access-token:${GITHUB_TOKEN} | base64)" >> "$GIT_CONFIG_TEMP"
+        export GIT_CONFIG_GLOBAL="$GIT_CONFIG_TEMP"
+
         mkdir results
         benchpkg "${{ steps.pkg.outputs.package_name }}" \
           --url="${{ github.event.repository.clone_url }}" \
           --output-dir=results/ \
           ${{ steps.flags.outputs.bench_args }}
+
+        # Clean up temporary config
+        rm -f "$GIT_CONFIG_TEMP"
 
     # Optional plots
     - name: Generate plots
