@@ -6,11 +6,33 @@ using Documenter: Remotes
 
 # First, we copy README.md to index.md,
 # replacing <README> in _index.md with the contents of README.md:
+
+# ToC link and video compatibility with Documenter.jl
+# e.g., linkify("[This is a Link](#this-is-a-link)") == "[This is a Link](#This-is-a-Link)"
+istoc(line) = startswith("- [")(lstrip(line))
+isvideo(line) = contains("AirspeedVelocity.jl/assets")(line)
+function linkify(line)
+    pat = r"\[(.*?)\]\(#(.*?)\)"
+    m = match(pat, line)
+    return replace(line, m[2] => replace(strip(m[1], '`'), ' ' => '-'))
+end
+function video(line)
+    """```@raw html
+    <video src="$(line)" controls="controls" muted="muted"></video>
+    ```"""
+end
+
 open("docs/src/index.md", "w") do io
     for line in eachline("docs/src/_index.md")
         if occursin(r"<README>", line)
             for rline in eachline("README.md")
-                println(io, rline)
+                if istoc(rline)
+                    println(io, linkify(rline))
+                elseif isvideo(rline)
+                    println(io, video(rline))
+                else
+                    println(io, rline)
+                end
             end
         else
             println(io, line)

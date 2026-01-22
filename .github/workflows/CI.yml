@@ -18,14 +18,14 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '1.8'
+          - '1.10'
           - '1'
         os:
           - ubuntu-latest
         arch:
           - x64
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}
@@ -38,7 +38,7 @@ jobs:
           julia --color=yes --threads=auto --check-bounds=yes --depwarn=yes --code-coverage=user --project=. -e 'using Pkg; Pkg.test(coverage=true)'
           julia --color=yes --project=. coverage.jl
         shell: bash
-      - uses: codecov/codecov-action@v4
+      - uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: lcov.info
@@ -50,7 +50,7 @@ jobs:
       contents: write
       statuses: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: julia-actions/setup-julia@v2
         with:
           version: '1'

@@ -262,6 +262,68 @@ end
     @test truth ≈ s
 end
 
+@testitem "Test table generation with fixed time units" begin
+    using AirspeedVelocity
+    using OrderedCollections: OrderedDict
+
+    # test data with a range of time scales
+    combined_results = OrderedDict(
+        "v1" => OrderedDict(
+            "fast_bench" => Dict(
+                "median" => 100.0,  # 100 ns
+                "75" => 120.0,
+                "25" => 80.0,
+            ),
+            "medium_bench" => Dict(
+                "median" => 1.5e6,  # 1.5 ms
+                "75" => 1.6e6,
+                "25" => 1.4e6,
+            ),
+            "slow_bench" => Dict(
+                "median" => 2.0e9,  # 2 s
+                "75" => 2.2e9,
+                "25" => 1.8e9,
+            ),
+            "time_to_load" => Dict(
+                "median" => 5.0e9,  # 5 s - should always use auto unit
+                "75" => 5.5e9,
+                "25" => 4.5e9,
+            ),
+        ),
+    )
+
+    # automatic units (default behavior)
+    table_auto = create_table(combined_results; add_ratio_col=false)
+    @test occursin("0.1 ± 0.04 μs", table_auto)  # fast_bench in μs (auto-selected)
+    @test occursin("1.5 ± 0.2 ms", table_auto)   # medium_bench in ms
+    @test occursin("2 ± 0.4 s", table_auto)      # slow_bench in s
+    @test occursin("5 ± 1 s", table_auto)        # time_to_load in s (auto)
+
+    # (time_unit, expected_fast, expected_medium, expected_slow)
+    test_cases = [
+        (:ms, "0.0001 ± 4e-05 ms", "1.5 ± 0.2 ms", "2e+03 ± 4e+02 ms"),
+        (:us, "0.1 ± 0.04 μs", "1.5e+03 ± 2e+02 μs", "2e+06 ± 4e+05 μs"),
+        (:ns, "100 ± 40 ns", "1.5e+06 ± 2e+05 ns", "2e+09 ± 4e+08 ns"),
+        (:s, "1e-07 ± 4e-08 s", "0.0015 ± 0.0002 s", "2 ± 0.4 s"),
+    ]
+
+    @testset "time_unit=$(t_unit)" for (
+        t_unit, expected_fast, expected_medium, expected_slow
+    ) in test_cases
+        table = create_table(combined_results; add_ratio_col=false, time_unit=t_unit)
+        @test occursin(expected_fast, table)    # fast_bench
+        @test occursin(expected_medium, table)  # medium_bench
+        @test occursin(expected_slow, table)    # slow_bench
+        # time_to_load should always remain "5 ± 1 s" regardless of time_unit
+        @test occursin("5 ± 1 s", table)        # time_to_load always uses auto unit
+    end
+
+    # test that invalid time unit throws an error
+    @test_throws ErrorException AirspeedVelocity.Utils.get_time_unit_scale("invalid_unit")
+    @test AirspeedVelocity.Utils.get_time_unit_scale("μs") ==
+        AirspeedVelocity.Utils.get_time_unit_scale("us")
+end
+
 @testitem "Dirty repo with filter" begin
     using AirspeedVelocity
     using Pkg

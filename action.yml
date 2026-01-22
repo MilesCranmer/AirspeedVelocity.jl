@@ -7,6 +7,7 @@ inputs:
   asv-version:   { default: '0.6',          description: 'AirspeedVelocity version' }
   julia-version: { default: '1',            description: 'Julia version' }
   mode:          { default: 'time,memory',  description: 'Comma-separated list of modes for benchpkgtable (e.g. time,memory)' }
+  force-time-unit: { default: '',           description: 'Force a time unit for all benchmark results (excluding load time). Valid values: ns, μs, us, ms, s, h. Empty for auto-detection.' }
   enable-plots:  { default: 'false',        description: 'Generate & upload plots' }
   tune:          { default: 'false',        description: 'Pass --tune to benchpkg' }
   script:        { default: '',             description: 'Custom benchmark script path' }
@@ -20,7 +21,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         ref: ${{ github.event.pull_request.head.sha }}
         persist-credentials: false  # Just for security considerations
@@ -99,6 +100,9 @@ runs:
         [[ -n "${{ inputs.extra-pkgs }}"   ]] && bench_args+=("--add=${{ inputs.extra-pkgs }}")
         [[ "${{ inputs.tune }}" == 'true'  ]] && bench_args+=("--tune")
 
+        # Options that apply **only** to benchpkgtable
+        [[ -n "${{ inputs.force-time-unit }}" ]] && table_args+=("--force-time-unit=${{ inputs.force-time-unit }}")
+
         # Export as composite-action outputs
         echo "bench_args=${bench_args[*]}" >> "$GITHUB_OUTPUT"
         echo "table_args=${table_args[*]}" >> "$GITHUB_OUTPUT"
@@ -132,9 +136,9 @@ runs:
 
     - name: Upload plots
       if: ${{ inputs.enable-plots == 'true' }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
-        name: benchmark-plots
+        name: benchmark-plots-${{ inputs.julia-version }}
         path: plots
 
     - name: Create comment body
@@ -177,7 +181,7 @@ runs:
 
     - name: Find comment
       if: ${{ inputs.job-summary != 'true' }}
-      uses: peter-evans/find-comment@v3
+      uses: peter-evans/find-comment@v4
       id: find
       with:
         issue-number: ${{ github.event.pull_request.number }}
@@ -186,7 +190,7 @@ runs:
 
     - name: Create or update comment
       if: ${{ inputs.job-summary != 'true' }}
-      uses: peter-evans/create-or-update-comment@v4
+      uses: peter-evans/create-or-update-comment@v5
       with:
         comment-id: ${{ steps.find.outputs.comment-id }}
         issue-number: ${{ github.event.pull_request.number }}

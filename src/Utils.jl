@@ -16,26 +16,57 @@ function get_spec_str(spec::PackageSpec)
     return string(package_name) * "@" * string(package_rev)
 end
 
-function get_reasonable_unit(value, units)
-    unit_choice = argmin(abs.(log10.(value .* getindex.(units, 1))))
-    unit, unit_name = units[unit_choice]
-    return unit, unit_name
+"""Time unit scale factors."""
+const TIME_UNITS = (
+    ns=1.0, μs=1e-3, ms=1e-6, s=1e-9, h=1e-9 / 3600
+)
+"""Memory unit scale factors."""
+const MEMORY_UNITS = (
+    B=1.0, kB=1 / 1024, MB=1 / 1024^2, GB=1 / 1024^3
+)
+"""Allocation unit scale factors."""
+const ALLOCATION_UNITS = (
+    var""=1.0, k=1e-3, M=1e-6, G=1e-9
+)
+
+"""Get the most reasonable unit for a given value. Returns (scale_factor, unit_name) tuple."""
+function get_reasonable_unit(value::Number, units::NamedTuple)::Tuple{Float64,String}
+    _, best = findmin(s -> abs(log10(value * s)), units)
+    return units[best], string(best)
+end
+function get_reasonable_unit(values::AbstractArray, units::NamedTuple)::Tuple{Float64,String}
+    return get_reasonable_unit(median(values), units)
 end
 
-function get_reasonable_time_unit(quantities::AbstractArray)
-    units = [(1.0, "ns"), (1e-3, "μs"), (1e-6, "ms"), (1e-9, "s"), (1e-9 / 3600, "h")]
-    return get_reasonable_unit(median(quantities), units)
+function normalize_time_unit(unit_name::String)::String
+    u = lowercase(unit_name)
+    return u in ("us", "μs", "µs") ? "μs" : u
 end
 
-function get_reasonable_memory_unit(memory)
-    units = [(1.0, "B"), (1 / 1024, "kB"), (1 / 1024^2, "MB"), (1 / 1024^3, "GB")]
-    return get_reasonable_unit(memory, units)
+"""
+    get_time_unit_scale(unit_name::String)
+    get_time_unit_scale(unit_name::Symbol)
+
+Get the time unit scale factor for a given unit name.
+Returns (scale_factor, unit_name) tuple.
+
+Valid unit names: "ns", "μs", "us", "ms", "s", "h"
+"""
+function get_time_unit_scale(unit_name::String)
+    unit_name = normalize_time_unit(unit_name)
+    if !haskey(TIME_UNITS, Symbol(unit_name))
+        valid_units = join(string.(keys(TIME_UNITS)), ", ")
+        error("Unknown time unit: $unit_name. Valid units are: $valid_units")
+    end
+    return TIME_UNITS[Symbol(unit_name)], unit_name
+end
+function get_time_unit_scale(unit_name::Symbol)
+    return get_time_unit_scale(string(unit_name))
 end
 
-function get_reasonable_allocs_unit(allocs)
-    units = [(1.0, ""), (1e-3, "k"), (1e-6, "M"), (1e-9, "G")]
-    return get_reasonable_unit(allocs, units)
-end
+get_reasonable_time_unit(quantities) = get_reasonable_unit(quantities, TIME_UNITS)
+get_reasonable_memory_unit(memory) = get_reasonable_unit(memory, MEMORY_UNITS)
+get_reasonable_allocs_unit(allocs) = get_reasonable_unit(allocs, ALLOCATION_UNITS)
 
 function _get_script(;
     package_name::String,

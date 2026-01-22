@@ -126,20 +126,21 @@ Each matrix leg writes its own comment (Option 1) or section in the job summary 
 
 ### CI Parameters
 
-| Input           | Default          | What it does                                |
-|-----------------|------------------|---------------------------------------------|
-| `asv-version`   | `"0.6"`          | AirspeedVelocity version to install         |
-| `julia-version` | `"1"`            | Julia version to install                    |
-| `job-summary`   | `"false"`        | Output to job summary instead of PR comment |
-| `tune`          | `"false"`        | `--tune` to tune benchmarks first           |
-| `mode`          | `"time,memory"`  | Which tables to generate (`time`, `memory`) |
-| `enable-plots`  | `"false"`        | Upload PNG plots as artifact                |
-| `script`        | `""`             | Custom benchmark script path                |
-| `rev`           | `""`             | `--rev` list for benchpkg (comma-separated) |
-| `bench-on`      | `""`             | `--bench-on` commit to freeze script        |
-| `filter`        | `""`             | `--filter` list for `benchpkg`              |
-| `exeflags`      | `""`             | `--exeflags` for Julia runner               |
-| `extra-pkgs`    | `""`             | `--add` extra packages (comma-separated)    |
+| Input             | Default          | What it does                                |
+|-------------------|------------------|---------------------------------------------|
+| `asv-version`     | `"0.6"`          | AirspeedVelocity version to install         |
+| `julia-version`   | `"1"`            | Julia version to install                    |
+| `job-summary`     | `"false"`        | Output to job summary instead of PR comment |
+| `tune`            | `"false"`        | `--tune` to tune benchmarks first           |
+| `mode`            | `"time,memory"`  | Which tables to generate (`time`, `memory`) |
+| `enable-plots`    | `"false"`        | Upload PNG plots as artifact                |
+| `script`          | `""`             | Custom benchmark script path                |
+| `rev`             | `""`             | `--rev` list for benchpkg (comma-separated) |
+| `bench-on`        | `""`             | `--bench-on` commit to freeze script        |
+| `filter`          | `""`             | `--filter` list for `benchpkg`              |
+| `exeflags`        | `""`             | `--exeflags` for Julia runner               |
+| `extra-pkgs`      | `""`             | `--add` extra packages (comma-separated)    |
+| `force-time-unit` | `""`             | Force a time unit (excluding load time)     |
 
 ## Further examples
 
@@ -288,6 +289,7 @@ You can also just generate a table from stored JSON results:
                                  [-i --input-dir <arg>]
                                  [--ratio]
                                  [--mode <arg>]
+                                 [--force-time-unit <arg>]
                                  [--url <arg>]
                                  [--path <arg>]
 
@@ -306,6 +308,8 @@ Print a table of the benchmarks of a package as created with `benchpkg`.
 - `--url <arg>`: URL of the package. Only used to get the package name.
 - `--path <arg>`: Path of the package. The default is `.` if other arguments are not given.
    Only used to get the package name.
+- `--force-time-unit <arg>`: Force a time unit for all benchmark results (excluding load time).
+  Valid values are "ns", "μs", "us", "ms", "s", "h". If not specified, units are chosen automatically.
 
 #### Flags
 

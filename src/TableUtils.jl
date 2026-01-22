@@ -1,12 +1,26 @@
 module TableUtils
 
 using ..Utils:
-    get_reasonable_time_unit, get_reasonable_allocs_unit, get_reasonable_memory_unit
+    get_reasonable_time_unit,
+    get_reasonable_allocs_unit,
+    get_reasonable_memory_unit,
+    get_time_unit_scale
 using OrderedCollections: OrderedDict
 using Printf: @sprintf
 
-function format_time(val::Dict)
-    unit, unit_name = get_reasonable_time_unit([val["median"]])
+"""
+    format_time(val::Dict; time_unit=nothing)
+
+Format a time value with optional fixed unit. When `time_unit` is `nothing`,
+the unit is automatically chosen based on the magnitude.
+Valid time units: "ns", "μs", "ms", "s", "h" (and `:us` is accepted as an alias for `"μs"`).
+"""
+function format_time(val::Dict; time_unit::Union{Nothing,Symbol}=nothing)
+    if time_unit === nothing
+        unit, unit_name = get_reasonable_time_unit([val["median"]])
+    else
+        unit, unit_name = get_time_unit_scale(time_unit)
+    end
     if haskey(val, "75")
         @sprintf(
             "%.3g ± %.2g %s",
@@ -18,11 +32,8 @@ function format_time(val::Dict)
         @sprintf("%.3g %s", val["median"] * unit, unit_name)
     end
 end
-function format_time(val::Number)
-    unit, unit_name = get_reasonable_memory_unit([val])
-    @sprintf("%.3g %s", val * unit, unit_name)
-end
-function format_time(::Missing)
+
+function format_time(::Missing; time_unit::Union{Nothing,Symbol}=nothing)
     return ""
 end
 
@@ -42,20 +53,9 @@ function format_memory(val::Dict)
         ""
     end
 end
+
 function format_memory(::Missing)
     return ""
-end
-
-function default_formatter(key)
-    if key ∉ ("median", "memory")
-        error("Unknown ratio column: $key")
-    end
-
-    if key == "memory"
-        return format_memory
-    else # if key == "median"
-        return format_time
-    end
 end
 
 """
@@ -65,16 +65,22 @@ Create a markdown table of the results loaded from the `load_results` function.
 If there are two results for a given benchmark, will have an additional column
 for the comparison, assuming the first revision is one to compare against.
 
-The `formatter` keyword argument generates the column value. It defaults to
-`TableUtils.format_time`, which prints the median time ± the interquantile range.
-`TableUtils.format_memory` is also available to print the number of allocations
-and the allocated memory.
+The `formatter` keyword argument generates the column value. By default, the table
+formats time as the median ± the interquantile range, and formats memory as the number
+of allocations and allocated memory.
+
+The `time_unit` keyword argument can be used to specify a fixed time unit for
+all benchmark results. Valid values are: `:ns`, `Symbol("μs")`, `:ms`, `:s`, `:h` (and `:us` is accepted as an alias for `Symbol("μs")`).
+If not specified (default), the unit is automatically chosen based on the magnitude
+of the value. The `time_to_load` benchmark always uses auto-detection regardless
+of this setting.
 """
 function create_table(
     combined_results::OrderedDict;
     key="median",
     add_ratio_col=true,
-    formatter=default_formatter(key),
+    time_unit::Union{Nothing,Symbol}=nothing,
+    formatter=nothing,
 )
     num_revisions = length(combined_results)
     num_cols = 1 + num_revisions
@@ -112,7 +118,18 @@ function create_table(
         col = String[]
         for row in all_keys
             val = get(result, row, missing)
-            push!(col, formatter(val))
+            if formatter !== nothing
+                push!(col, formatter(val))
+            else
+                if key == "memory"
+                    push!(col, format_memory(val))
+                elseif key == "median"
+                    effective_time_unit = row == "time_to_load" ? nothing : time_unit
+                    push!(col, format_time(val; time_unit=effective_time_unit))
+                else
+                    error("Unknown ratio column: $key")
+                end
+            end
         end
         push!(data_columns, col)
     end
