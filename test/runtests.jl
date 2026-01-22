@@ -473,7 +473,7 @@ end
     end
 
     path = joinpath(tmpdir, "TestPackage")
-    run(`git -C "$path" init`)
+    run(`git init`)
     run(`git add .`)
     run(`git config user.name "user"`)
     run(`git config user.email "user@example.com"`)
