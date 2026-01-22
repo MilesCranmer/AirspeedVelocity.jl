@@ -496,11 +496,11 @@ end
     results_dir = mktempdir(; cleanup=false)
     benchpkg(
         "TestPackage";
-        rev="main",
+        rev="master",
         script=script,
         path=path,
         output_dir=results_dir,
     )
 
-    @test isfile(joinpath(results_dir, "results_TestPackage@main.json"))
+    @test isfile(joinpath(results_dir, "results_TestPackage@master.json"))
 end
