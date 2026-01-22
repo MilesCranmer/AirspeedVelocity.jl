@@ -413,6 +413,8 @@ end
     path = joinpath(tmpdir, "TestPackage")
     run(`git -C "$path" init`)
     run(`git add .`)
+    run(`git config user.name "user"`)
+    run(`git config user.email "user@example.com"`)
     run(`git commit -m "initial"`)
     script = joinpath(path, "bench.jl")
 
