@@ -352,9 +352,10 @@ function dev_source_pkgs(path)
     if !isnothing(sources)
         for (pkg, dict) in sources
             spec = if haskey(dict, "path")
-                relpath = get(dict, "path", nothing)
+                srcpath = dict["path"]
+                srcpath = isabspath(srcpath) ? srcpath : joinpath(path, srcpath)
                 subdir = get(dict, "subdir", nothing)
-                PackageSpec(; path = "$path/$relpath", subdir)
+                PackageSpec(; path = srcpath, subdir)
             else
                 url = get(dict, "url", nothing)
                 rev = get(dict, "rev", nothing)
