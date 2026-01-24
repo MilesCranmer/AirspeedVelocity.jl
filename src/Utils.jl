@@ -368,9 +368,8 @@ function dev_source_pkgs(project_path)
                 Pkg.add(spec; io=devnull)
             end
         end
-    else
-        nothing
     end
+    return nothing
 end
 
 """
