@@ -357,7 +357,7 @@ function dev_source_pkgs(path)
                 subdir = get(dict, "subdir", nothing)
                 PackageSpec(; path = srcpath, subdir)
             else
-                url = get(dict, "url", nothing)
+                url = dict["url"]
                 rev = get(dict, "rev", nothing)
                 subdir = get(dict, "subdir", nothing)
                 PackageSpec(; url, rev, subdir)
