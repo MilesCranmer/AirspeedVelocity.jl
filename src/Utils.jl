@@ -364,9 +364,9 @@ function dev_source_pkgs(path)
             end
 
             if !isnothing(spec.path)
-                Pkg.develop(spec)
+                Pkg.develop(spec; io=devnull)
             else
-                Pkg.add(spec)
+                Pkg.add(spec; io=devnull)
             end
         end
     else
