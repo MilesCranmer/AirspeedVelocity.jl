@@ -350,15 +350,15 @@ function dev_source_pkgs(project_path)
     sources = get(parsefile(project_toml), "sources", nothing)
 
     if !isnothing(sources)
-        for (name, dict) in sources
-            subdir = get(dict, "subdir", nothing)
-            spec = if haskey(dict, "path")
-                raw_path = dict["path"]
+        for (name, metadata) in sources
+            subdir = get(metadata, "subdir", nothing)
+            spec = if haskey(metadata, "path")
+                raw_path = metadata["path"]
                 path = isabspath(raw_path) ? raw_path : joinpath(project_path, raw_path)
                 PackageSpec(; name, path, subdir)
             else
-                url = dict["url"]
-                rev = get(dict, "rev", nothing)
+                url = metadata["url"]
+                rev = get(metadata, "rev", nothing)
                 PackageSpec(; name, url, rev, subdir)
             end
 
