@@ -363,7 +363,7 @@ function dev_source_pkgs(path)
                 PackageSpec(; url, rev, subdir)
             end
 
-            if isnothing(spec.rev)
+            if !isnothing(spec.path)
                 Pkg.develop(spec)
             else
                 Pkg.add(spec)
