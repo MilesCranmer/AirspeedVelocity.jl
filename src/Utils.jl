@@ -345,21 +345,20 @@ function _benchmark(
     return results
 end
 
-function dev_source_pkgs(path)
-    project_toml = joinpath(path, "Project.toml")
+function dev_source_pkgs(project_path)
+    project_toml = joinpath(project_path, "Project.toml")
     sources = get(parsefile(project_toml), "sources", nothing)
 
     if !isnothing(sources)
         for (pkg, dict) in sources
+            subdir = get(dict, "subdir", nothing)
             spec = if haskey(dict, "path")
-                srcpath = dict["path"]
-                srcpath = isabspath(srcpath) ? srcpath : joinpath(path, srcpath)
-                subdir = get(dict, "subdir", nothing)
-                PackageSpec(; path = srcpath, subdir)
+                raw_path = dict["path"]
+                path = isabspath(raw_path) ? raw_path : joinpath(project_path, raw_path)
+                PackageSpec(; path, subdir)
             else
                 url = dict["url"]
                 rev = get(dict, "rev", nothing)
-                subdir = get(dict, "subdir", nothing)
                 PackageSpec(; url, rev, subdir)
             end
 
