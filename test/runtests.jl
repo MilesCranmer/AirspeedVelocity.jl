@@ -447,3 +447,60 @@ end
     @test AirspeedVelocity.Utils.parse_rev("lh/guess-default-branch", "unused") ==
         "lh/guess-default-branch"
 end
+
+@testitem "dev sources" begin
+    using AirspeedVelocity
+    using Pkg
+    using TOML
+
+    tmpdir = mktempdir()
+    cd(tmpdir)
+    Pkg.generate("TestPackage")
+    cd("TestPackage")
+    Pkg.activate(".")
+
+    Pkg.generate("Source1")
+    Pkg.develop(path = "Source1")
+    Pkg.add(url = "https://github.com/JuliaLang/Example.jl", rev = "master")
+
+    proj_file = joinpath(tmpdir, "TestPackage/Project.toml")
+    proj = TOML.parsefile(proj_file)
+    proj["sources"] = get(proj, "sources", Dict{String, Any}())
+    proj["sources"]["Source1"] = Dict("path" => "Source1")
+    proj["sources"]["Example"] = Dict("url" => "https://github.com/JuliaLang/Example.jl", "rev" => "master")
+    open(proj_file, "w") do io
+        TOML.print(io, proj)
+    end
+
+    path = joinpath(tmpdir, "TestPackage")
+    run(`git init`)
+    run(`git add .`)
+    run(`git config user.name "user"`)
+    run(`git config user.email "user@example.com"`)
+    run(`git commit -m "initial"`)
+    script = joinpath(path, "bench.jl")
+
+    open(joinpath(script), "w") do io
+        write(
+            io,
+            """
+            using BenchmarkTools
+            using TestPackage
+            const SUITE = BenchmarkGroup()
+            SUITE["cos"] = @benchmarkable cos(x) setup=(x=rand())
+            SUITE["sin"] = @benchmarkable sin(x) setup=(x=rand())
+            """,
+        )
+    end
+
+    results_dir = mktempdir(; cleanup=false)
+    benchpkg(
+        "TestPackage";
+        rev="master",
+        script=script,
+        path=path,
+        output_dir=results_dir,
+    )
+
+    @test isfile(joinpath(results_dir, "results_TestPackage@master.json"))
+end
