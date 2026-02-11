@@ -189,6 +189,9 @@ function _benchmark(
     if spec.rev == "dirty"
         Pkg.develop(; path=spec.path, io=devnull)
     else
+        if !isnothing(spec.path)
+            dev_source_pkgs(spec.path)
+        end
         Pkg.add(spec; io=devnull)
     end
     # Filter out empty strings from extra_pkgs:
@@ -340,6 +343,33 @@ function _benchmark(
     end
     @info "    Finished."
     return results
+end
+
+function dev_source_pkgs(project_path)
+    project_toml = joinpath(project_path, "Project.toml")
+    sources = get(parsefile(project_toml), "sources", nothing)
+
+    if !isnothing(sources)
+        for (name, metadata) in sources
+            subdir = get(metadata, "subdir", nothing)
+            spec = if haskey(metadata, "path")
+                raw_path = metadata["path"]
+                path = isabspath(raw_path) ? raw_path : joinpath(project_path, raw_path)
+                PackageSpec(; name, path, subdir)
+            else
+                url = metadata["url"]
+                rev = get(metadata, "rev", nothing)
+                PackageSpec(; name, url, rev, subdir)
+            end
+
+            if !isnothing(spec.path)
+                Pkg.develop(spec; io=devnull)
+            else
+                Pkg.add(spec; io=devnull)
+            end
+        end
+    end
+    return nothing
 end
 
 """
