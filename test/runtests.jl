@@ -504,3 +504,173 @@ end
 
     @test isfile(joinpath(results_dir, "results_TestPackage@master.json"))
 end
+
+@testitem "clone_to_tmpdir" begin
+    using AirspeedVelocity
+
+    mktempdir() do tmpdir
+        # Create a small repo with one commit on "main"
+        src = joinpath(tmpdir, "src_repo")
+        mkpath(src)
+        run(`git -C $src init -b main`)
+        run(`git -C $src config user.name "test"`)
+        run(`git -C $src config user.email "test@test.com"`)
+        write(joinpath(src, "hello.txt"), "world")
+        run(`git -C $src add .`)
+        run(`git -C $src commit -m "init"`)
+        sha = String(strip(read(`git -C $src rev-parse HEAD`, String)))
+
+        # Bare clone so it can be fetched via file://
+        bare = joinpath(tmpdir, "bare.git")
+        run(`git clone --bare $src $bare`)
+        bare_url = "file://$bare"
+
+        # Clone by branch name (shallow clone path)
+        c1 = AirspeedVelocity.Utils._clone_to_tmpdir(bare_url, "main")
+        @test isfile(joinpath(c1, "hello.txt"))
+        @test read(joinpath(c1, "hello.txt"), String) == "world"
+
+        # Clone by SHA (falls back to full clone + checkout)
+        c2 = AirspeedVelocity.Utils._clone_to_tmpdir(bare_url, sha)
+        @test isfile(joinpath(c2, "hello.txt"))
+        @test read(joinpath(c2, "hello.txt"), String) == "world"
+
+        # Clone without rev
+        c3 = AirspeedVelocity.Utils._clone_to_tmpdir(bare_url)
+        @test isfile(joinpath(c3, "hello.txt"))
+    end
+end
+
+@testitem "dev_source_pkgs_from_spec with URL" begin
+    using AirspeedVelocity
+    using Pkg
+    using TOML
+
+    mktempdir() do tmpdir
+        # ── Create SourceDep as a fetchable bare git repo ──
+        sd_path = joinpath(tmpdir, "SourceDep")
+        Pkg.generate(sd_path)
+        run(`git -C $sd_path init -b main`)
+        run(`git -C $sd_path config user.name "test"`)
+        run(`git -C $sd_path config user.email "test@test.com"`)
+        run(`git -C $sd_path add .`)
+        run(`git -C $sd_path commit -m "init"`)
+        sd_bare = joinpath(tmpdir, "SourceDep.git")
+        run(`git clone --bare $sd_path $sd_bare`)
+        sd_url = "file://$sd_bare"
+
+        # ── Create MainPkg with [sources] → SourceDep via URL ──
+        main_path = joinpath(tmpdir, "MainPkg")
+        Pkg.generate(main_path)
+        proj_file = joinpath(main_path, "Project.toml")
+        proj = TOML.parsefile(proj_file)
+        sd_proj = TOML.parsefile(joinpath(sd_path, "Project.toml"))
+        proj["deps"] = get(proj, "deps", Dict{String,Any}())
+        proj["deps"]["SourceDep"] = sd_proj["uuid"]
+        proj["sources"] = Dict("SourceDep" => Dict("url" => sd_url))
+        open(proj_file, "w") do io
+            TOML.print(io, proj)
+        end
+        run(`git -C $main_path init -b master`)
+        run(`git -C $main_path config user.name "test"`)
+        run(`git -C $main_path config user.email "test@test.com"`)
+        run(`git -C $main_path add .`)
+        run(`git -C $main_path commit -m "init"`)
+        main_bare = joinpath(tmpdir, "MainPkg.git")
+        run(`git clone --bare $main_path $main_bare`)
+        main_url = "file://$main_bare"
+
+        # ── Resolve sources via URL ──
+        env_dir = mktempdir()
+        old_project = Pkg.project().path
+        Pkg.activate(env_dir)
+        AirspeedVelocity.Utils.dev_source_pkgs_from_spec(; url=main_url, rev="master")
+        deps = Pkg.dependencies()
+        @test any(p -> p.second.name == "SourceDep", deps)
+        Pkg.activate(old_project)
+
+        # ── No-sources package returns cleanly ──
+        nosrc_path = joinpath(tmpdir, "NoPkg")
+        Pkg.generate(nosrc_path)
+        run(`git -C $nosrc_path init -b master`)
+        run(`git -C $nosrc_path config user.name "test"`)
+        run(`git -C $nosrc_path config user.email "test@test.com"`)
+        run(`git -C $nosrc_path add .`)
+        run(`git -C $nosrc_path commit -m "init"`)
+        nosrc_bare = joinpath(tmpdir, "NoPkg.git")
+        run(`git clone --bare $nosrc_path $nosrc_bare`)
+        @test isnothing(
+            AirspeedVelocity.Utils.dev_source_pkgs_from_spec(;
+                url="file://$nosrc_bare", rev="master"
+            )
+        )
+
+        # Neither url nor path → returns nothing
+        @test isnothing(AirspeedVelocity.Utils.dev_source_pkgs_from_spec())
+    end
+end
+
+@testitem "dev sources via URL" begin
+    using AirspeedVelocity
+    using Pkg
+    using TOML
+
+    mktempdir() do tmpdir
+        # ── Create SourceDep as a bare git repo ──
+        sd_path = joinpath(tmpdir, "SourceDep")
+        Pkg.generate(sd_path)
+        run(`git -C $sd_path init -b main`)
+        run(`git -C $sd_path config user.name "test"`)
+        run(`git -C $sd_path config user.email "test@test.com"`)
+        run(`git -C $sd_path add .`)
+        run(`git -C $sd_path commit -m "init"`)
+        sd_bare = joinpath(tmpdir, "SourceDep.git")
+        run(`git clone --bare $sd_path $sd_bare`)
+        sd_url = "file://$sd_bare"
+
+        # ── Create TestPkgURL with [sources] → SourceDep ──
+        pkg_path = joinpath(tmpdir, "TestPkgURL")
+        Pkg.generate(pkg_path)
+        proj_file = joinpath(pkg_path, "Project.toml")
+        proj = TOML.parsefile(proj_file)
+        sd_proj = TOML.parsefile(joinpath(sd_path, "Project.toml"))
+        proj["deps"] = get(proj, "deps", Dict{String,Any}())
+        proj["deps"]["SourceDep"] = sd_proj["uuid"]
+        proj["sources"] = Dict("SourceDep" => Dict("url" => sd_url))
+        open(proj_file, "w") do io
+            TOML.print(io, proj)
+        end
+
+        script = joinpath(pkg_path, "bench.jl")
+        open(script, "w") do io
+            write(
+                io,
+                """
+                using BenchmarkTools
+                using TestPkgURL
+                const SUITE = BenchmarkGroup()
+                SUITE["cos"] = @benchmarkable cos(x) setup=(x=rand())
+                """,
+            )
+        end
+
+        run(`git -C $pkg_path init -b master`)
+        run(`git -C $pkg_path config user.name "test"`)
+        run(`git -C $pkg_path config user.email "test@test.com"`)
+        run(`git -C $pkg_path add .`)
+        run(`git -C $pkg_path commit -m "init"`)
+        pkg_bare = joinpath(tmpdir, "TestPkgURL.git")
+        run(`git clone --bare $pkg_path $pkg_bare`)
+        pkg_url = "file://$pkg_bare"
+
+        results_dir = mktempdir()
+        benchpkg(
+            "TestPkgURL";
+            rev="master",
+            script=script,
+            url=pkg_url,
+            output_dir=results_dir,
+        )
+        @test isfile(joinpath(results_dir, "results_TestPkgURL@master.json"))
+    end
+end
