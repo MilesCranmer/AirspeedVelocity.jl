@@ -75,6 +75,7 @@ on:
   pull_request_target:
     branches: [ master ]  # change to your default branch
 permissions:
+  contents: read
   pull-requests: write    # needed to post comments
 
 jobs:
