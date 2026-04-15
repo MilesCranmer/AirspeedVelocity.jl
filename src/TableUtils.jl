@@ -164,9 +164,25 @@ function create_table(
             else
                 NaN
             end
+            status = :neutral
+            if isfinite(ratio) && isfinite(ratio_err)
+                if ratio + ratio_err < 0.8
+                    status = :slowdown
+                elseif ratio - ratio_err > 1.2
+                    status = :speedup
+                end
+            elseif isfinite(ratio)
+                if ratio < 0.5
+                    status = :speedup
+                elseif ratio > 1.5
+                    status = :slowdown
+                end
+            end
+
             string_ratio = join((
                 isfinite(ratio) ? @sprintf("%.3g", ratio) : "",
                 isfinite(ratio_err) ? @sprintf(" ± %.2g", ratio_err) : "",
+                (; speedup=" 🚀", neutral="", slowdown=" 🐢")[status],
             ))
 
             push!(col, string_ratio)
