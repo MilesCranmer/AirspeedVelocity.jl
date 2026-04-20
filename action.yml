@@ -27,7 +27,7 @@ runs:
         persist-credentials: false  # Just for security considerations
 
     - name: Setup Julia
-      uses: julia-actions/setup-julia@v2
+      uses: julia-actions/setup-julia@v3
       env:
         GITHUB_TOKEN: ""
       with:
