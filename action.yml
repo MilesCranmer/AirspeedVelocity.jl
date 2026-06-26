@@ -45,11 +45,12 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ""
+        JULIA_NUM_THREADS: "2"
+        JULIA_PKG_PRECOMPILE_AUTO: "0"
       run: |
-        export JULIA_NUM_THREADS=2
         # Lightweight build step, as sometimes the runner runs out of memory:
-        julia -e 'ENV["JULIA_PKG_PRECOMPILE_AUTO"]=0; using Pkg; pkg"add AirspeedVelocity@${{ inputs.asv-version }}"'
-        julia -e 'ENV["JULIA_PKG_PRECOMPILE_AUTO"]=0; import Pkg; Pkg.build("AirspeedVelocity")'
+        julia -e 'using Pkg; pkg"add AirspeedVelocity@${{ inputs.asv-version }}"'
+        julia -e 'import Pkg; Pkg.build("AirspeedVelocity")'
 
     - name: Add ~/.julia/bin to PATH
       run: echo "$HOME/.julia/bin" >> "$GITHUB_PATH"
