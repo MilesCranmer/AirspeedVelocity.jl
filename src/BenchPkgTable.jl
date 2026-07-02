@@ -3,6 +3,9 @@ module BenchPkgTable
 using ..TableUtils: create_table, format_memory
 using ..Utils: get_package_name_defaults, parse_rev, load_results, normalize_time_unit
 using Comonicon
+using TOML: parsefile
+
+const COMMAND_VERSION = VersionNumber(parsefile(joinpath(@__DIR__, "..", "Project.toml"))["version"])
 
 """
     benchpkgtable [package_name] [-r --rev <arg>]
