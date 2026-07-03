@@ -10,6 +10,7 @@ using Comonicon
                             [--path <arg>]
                             [-o, --output-dir <arg>]
                             [-e, --exeflags <arg>]
+                            [--threads <arg>]
                             [-a, --add <arg>]
                             [-s, --script <arg>]
                             [--bench-on <arg>]
@@ -35,6 +36,7 @@ Benchmark a package over a set of revisions.
 - `--path <arg>`: Path of the package. The default is `.` if other arguments are not given.
 - `-o, --output-dir <arg>`: Where to save the JSON results. The default is `.`.
 - `-e, --exeflags <arg>`: CLI flags for Julia (default: none).
+- `--threads <arg>`: Number of Julia threads for benchmark subprocesses (e.g. `1`, `auto`).
 - `-a, --add <arg>`: Extra packages needed (delimit by comma).
 - `-s, --script <arg>`: The benchmark script. Default: `benchmark/benchmarks.jl` downloaded from `stable`.
 - `--bench-on <arg>`: If the script is not set, this specifies the revision at which
@@ -55,6 +57,7 @@ Comonicon.@main function benchpkg(
     output_dir::String=".",
     script::String="",
     exeflags::String="",
+    threads::String="",
     add::String="",
     tune::Bool=false,
     url::String="",
@@ -90,13 +93,18 @@ Comonicon.@main function benchpkg(
         script
     end
 
+    _exeflags = length(exeflags) > 0 ? `$(Cmd(split(exeflags, " ") .|> String))` : ``
+    if length(threads) > 0
+        _exeflags = `$_exeflags --threads=$threads`
+    end
+
     benchmark(
         package_name,
         revs;
         output_dir=output_dir,
         script=(length(_script) > 0 ? _script : nothing),
         tune=tune,
-        exeflags=(length(exeflags) > 0 ? `$(Cmd(split(exeflags, " ") .|> String))` : ``),
+        exeflags=_exeflags,
         extra_pkgs=convert(Vector{String}, split(add, ",")),
         url=(length(url) > 0 ? url : nothing),
         path=(length(path) > 0 ? path : nothing),

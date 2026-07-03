@@ -15,6 +15,7 @@ inputs:
   bench-on:      { default: '',             description: '--bench-on commit to freeze script' }
   filter:        { default: '',             description: '--filter list for benchpkg' }
   exeflags:      { default: '',             description: '--exeflags for Julia' }
+  threads:       { default: '',             description: '--threads for benchmark Julia subprocesses' }
   extra-pkgs:    { default: '',             description: '--add extra packages (comma-sep)' }
   job-summary:   { default: 'false',        description: 'Output to job summary instead of PR comment' }
 
@@ -97,6 +98,7 @@ runs:
         [[ -n "${{ inputs.script }}"       ]] && bench_args+=("--script=${{ inputs.script }}")
         [[ -n "${{ inputs.filter }}"       ]] && bench_args+=("--filter=${{ inputs.filter }}")
         [[ -n "${{ inputs.exeflags }}"     ]] && bench_args+=("--exeflags='${{ inputs.exeflags }}'")
+        [[ -n "${{ inputs.threads }}"      ]] && bench_args+=("--threads=${{ inputs.threads }}")
         [[ -n "${{ inputs.extra-pkgs }}"   ]] && bench_args+=("--add=${{ inputs.extra-pkgs }}")
         [[ "${{ inputs.tune }}" == 'true'  ]] && bench_args+=("--tune")
 

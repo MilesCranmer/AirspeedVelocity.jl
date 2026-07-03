@@ -367,6 +367,44 @@ end
     @test "cos" in keys(results["data"])
 end
 
+@testitem "benchpkg --threads" begin
+    using AirspeedVelocity
+    using Pkg
+
+    tmpdir = mktempdir()
+    cd(tmpdir)
+    Pkg.generate("ThreadedPackage")
+    path = joinpath(tmpdir, "ThreadedPackage")
+    script = joinpath(path, "bench.jl")
+    open(script, "w") do io
+        write(
+            io,
+            """
+            using BenchmarkTools
+            using ThreadedPackage
+
+            @assert Threads.nthreads() == 2
+
+            const SUITE = BenchmarkGroup()
+            SUITE["nthreads"] = @benchmarkable Threads.nthreads() evals=1 samples=1
+            """,
+        )
+    end
+
+    output_dir = mktempdir()
+    benchpkg(
+        "ThreadedPackage";
+        rev="dirty",
+        script=script,
+        path=path,
+        output_dir=output_dir,
+        threads="2",
+        nsamples_load_time=1,
+        dont_print=true,
+    )
+    @test isfile(joinpath(output_dir, "results_ThreadedPackage@dirty.json"))
+end
+
 @testitem "Fill in defaults" begin
     import AirspeedVelocity.Utils: get_package_name_defaults as pkg_defaults
 
