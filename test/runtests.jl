@@ -31,6 +31,11 @@ using TestItemRunner
     )
         @test isdefined(mod, :command_main)
         @test isdefined(mod, :main) == (VERSION >= v"1.12")
+        if VERSION >= v"1.12"
+            redirect_stdout(devnull) do
+                @test mod.main(["--help"]) == 0
+            end
+        end
     end
 end
 
