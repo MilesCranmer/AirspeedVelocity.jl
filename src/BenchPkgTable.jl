@@ -90,4 +90,10 @@ end
 
 translate_mode(s) = s == "time" ? "median" : s
 
+if VERSION >= v"1.12"
+    @eval function (Base.@main)(ARGS)
+        return command_main(ARGS)
+    end
+end
+
 end # AirspeedVelocity.BenchPkgTable

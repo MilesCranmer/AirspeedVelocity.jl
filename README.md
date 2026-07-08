@@ -45,6 +45,13 @@ julia -e 'using Pkg; Pkg.activate(temp=true); Pkg.add("AirspeedVelocity"); Pkg.b
 
 This will install three executables at `~/.julia/bin` - make sure to have it on your `PATH`.
 
+On Julia 1.12 or newer, you can alternatively install the same executables as
+Julia apps:
+
+```bash
+julia -e 'using Pkg; Pkg.Apps.add("AirspeedVelocity")'
+```
+
 ## Examples
 
 You may use the CLI to generate benchmarks for any package with, e.g.,

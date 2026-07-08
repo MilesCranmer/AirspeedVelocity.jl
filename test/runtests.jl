@@ -15,6 +15,25 @@ using TestItemRunner
 
 @run_package_tests
 
+@testitem "Julia apps metadata" begin
+    using AirspeedVelocity
+    using TOML
+
+    apps = TOML.parsefile(joinpath(pkgdir(AirspeedVelocity), "Project.toml"))["apps"]
+    @test apps["benchpkg"]["submodule"] == "BenchPkg"
+    @test apps["benchpkgplot"]["submodule"] == "BenchPkgPlot"
+    @test apps["benchpkgtable"]["submodule"] == "BenchPkgTable"
+
+    for mod in (
+        AirspeedVelocity.BenchPkg,
+        AirspeedVelocity.BenchPkgPlot,
+        AirspeedVelocity.BenchPkgTable,
+    )
+        @test isdefined(mod, :command_main)
+        @test isdefined(mod, :main) == (VERSION >= v"1.12")
+    end
+end
+
 @testitem "Test run benchmarking" begin
     using AirspeedVelocity
 
