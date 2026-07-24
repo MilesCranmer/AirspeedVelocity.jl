@@ -80,6 +80,12 @@ function _get_script(;
         @info "Downloading from $benchmark_on."
     end
     tmp_env = mktempdir()
+    # Resolve [sources] deps into the temp env before the subprocess Pkg.add.
+    old_project = Pkg.project().path
+    Pkg.activate(tmp_env; io=devnull)
+    dev_source_pkgs_from_spec(; url, path, rev=benchmark_on)
+    Pkg.activate(old_project; io=devnull)
+
     to_exec = quote
         ENV["JULIA_PKG_PRECOMPILE_AUTO"] = 0
         using Pkg
@@ -189,9 +195,7 @@ function _benchmark(
     if spec.rev == "dirty"
         Pkg.develop(; path=spec.path, io=devnull)
     else
-        if !isnothing(spec.path)
-            dev_source_pkgs(spec.path)
-        end
+        dev_source_pkgs_from_spec(; url=spec.url, path=spec.path, rev=spec.rev)
         Pkg.add(spec; io=devnull)
     end
     # Filter out empty strings from extra_pkgs:
@@ -369,6 +373,49 @@ function dev_source_pkgs(project_path)
             end
         end
     end
+    return nothing
+end
+
+# Clone a git repo (optionally at `rev`) into a temp dir, returning its path.
+function _clone_to_tmpdir(url::String, rev::Union{Nothing,String}=nothing)
+    tmp = mktempdir()
+    try
+        if rev !== nothing
+            run(`git clone --depth 1 --branch $rev $url $tmp`)
+        else
+            run(`git clone --depth 1 $url $tmp`)
+        end
+    catch
+        # rev may be a commit SHA — fall back to full clone + checkout
+        rm(tmp; recursive=true, force=true)
+        tmp = mktempdir()
+        run(`git clone $url $tmp`)
+        if rev !== nothing
+            run(`git -C $tmp checkout $rev`)
+        end
+    end
+    return tmp
+end
+
+# `dev_source_pkgs` for a package given by `path` or `url` (cloned to read its
+# Project.toml). Resolves `[sources]` deps before `Pkg.add`.
+function dev_source_pkgs_from_spec(;
+    url::Union{Nothing,String}=nothing,
+    path::Union{Nothing,String}=nothing,
+    rev::Union{Nothing,String}=nothing,
+)
+    project_path = if !isnothing(path)
+        path
+    elseif !isnothing(url)
+        _clone_to_tmpdir(url, rev)
+    else
+        return nothing
+    end
+    project_toml = joinpath(project_path, "Project.toml")
+    isfile(project_toml) || return nothing
+    sources = get(parsefile(project_toml), "sources", nothing)
+    isnothing(sources) && return nothing
+    dev_source_pkgs(project_path)
     return nothing
 end
 
