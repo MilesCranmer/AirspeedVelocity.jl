@@ -448,6 +448,72 @@ end
         "lh/guess-default-branch"
 end
 
+@testitem "extra packages satisfy benchmark Project.toml" begin
+    using AirspeedVelocity
+    using Pkg
+    using TOML
+
+    tmpdir = mktempdir()
+    cd(tmpdir)
+    Pkg.generate("TargetPackage")
+    Pkg.generate("HelperPackage")
+
+    helper_path = joinpath(tmpdir, "HelperPackage")
+    helper_src = joinpath(helper_path, "src", "HelperPackage.jl")
+    write(
+        helper_src,
+        """
+        module HelperPackage
+        f() = 1
+        end
+        """,
+    )
+    helper_project = TOML.parsefile(joinpath(helper_path, "Project.toml"))
+    run(`git -C $helper_path init`)
+    run(`git -C $helper_path add .`)
+    run(`git -C $helper_path config user.name user`)
+    run(`git -C $helper_path config user.email user@example.com`)
+    run(`git -C $helper_path commit -m initial`)
+
+    bench_project = joinpath(tmpdir, "BenchmarkProject.toml")
+    write(
+        bench_project,
+        """
+        [deps]
+        HelperPackage = "$(helper_project["uuid"])"
+        """,
+    )
+
+    script = joinpath(tmpdir, "bench.jl")
+    write(
+        script,
+        """
+        using BenchmarkTools
+        using TargetPackage
+        using HelperPackage
+
+        const SUITE = BenchmarkGroup()
+        SUITE["helper"] = @benchmarkable HelperPackage.f() evals=1 samples=1
+        """,
+    )
+
+    output_dir = mktempdir()
+    AirspeedVelocity.Utils.benchmark(
+        Pkg.PackageSpec(;
+            name="TargetPackage", rev="dirty", path=joinpath(tmpdir, "TargetPackage")
+        );
+        output_dir=output_dir,
+        script=script,
+        tune=false,
+        exeflags=``,
+        extra_pkgs=[helper_path],
+        filter_benchmarks=String[],
+        project_toml=bench_project,
+        nsamples_load_time=1,
+    )
+    @test isfile(joinpath(output_dir, "results_TargetPackage@dirty.json"))
+end
+
 @testitem "dev sources" begin
     using AirspeedVelocity
     using Pkg

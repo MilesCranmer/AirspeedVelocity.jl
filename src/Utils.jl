@@ -184,6 +184,10 @@ function _benchmark(
     end
     Pkg.activate(tmp_env; io=devnull)
     @info "    Adding packages."
+    extra_pkgs = filter(x -> x != "", extra_pkgs)
+    if !isempty(extra_pkgs)
+        Pkg.add([parse_package_spec(pkg) for pkg in extra_pkgs]; io=devnull)
+    end
     # "dirty" rev means we want to benchmark the local
     # version of the package at `path`.
     if spec.rev == "dirty"
@@ -194,11 +198,10 @@ function _benchmark(
         end
         Pkg.add(spec; io=devnull)
     end
-    # Filter out empty strings from extra_pkgs:
-    extra_pkgs = filter(x -> x != "", extra_pkgs)
-    pkgs = ["BenchmarkTools", "JSON3", "Pkg", "TOML", extra_pkgs...]
-    # Add extra packages
-    Pkg.add([parse_package_spec(pkg) for pkg in pkgs]; io=devnull)
+    Pkg.add(
+        [parse_package_spec(pkg) for pkg in ["BenchmarkTools", "JSON3", "Pkg", "TOML"]];
+        io=devnull,
+    )
     Pkg.precompile()
     Pkg.activate(old_project; io=devnull)
     results_filename = joinpath(output_dir, "results_" * spec_str * ".json")
