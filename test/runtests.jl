@@ -222,6 +222,18 @@ end
     """
     @test truth ≈ create_table(combined_results)
 
+    sha_results = OrderedDict(
+        "deadbeef1234567890abcdef1234567890abcdef" => OrderedDict(
+            "bench1" => Dict("median" => 1.0e6, "75" => 1.1e6, "25" => 0.9e6),
+        ),
+        "v1" => OrderedDict(
+            "bench1" => Dict("median" => 2.0e6, "75" => 2.1e6, "25" => 1.9e6),
+        ),
+    )
+    sha_table = create_table(sha_results; add_ratio_col=false)
+    @test occursin("deadbeef1234567890abcdef1234567890abcdef", sha_table)
+    @test !occursin("deadbeef12345...", sha_table)
+
     truth = """
     |        | v1                 | v2                | v1 / v2 |
     |:-------|:------------------:|:-----------------:|:-------:|

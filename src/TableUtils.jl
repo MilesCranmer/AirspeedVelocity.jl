@@ -105,7 +105,7 @@ function create_table(
     # Cutoff headers if needed:
     cutoff = 14
     headers = String[
-        if length(head) <= cutoff
+        if length(head) <= cutoff || occursin(r"^[0-9a-f]{40}$", head)
             head
         else
             first(head, cutoff) * "..."
