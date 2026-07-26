@@ -62,4 +62,10 @@ Comonicon.@main function benchpkgplot(
     return nothing
 end
 
+if VERSION >= v"1.12"
+    @eval function (Base.@main)(ARGS)
+        return command_main(ARGS)
+    end
+end
+
 end # AirspeedVelocity.BenchPkgPlot
