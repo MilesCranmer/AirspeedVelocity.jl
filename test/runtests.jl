@@ -15,6 +15,27 @@ using TestItemRunner
 
 @run_package_tests
 
+@testitem "Test --version" begin
+    using AirspeedVelocity
+
+    for command_main in (
+        AirspeedVelocity.BenchPkg.command_main,
+        AirspeedVelocity.BenchPkgTable.command_main,
+        AirspeedVelocity.BenchPkgPlot.command_main,
+    )
+        output_path = tempname()
+        output = open(output_path, "w+") do io
+            redirect_stdout(io) do
+                command_main(["--version"])
+            end
+            seekstart(io)
+            read(io, String)
+        end
+        @test occursin(r"\d+\.\d+\.\d+", output)
+        @test !occursin("nothing", output)
+    end
+end
+
 @testitem "Test run benchmarking" begin
     using AirspeedVelocity
 

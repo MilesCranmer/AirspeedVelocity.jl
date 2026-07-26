@@ -4,6 +4,9 @@ using ..PlotUtils: combined_plots
 using ..Utils: load_results
 using PlotlyKaleido: savefig, start
 using Comonicon
+using TOML: parsefile
+
+const COMMAND_VERSION = VersionNumber(parsefile(joinpath(@__DIR__, "..", "Project.toml"))["version"])
 
 """
     benchpkgplot package_name [-r --rev <arg>] [-i --input-dir <arg>]
