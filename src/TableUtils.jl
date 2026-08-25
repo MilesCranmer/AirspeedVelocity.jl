@@ -59,6 +59,25 @@ function format_memory(::Missing)
 end
 
 """
+Classify a `ratio` (with optional `ratio_err`, `NaN` if unknown) as `:speedup`, `:slowdown`,
+or `:neutral`. `ratio` is baseline/current (see `create_table`), so `ratio < 1` means the
+current revision is slower. With a known error bar, the whole interval must clear a
+tighter 0.8/1.2 threshold; without one, a wider 0.5/1.5 threshold is used since there is no
+uncertainty to account for.
+"""
+function _ratio_status(ratio, ratio_err)
+    isfinite(ratio) || return :neutral
+    if isfinite(ratio_err)
+        ratio + ratio_err < 0.8 && return :slowdown
+        ratio - ratio_err > 1.2 && return :speedup
+    else
+        ratio < 0.5 && return :slowdown
+        ratio > 1.5 && return :speedup
+    end
+    return :neutral
+end
+
+"""
     create_table(combined_results::OrderedDict; kws...)
 
 Create a markdown table of the results loaded from the `load_results` function.
@@ -164,20 +183,7 @@ function create_table(
             else
                 NaN
             end
-            status = :neutral
-            if isfinite(ratio) && isfinite(ratio_err)
-                if ratio + ratio_err < 0.8
-                    status = :slowdown
-                elseif ratio - ratio_err > 1.2
-                    status = :speedup
-                end
-            elseif isfinite(ratio)
-                if ratio < 0.5
-                    status = :speedup
-                elseif ratio > 1.5
-                    status = :slowdown
-                end
-            end
+            status = _ratio_status(ratio, ratio_err)
 
             string_ratio = join((
                 isfinite(ratio) ? @sprintf("%.3g", ratio) : "",

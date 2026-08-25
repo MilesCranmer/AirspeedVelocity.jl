@@ -225,8 +225,8 @@ end
     truth = """
     |        | v1                 | v2                | v1 / v2   |
     |:-------|:------------------:|:-----------------:|:---------:|
-    | bench1 | 1  allocs: 10 B    | 2  allocs: 1 kB   | 0.00977 🚀 |
-    | bench2 | 1 M allocs: 0.1 kB | 3  allocs: 10 kB  | 0.01 🚀    |
+    | bench1 | 1  allocs: 10 B    | 2  allocs: 1 kB   | 0.00977 🐢 |
+    | bench2 | 1 M allocs: 0.1 kB | 3  allocs: 10 kB  | 0.01 🐢    |
     | bench3 |                    | 4  allocs: 0.1 MB |           |
     """
     @test truth ≈ create_table(
