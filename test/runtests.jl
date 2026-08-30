@@ -186,7 +186,14 @@ end
                 "memory" => 1024 / 10,
                 "allocs" => 1e6,
             ),
-            #= We leave out bench3 as a test =#
+            "bench3" => Dict(
+                "median" => 2.0e9,
+                "75" => 2.1e9,
+                "25" => 1.9e9,
+                "memory" => 2048,
+                "allocs" => 10,
+            ),
+            #= We leave out bench4 as a test =#
         ),
         "v2" => OrderedDict(
             "bench1" => Dict(
@@ -204,6 +211,13 @@ end
                 "allocs" => 3,
             ),
             "bench3" => Dict(
+                "median" => 1.0e9,
+                "75" => 1.05e9,
+                "25" => 0.95e9,
+                "memory" => 1024,
+                "allocs" => 5,
+            ),
+            "bench4" => Dict(
                 "median" => 0.2e5,
                 "75" => 0.3e5,
                 "25" => 0.1e5,
@@ -218,7 +232,8 @@ end
     |:-------|:------------:|:----------:|:-------------:|
     | bench1 | 1.2 ± 0.2 s  | 12 ± 2 s   | 0.1 ± 0.024 🐢 |
     | bench2 | 0.2 ± 0.2 ms | 20 ± 20 μs | 10 ± 14       |
-    | bench3 |              | 20 ± 20 μs |               |
+    | bench3 | 2 ± 0.2 s    | 1 ± 0.1 s  | 2 ± 0.28 🚀    |
+    | bench4 |              | 20 ± 20 μs |               |
     """
     @test truth ≈ create_table(combined_results)
 
@@ -227,7 +242,8 @@ end
     |:-------|:------------------:|:-----------------:|:---------:|
     | bench1 | 1  allocs: 10 B    | 2  allocs: 1 kB   | 0.00977 🐢 |
     | bench2 | 1 M allocs: 0.1 kB | 3  allocs: 10 kB  | 0.01 🐢    |
-    | bench3 |                    | 4  allocs: 0.1 MB |           |
+    | bench3 | 10  allocs: 2 kB   | 5  allocs: 1 kB   | 2 🚀       |
+    | bench4 |                    | 4  allocs: 0.1 MB |           |
     """
     @test truth ≈ create_table(
         combined_results; formatter=AirspeedVelocity.TableUtils.format_memory, key="memory"
@@ -260,6 +276,42 @@ end
     | findall/xf-iter  | 10 ± 2 ns |"""
 
     @test truth ≈ s
+end
+
+@testitem "Test ratio status and emoji classification" begin
+    using AirspeedVelocity: TableUtils
+    using Test
+
+    # Non-finite ratio
+    @test TableUtils._ratio_status(NaN, NaN) == :neutral
+    @test TableUtils._ratio_status(Inf, NaN) == :neutral
+    @test TableUtils._ratio_status(-Inf, NaN) == :neutral
+    @test TableUtils._ratio_status(NaN, 0.1) == :neutral
+
+    # Finite error bar (timing mode)
+    # Slowdown: ratio + ratio_err < 0.8
+    @test TableUtils._ratio_status(0.5, 0.1) == :slowdown
+    @test TableUtils._ratio_status(0.7, 0.05) == :slowdown
+    # Speedup: ratio - ratio_err > 1.2
+    @test TableUtils._ratio_status(2.0, 0.2) == :speedup
+    @test TableUtils._ratio_status(1.5, 0.1) == :speedup
+    # Neutral: within threshold or error bar crosses threshold
+    @test TableUtils._ratio_status(1.0, 0.1) == :neutral
+    @test TableUtils._ratio_status(0.7, 0.2) == :neutral
+    @test TableUtils._ratio_status(1.3, 0.2) == :neutral
+    @test TableUtils._ratio_status(2.0, 1.5) == :neutral
+
+    # No error bar (memory mode / single sample)
+    # Slowdown: ratio < 0.5
+    @test TableUtils._ratio_status(0.4, NaN) == :slowdown
+    @test TableUtils._ratio_status(0.4, Inf) == :slowdown
+    # Speedup: ratio > 1.5
+    @test TableUtils._ratio_status(1.6, NaN) == :speedup
+    @test TableUtils._ratio_status(1.6, Inf) == :speedup
+    # Neutral: 0.5 <= ratio <= 1.5
+    @test TableUtils._ratio_status(0.5, NaN) == :neutral
+    @test TableUtils._ratio_status(1.0, NaN) == :neutral
+    @test TableUtils._ratio_status(1.5, NaN) == :neutral
 end
 
 @testitem "Test table generation with fixed time units" begin
