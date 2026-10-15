@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.6](https://github.com/MilesCranmer/AirspeedVelocity.jl/compare/v0.6.5...v0.6.6) (2026-10-15)
+
+
+### Bug Fixes
+
+* disable per-add auto-precompile when building benchmark env ([#162](https://github.com/MilesCranmer/AirspeedVelocity.jl/issues/162)) ([76d32c1](https://github.com/MilesCranmer/AirspeedVelocity.jl/commit/76d32c122ca015517100754ea5260444281b696e)), closes [#160](https://github.com/MilesCranmer/AirspeedVelocity.jl/issues/160)
+
 ## [0.6.5](https://github.com/MilesCranmer/AirspeedVelocity.jl/compare/v0.6.4...v0.6.5) (2026-01-24)
 
 ### Features
