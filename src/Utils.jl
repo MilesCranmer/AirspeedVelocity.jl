@@ -184,21 +184,24 @@ function _benchmark(
     end
     Pkg.activate(tmp_env; io=devnull)
     @info "    Adding packages."
-    # "dirty" rev means we want to benchmark the local
-    # version of the package at `path`.
-    if spec.rev == "dirty"
-        Pkg.develop(; path=spec.path, io=devnull)
-    else
-        if !isnothing(spec.path)
-            dev_source_pkgs(spec.path)
+    # Precompile once below, not per add (per-add hits JuliaLang/Pkg.jl#4866 on Julia 1.13.2):
+    withenv("JULIA_PKG_PRECOMPILE_AUTO" => "0") do
+        # "dirty" rev means we want to benchmark the local
+        # version of the package at `path`.
+        if spec.rev == "dirty"
+            Pkg.develop(; path=spec.path, io=devnull)
+        else
+            if !isnothing(spec.path)
+                dev_source_pkgs(spec.path)
+            end
+            Pkg.add(spec; io=devnull)
         end
-        Pkg.add(spec; io=devnull)
+        # Filter out empty strings from extra_pkgs:
+        extra_pkgs = filter(x -> x != "", extra_pkgs)
+        pkgs = ["BenchmarkTools", "JSON3", "Pkg", "TOML", extra_pkgs...]
+        # Add extra packages
+        Pkg.add([parse_package_spec(pkg) for pkg in pkgs]; io=devnull)
     end
-    # Filter out empty strings from extra_pkgs:
-    extra_pkgs = filter(x -> x != "", extra_pkgs)
-    pkgs = ["BenchmarkTools", "JSON3", "Pkg", "TOML", extra_pkgs...]
-    # Add extra packages
-    Pkg.add([parse_package_spec(pkg) for pkg in pkgs]; io=devnull)
     Pkg.precompile()
     Pkg.activate(old_project; io=devnull)
     results_filename = joinpath(output_dir, "results_" * spec_str * ".json")
