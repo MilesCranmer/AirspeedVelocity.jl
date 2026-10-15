@@ -184,21 +184,26 @@ function _benchmark(
     end
     Pkg.activate(tmp_env; io=devnull)
     @info "    Adding packages."
-    # "dirty" rev means we want to benchmark the local
-    # version of the package at `path`.
-    if spec.rev == "dirty"
-        Pkg.develop(; path=spec.path, io=devnull)
-    else
-        if !isnothing(spec.path)
-            dev_source_pkgs(spec.path)
+    # Precompile once after all packages are added, instead of after every `Pkg.add`.
+    # On Julia 1.13.2, auto-precompilation also throws `Unknown package` whenever an
+    # `add` changes the version of an indirect dependency (JuliaLang/Pkg.jl#4866).
+    withenv("JULIA_PKG_PRECOMPILE_AUTO" => "0") do
+        # "dirty" rev means we want to benchmark the local
+        # version of the package at `path`.
+        if spec.rev == "dirty"
+            Pkg.develop(; path=spec.path, io=devnull)
+        else
+            if !isnothing(spec.path)
+                dev_source_pkgs(spec.path)
+            end
+            Pkg.add(spec; io=devnull)
         end
-        Pkg.add(spec; io=devnull)
+        # Filter out empty strings from extra_pkgs:
+        extra_pkgs = filter(x -> x != "", extra_pkgs)
+        pkgs = ["BenchmarkTools", "JSON3", "Pkg", "TOML", extra_pkgs...]
+        # Add extra packages
+        Pkg.add([parse_package_spec(pkg) for pkg in pkgs]; io=devnull)
     end
-    # Filter out empty strings from extra_pkgs:
-    extra_pkgs = filter(x -> x != "", extra_pkgs)
-    pkgs = ["BenchmarkTools", "JSON3", "Pkg", "TOML", extra_pkgs...]
-    # Add extra packages
-    Pkg.add([parse_package_spec(pkg) for pkg in pkgs]; io=devnull)
     Pkg.precompile()
     Pkg.activate(old_project; io=devnull)
     results_filename = joinpath(output_dir, "results_" * spec_str * ".json")
