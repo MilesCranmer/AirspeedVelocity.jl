@@ -367,6 +367,39 @@ end
     @test "cos" in keys(results["data"])
 end
 
+@testitem "Dirty repo with bench_on dirty" begin
+    using AirspeedVelocity
+    using Pkg
+    using JSON3
+
+    # `--bench-on dirty` with no `--script` should read the working tree's
+    # `benchmark/benchmarks.jl` (#59).
+    tmpdir = mktempdir()
+    cd(tmpdir)
+    Pkg.generate("TestPackage")
+    path = joinpath(tmpdir, "TestPackage")
+    run(`git -C "$path" init`)
+    mkpath(joinpath(path, "benchmark"))
+    open(joinpath(path, "benchmark", "benchmarks.jl"), "w") do io
+        write(
+            io,
+            """
+            using BenchmarkTools
+            using TestPackage
+            const SUITE = BenchmarkGroup()
+            SUITE["cos"] = @benchmarkable cos(x) setup=(x=rand())
+            """,
+        )
+    end
+    results_dir = mktempdir(; cleanup=false)
+    benchpkg(
+        "TestPackage"; rev="dirty", bench_on="dirty", path=path, output_dir=results_dir
+    )
+    @test isfile(joinpath(results_dir, "results_TestPackage@dirty.json"))
+    results = JSON3.read(joinpath(results_dir, "results_TestPackage@dirty.json"))
+    @test "cos" in keys(results["data"])
+end
+
 @testitem "Fill in defaults" begin
     import AirspeedVelocity.Utils: get_package_name_defaults as pkg_defaults
 

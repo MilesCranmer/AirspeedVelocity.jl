@@ -83,11 +83,12 @@ Comonicon.@main function benchpkg(
         end
     end
 
-    _script = if bench_on == "dirty" && path != "" && script == ""
-        bench_on = nothing
-        joinpath(path, "benchmark", "benchmarks.jl")
+    # `--bench-on dirty` has no revision to download a script from: read the
+    # working tree's instead (#59).
+    _script, _bench_on = if bench_on == "dirty" && path != "" && script == ""
+        joinpath(path, "benchmark", "benchmarks.jl"), ""
     else
-        script
+        script, bench_on
     end
 
     benchmark(
@@ -100,7 +101,7 @@ Comonicon.@main function benchpkg(
         extra_pkgs=convert(Vector{String}, split(add, ",")),
         url=(length(url) > 0 ? url : nothing),
         path=(length(path) > 0 ? path : nothing),
-        benchmark_on=(length(bench_on) > 0 ? bench_on : nothing),
+        benchmark_on=(length(_bench_on) > 0 ? _bench_on : nothing),
         filter_benchmarks=filtered,
         nsamples_load_time=nsamples_load_time,
     )
