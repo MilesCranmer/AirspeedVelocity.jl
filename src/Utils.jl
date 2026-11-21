@@ -74,32 +74,40 @@ function _get_script(;
     url::Union{Nothing,String}=nothing,
     path::Union{Nothing,String}=nothing,
 )::Tuple{String,Union{String,Nothing}}
-    # Create temp env, add package, and get path to benchmark script.
-    @info "Downloading package's latest benchmark script, assuming it is in benchmark/benchmarks.jl"
-    if benchmark_on !== nothing
-        @info "Downloading from $benchmark_on."
-    end
-    tmp_env = mktempdir()
-    to_exec = quote
-        ENV["JULIA_PKG_PRECOMPILE_AUTO"] = 0
-        using Pkg
-        Pkg.add(
-            PackageSpec(; name=$package_name, rev=$benchmark_on, url=$url, path=$path);
-            io=devnull,
-        )
-        using $(Symbol(package_name)): $(Symbol(package_name))
-        root_dir = dirname(dirname(pathof($(Symbol(package_name)))))
-        open(joinpath($tmp_env, "package_path.txt"), "w") do io
-            write(io, root_dir)
+    root_dir = if benchmark_on == "dirty"
+        if isnothing(path)
+            error("You must specify a `path` when using `benchmark_on=\"dirty\"`.")
         end
-    end
-    path_getter = joinpath(tmp_env, "path_getter.jl")
-    open(path_getter, "w") do io
-        println(io, to_exec)
-    end
-    run(`julia --project="$tmp_env" --startup-file=no "$path_getter"`)
+        @info "Using working tree benchmark script at $path."
+        abspath(path)
+    else
+        # Create temp env, add package, and get path to benchmark script.
+        @info "Downloading package's latest benchmark script, assuming it is in benchmark/benchmarks.jl"
+        if benchmark_on !== nothing
+            @info "Downloading from $benchmark_on."
+        end
+        tmp_env = mktempdir()
+        to_exec = quote
+            ENV["JULIA_PKG_PRECOMPILE_AUTO"] = 0
+            using Pkg
+            Pkg.add(
+                PackageSpec(; name=$package_name, rev=$benchmark_on, url=$url, path=$path);
+                io=devnull,
+            )
+            using $(Symbol(package_name)): $(Symbol(package_name))
+            root_dir = dirname(dirname(pathof($(Symbol(package_name)))))
+            open(joinpath($tmp_env, "package_path.txt"), "w") do io
+                write(io, root_dir)
+            end
+        end
+        path_getter = joinpath(tmp_env, "path_getter.jl")
+        open(path_getter, "w") do io
+            println(io, to_exec)
+        end
+        run(`julia --project="$tmp_env" --startup-file=no "$path_getter"`)
 
-    root_dir = readchomp(joinpath(tmp_env, "package_path.txt"))
+        readchomp(joinpath(tmp_env, "package_path.txt"))
+    end
     script = joinpath(root_dir, "benchmark", "benchmarks.jl")
     if !isfile(script)
         @error "Could not find benchmark script at $script. Please specify the `script` manually."

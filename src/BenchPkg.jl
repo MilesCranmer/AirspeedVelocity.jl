@@ -83,18 +83,11 @@ Comonicon.@main function benchpkg(
         end
     end
 
-    _script = if bench_on == "dirty" && path != "" && script == ""
-        bench_on = nothing
-        joinpath(path, "benchmark", "benchmarks.jl")
-    else
-        script
-    end
-
     benchmark(
         package_name,
         revs;
         output_dir=output_dir,
-        script=(length(_script) > 0 ? _script : nothing),
+        script=(length(script) > 0 ? script : nothing),
         tune=tune,
         exeflags=(length(exeflags) > 0 ? `$(Cmd(split(exeflags, " ") .|> String))` : ``),
         extra_pkgs=convert(Vector{String}, split(add, ",")),

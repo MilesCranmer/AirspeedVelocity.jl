@@ -367,6 +367,46 @@ end
     @test "cos" in keys(results["data"])
 end
 
+@testitem "Dirty repo with bench_on dirty" begin
+    using AirspeedVelocity
+    using Pkg
+    using JSON3
+
+    tmpdir = mktempdir()
+    path = joinpath(tmpdir, "TestPackage")
+    Pkg.generate(path)
+    run(`git -C "$path" init`)
+    mkpath(joinpath(path, "benchmark"))
+    open(joinpath(path, "benchmark", "Project.toml"), "w") do io
+        write(
+            io,
+            """
+            [deps]
+            OrderedCollections = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
+            """,
+        )
+    end
+    open(joinpath(path, "benchmark", "benchmarks.jl"), "w") do io
+        write(
+            io,
+            """
+            using BenchmarkTools
+            using OrderedCollections
+            using TestPackage
+            const SUITE = BenchmarkGroup()
+            SUITE["cos"] = @benchmarkable cos(first(values(d))) setup=(d=OrderedDict(:x => rand()))
+            """,
+        )
+    end
+    results_dir = mktempdir()
+    benchpkg(
+        "TestPackage"; rev="dirty", bench_on="dirty", path=path, output_dir=results_dir
+    )
+    @test isfile(joinpath(results_dir, "results_TestPackage@dirty.json"))
+    results = JSON3.read(joinpath(results_dir, "results_TestPackage@dirty.json"))
+    @test "cos" in keys(results["data"])
+end
+
 @testitem "Fill in defaults" begin
     import AirspeedVelocity.Utils: get_package_name_defaults as pkg_defaults
 
