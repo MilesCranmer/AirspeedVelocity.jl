@@ -380,14 +380,24 @@ end
     path = joinpath(tmpdir, "TestPackage")
     run(`git -C "$path" init`)
     mkpath(joinpath(path, "benchmark"))
+    open(joinpath(path, "benchmark", "Project.toml"), "w") do io
+        write(
+            io,
+            """
+            [deps]
+            LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+            """,
+        )
+    end
     open(joinpath(path, "benchmark", "benchmarks.jl"), "w") do io
         write(
             io,
             """
             using BenchmarkTools
+            using LinearAlgebra
             using TestPackage
             const SUITE = BenchmarkGroup()
-            SUITE["cos"] = @benchmarkable cos(x) setup=(x=rand())
+            SUITE["cos"] = @benchmarkable cos(norm(x)) setup=(x=rand(3))
             """,
         )
     end
