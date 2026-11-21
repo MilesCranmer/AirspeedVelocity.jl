@@ -372,12 +372,9 @@ end
     using Pkg
     using JSON3
 
-    # `--bench-on dirty` with no `--script` should read the working tree's
-    # `benchmark/benchmarks.jl` (#59).
     tmpdir = mktempdir()
-    cd(tmpdir)
-    Pkg.generate("TestPackage")
     path = joinpath(tmpdir, "TestPackage")
+    Pkg.generate(path)
     run(`git -C "$path" init`)
     mkpath(joinpath(path, "benchmark"))
     open(joinpath(path, "benchmark", "Project.toml"), "w") do io
@@ -385,7 +382,7 @@ end
             io,
             """
             [deps]
-            LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+            OrderedCollections = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
             """,
         )
     end
@@ -394,14 +391,14 @@ end
             io,
             """
             using BenchmarkTools
-            using LinearAlgebra
+            using OrderedCollections
             using TestPackage
             const SUITE = BenchmarkGroup()
-            SUITE["cos"] = @benchmarkable cos(norm(x)) setup=(x=rand(3))
+            SUITE["cos"] = @benchmarkable cos(first(values(d))) setup=(d=OrderedDict(:x => rand()))
             """,
         )
     end
-    results_dir = mktempdir(; cleanup=false)
+    results_dir = mktempdir()
     benchpkg(
         "TestPackage"; rev="dirty", bench_on="dirty", path=path, output_dir=results_dir
     )

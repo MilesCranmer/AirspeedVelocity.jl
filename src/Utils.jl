@@ -79,7 +79,7 @@ function _get_script(;
             error("You must specify a `path` when using `benchmark_on=\"dirty\"`.")
         end
         @info "Using working tree benchmark script at $path."
-        path
+        abspath(path)
     else
         # Create temp env, add package, and get path to benchmark script.
         @info "Downloading package's latest benchmark script, assuming it is in benchmark/benchmarks.jl"
