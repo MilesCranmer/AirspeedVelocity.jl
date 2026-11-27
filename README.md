@@ -359,3 +359,12 @@ However, for me this wrapper is a bit too thin, which is why I created this pack
 AirspeedVelocity.jl tries to have more features and workflows readily-available.
 It also emphasizes a CLI (though there is a Julia API), as my subjective view
 is that this is more suitable for interacting side-by-side with `git`.
+
+Another option is [PerfChecker.jl](https://github.com/JuliaConstraints/PerfChecker.jl),
+which provides a semi-automatic, test-like environment for performance checking
+(with macros such as `@bench`) across versions of a package in isolated Julia
+instances. PerfChecker.jl is a good fit for continuous, structured performance
+checks while actively developing a package. AirspeedVelocity.jl instead focuses
+on directly comparing git revisions of a package out of the box — via CLI
+commands or the bundled GitHub Action — which is typically the quickest route
+to before/after benchmarks on a PR.
