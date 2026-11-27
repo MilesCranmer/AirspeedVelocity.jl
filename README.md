@@ -45,6 +45,15 @@ julia -e 'using Pkg; Pkg.activate(temp=true); Pkg.add("AirspeedVelocity"); Pkg.b
 
 This will install three executables at `~/.julia/bin` - make sure to have it on your `PATH`.
 
+Alternatively, install into a named Julia environment and add shell aliases:
+
+```bash
+julia --startup-file=no --project=@AirspeedVelocity -e 'import Pkg; Pkg.add("AirspeedVelocity")'
+alias benchpkg="julia --startup-file=no --project=@AirspeedVelocity -e 'using AirspeedVelocity; exit(AirspeedVelocity.BenchPkg.command_main(ARGS))' --"
+alias benchpkgtable="julia --startup-file=no --project=@AirspeedVelocity -e 'using AirspeedVelocity; exit(AirspeedVelocity.BenchPkgTable.command_main(ARGS))' --"
+alias benchpkgplot="julia --startup-file=no --project=@AirspeedVelocity -e 'using AirspeedVelocity; exit(AirspeedVelocity.BenchPkgPlot.command_main(ARGS))' --"
+```
+
 ## Examples
 
 You may use the CLI to generate benchmarks for any package with, e.g.,
